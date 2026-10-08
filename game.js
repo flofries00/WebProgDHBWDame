@@ -1,11 +1,18 @@
 // Globale Variablen für das Spielfeld
 let currentTurn = 'white' // Weiß hat nach den bekannten Dame-Regeln immer den ersten Zug
 let selectedPiece = null; // Speichert das HTML-Element des aktuell angeklickten Steins.
+let moveCount = 0; // Zählt Züge mit
 
 /**
  * Startet das eigentliche Brettspiel.
  */
 function startGame() {
+
+    // Spielstatus und Trophäen resetten
+    currentTurn = 'white';
+    moveCount = 0;
+    document.getElementById('p1Captured').innerHTML = '';
+    document.getElementById('compCaptured').innerHTML = '';
 
     // Kopfzeile dynamisch anpassen, basierend auf Farbwahl-Zufallsevent
     document.getElementById('p1Color').textContent = playerGetsWhite ? "(Weiß)" : "(Schwarz)";
@@ -287,8 +294,14 @@ function handleBoardClick(event) {
     // Markierungen aufheben
     clearSelection();
 
+    // Zugzähler erhöhen
+    moveCount++;
+
     // Spieler wechseln
     currentTurn = currentTurn === 'white' ? 'black' : 'white';
+
+    // Überprüfen, ob Spiel entschieden ist
+    if (checkWinCondition()) return;
 
     // Statusleiste aktualisieren
     const turnText = currentTurn === 'white' ? 'Weiß' : 'Schwarz';
@@ -378,6 +391,87 @@ function handleGlobalClick(event) {
     autoHighlightCaptures();
 }
 
+/**
+ * Hilfsfunktion: Prüft ob sich überhaupt ein Stein bewegen kann (ohne Schlagen)
+ */
+function canMove(piece) {
+    const row = parseInt(piece.parentElement.dataset.row);
+    const col = parseInt(piece.parentElement.dataset.col);
+    const isDame = piece.classList.contains('dame');
+
+    if (isDame) {
+        const directions = [
+            { dr: -1, dc: -1 }, { dr: -1, dc: 1 },
+            { dr: 1, dc: -1 }, { dr: 1, dc: 1 }
+        ];
+        for (let dir of directions) {
+            let r = row + dir.dr;
+            let c = col + dir.dc;
+            if (r >= 0 && r <= 7 && c >= 0 && c <= 7) {
+                const sel = `.cell[data-row="${r}"][data-col="${c}"]`;
+                const cell = document.querySelector(sel);
+                if (cell && cell.children.length === 0) return true;
+            }
+        }
+    } else {
+        const dir = piece.classList.contains('white-piece') ? -1 : 1;
+        const moves = [
+            { r: row + dir, c: col - 1 },
+            { r: row + dir, c: col + 1 }
+        ];
+        for (let m of moves) {
+            if (m.r >= 0 && m.r <= 7 && m.c >= 0 && m.c <= 7) {
+                const sel = `.cell[data-row="${m.r}"][data-col="${m.c}"]`;
+                const cell = document.querySelector(sel);
+                if (cell && cell.children.length === 0) return true;
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * Funktion, die am Zuganfang prüft, ob der aktuelle Spieler noch ziehen kann.
+ */
+function checkWinCondition() {
+    const myPieces = document.querySelectorAll(`.${currentTurn}-piece`);
+
+    // Siegbedingung 1: Keine Steine mehr übrig
+    if (myPieces.length === 0) {
+        endGame(currentTurn === 'white' ? 'black' : 'white');
+        return true;
+    }
+
+    // Siegbedingung 2: Kein Zug mehr möglich
+    let hasMove = false;
+    myPieces.forEach(p => {
+        if (canCapture(p) || canMove(p)) hasMove = true;
+    });
+
+    if (!hasMove) {
+        endGame(currentTurn === 'white' ? 'black' : 'white');
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Funktion, die das Spiel beendet und den Gewinner anzeigt.
+ */
+function endGame(winnerColor){
+    let winner = "";
+    if (winnerColor === 'white') {
+        winner = playerGetsWhite ? currentPlayerName : "Computer";
+    } else {
+        winner = playerGetsWhite ? "Computer" : currentPlayerName;
+    }
+
+    const textEl = document.getElementById('winnerText');
+    textEl.textContent = `${winner} hat gewonnen in ${moveCount} Zügen!`;
+    showScreen('endScreen');
+}
+
 
 /**
  * Zwischenstand:
@@ -387,4 +481,13 @@ function handleGlobalClick(event) {
  * Endscreen
  * UI Cleanup
  * Backend
+ * Drag & Drop Option
+ * Eigener Spieler soll immer unten sein unabhängig von der Farbe
+ * Computerlogik (Zufallszüge)
+ * Ziehanimation?
+ * Dameanimation?
+ * Gameboard wesentlich größer. Evtl ganzer Bildschirm. Dann auch responsive für Handy.
+ * Build-Process: Lässt sich Projekt nach Checkout bauen? (Build-Datei
+ * Git Extra Branch?
+ * Code-Review Sven
  */
