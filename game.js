@@ -32,7 +32,12 @@ function startGame() {
     generateBoard(); // Baut das HTML für das Spielbrett auf
 
     // Wir bringen nun dem gesamten Brett bei, auf Klicks auf markierte Felder zu achten
-    document.getElementById('board').addEventListener('click', handleBoardClick);
+    const boardEl = document.getElementById('board');
+    boardEl.addEventListener('click', handleBoardClick);
+
+    // Listener für Drag and Drop auf dem Spielbrett
+    boardEl.addEventListener('dragover', handleDragOver);
+    boardEl.addEventListener('drop', handleDrop);
 
     // Dokument überwachen, um Klicks ins Leere abzufangen
     document.addEventListener('click', handleGlobalClick);
@@ -71,13 +76,19 @@ function generateBoard() {
                 if (row < 3) {
                     const piece = document.createElement('div');
                     piece.className = 'piece black-piece'; // Oben immer Schwarz
+                    piece.draggable = true; // Draggable machen
                     piece.addEventListener('click', selectPiece); // Klick-Event hinzufügen
+                    piece.addEventListener('dragstart', handleDragStart); // DragDrop
+                    piece.addEventListener('dragend', handleDragEnd);
                     cell.appendChild(piece); // Stein in die Kachel legen
                 }
                 else if (row > 4) {
                     const piece = document.createElement('div');
                     piece.className = 'piece white-piece'; // Unten immer Weiß
+                    piece.draggable = true;
                     piece.addEventListener('click', selectPiece); // Klick-Event hinzufügen
+                    piece.addEventListener('dragstart', handleDragStart); // DragDrop
+                    piece.addEventListener('dragend', handleDragEnd);
                     cell.appendChild(piece); // Stein in die Kachel legen
                 }
             }
@@ -624,6 +635,48 @@ socket.on('recieveMove', (m) => {
         tCell.click();
     }
 });
+
+/**
+ * Startet Ziehen eines Steins
+ */
+function handleDragStart(event) {
+    // Klick simulieren, um Felder zu färben
+    selectPiece(event);
+
+    // Stein halbtransparent machen, während er am Mauszeiger hängt
+    setTimeout(() => {
+        if (selectedPiece === event.target) event.target.style.opacity = '0.3';
+    }, 0);
+}
+
+/**
+ * Setzt Optik des Steins nach Loslassen wieder zurück
+ */
+function handleDragEnd(event){
+    event.target.style.opacity = '1';
+}
+
+/**
+ * Erlaubt Fallenlassen NUR auf gültigen Zielfeldern
+ */
+function handleDragOver(event) {
+    const validCell = event.target.closest('.cell.highlighted, .cell.highlighted-capture');
+    if (validCell) {
+        event.preventDefault(); // Notwendig um Bereich als Drop-Zone freizugeben
+    }
+}
+
+/**
+ * Führt Zug bei Loslassen auf dem Ziel aus
+ */
+function handleDrop(event) {
+    event.preventDefault();
+    // Loslassen an bestehende Klick-Funktion übergeben
+    handleBoardClick(event);
+}
+
+
+
 
 /**
  * Zwischenstand:
