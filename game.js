@@ -68,17 +68,15 @@ function generateBoard() {
 
             // Spielsteine dürfen nach den Dame-Regeln nur auf dunklen Feldern liegen
             if (isBlackCell) {
-                // In den obersten 3 Reihen (Index 0, 1, 2) liegen die Steine des Gegners
                 if (row < 3) {
                     const piece = document.createElement('div');
-                    piece.className = playerGetsWhite ? 'piece black-piece' : 'piece white-piece';
+                    piece.className = 'piece black-piece'; // Oben immer Schwarz
                     piece.addEventListener('click', selectPiece); // Klick-Event hinzufügen
                     cell.appendChild(piece); // Stein in die Kachel legen
                 }
-                // In den untersten 3 Reihen (Index 5, 6, 7) liegen die eigenen Steine
                 else if (row > 4) {
                     const piece = document.createElement('div');
-                    piece.className = playerGetsWhite ? 'piece white-piece' : 'piece black-piece';
+                    piece.className = 'piece white-piece'; // Unten immer Weiß
                     piece.addEventListener('click', selectPiece); // Klick-Event hinzufügen
                     cell.appendChild(piece); // Stein in die Kachel legen
                 }
@@ -87,6 +85,13 @@ function generateBoard() {
             // Die fertige Kachel an das Spielbrett im HTML anhängen
             boardElement.appendChild(cell);
         }
+    }
+
+    // Brett visuell um 180° drehen, wenn man Schwarz hat
+    if (!playerGetsWhite) {
+        boardElement.classList.add('flipped');
+    } else {
+        boardElement.classList.remove('flipped');
     }
 }
 
@@ -100,6 +105,15 @@ function selectPiece(event) {
     // Wenn Weiß am Zug ist, darf man keine schwarzen Steine anklicken und umgekehrt
     if (!piece.classList.contains(currentTurn + '-piece')) {
         return; // Funktion abbrechen
+    }
+
+    // Multiplayer-Check: Darf ich Stein wirklich anklicken?
+    const isMyTurn = (currentTurn === 'white' && playerGetsWhite) ||
+        (currentTurn === 'black' && !playerGetsWhite);
+
+    //event.isTrusted ist 'true' bei echten Mausklicks, 'false' bei simulierten
+    if (gameMode === 'local' && !isMyTurn && event.isTrusted) {
+        return; // Blockiert echten Mausklick auf fremde Steine
     }
 
     // a2) Schlagzwang prüfen
@@ -266,6 +280,16 @@ function handleBoardClick(event) {
 
     // Abbruchbedingung, wenn keine markierte Zelle oder kein Stein ausgewählt wurde
     if (!targetCell || !selectedPiece) return;
+
+    // Sende Zug an Gegner
+    if (gameMode === 'local' && event.isTrusted) {
+        socket.emit('makeMove', {
+            fromR: selectedPiece.parentElement.dataset.row,
+            fromC: selectedPiece.parentElement.dataset.col,
+            toR: targetCell.dataset.row,
+            toC: targetCell.dataset.col
+        });
+    }
 
     // Wurde ein Stein geschlagen?
     if (targetCell.dataset.jumpR !== undefined) {
@@ -511,7 +535,7 @@ function startTurnTimer() {
             blackTime--;
             if (blackTime <= 0) {
                 blackTime = 0;
-                updateTimerDisplays;
+                updateTimerDisplays();
                 endGame('white', 'timeout');
                 return;
             }
@@ -582,14 +606,31 @@ function updateActiveTimerStyle() {
     }
 }
 
+/**
+ * Züge von Server empfangen und auf dem Brett simulieren
+ */
+socket.on('recieveMove', (m) => {
+    const fromSel = `.cell[data-row="${m.fromR}"][data-col="${m.fromC}"]`;
+    const toSel = `.cell[data-row="${m.toR}"][data-col="${m.toC}"]`;
+
+    const fCell = document.querySelector(fromSel);
+    const tCell = document.querySelector(toSel);
+
+    if (fCell && tCell && fCell.children[0]) {
+        // 1. Stein auswählen
+        fCell.children[0].click();
+
+        // 2. Zielfeld anklicken
+        tCell.click();
+    }
+});
 
 /**
  * Zwischenstand:
  * TODOs:
  * UI Cleanup
- * Backend
+ * Backend (Servereinbindung)
  * Drag & Drop Option
- * Eigener Spieler soll immer unten sein unabhängig von der Farbe
  * Computerlogik (Zufallszüge)
  * Ziehanimation?
  * Dameanimation?

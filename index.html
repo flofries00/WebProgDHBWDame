@@ -13,6 +13,9 @@
     <!-- defer ist wichtig: Sagt Browser, dass er zuerst die gesamte HTML Datei laden soll bevor das Script ausgeführt wird-->
     <script src="ui.js" defer></script>
     <script src="game.js" defer></script>
+
+    <!-- Socket.io Client-Bibliothek laden -->
+    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
 
@@ -93,8 +96,6 @@
         </div>
         <p class="coin-legend">⚪ <span id="legendName"></span> &nbsp; &nbsp; ⚫ <span id="legendOpponent">Computer</span></p>
         <p id="startPlayerText">Auslosung läuft...</p>
-        <!-- Button erscheint erst, wenn die Auslosungs-Simulation fertig ist -->
-        <button onclick="startGame()" id="toGameBtn" style="display:none;">Zum Spiel</button>
     </div>
 
     <!-- 4. Bildschirm: Das eigentliche Spiel -->

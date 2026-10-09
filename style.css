@@ -503,3 +503,21 @@ button:disabled {
         width: 100%; /* Eingabefeld nutzt auf dem Handy die volle Breite der Karte */
     }
 }
+
+/* --- Teil G: Brett drehen für anderen Spieler --- */
+#board.flipped {
+    transform: rotate(180deg);
+}
+
+/* Damit Steine nicht auf dem Kopf stehen */
+#board.flipped .piece {
+    transform: rotate(180deg);
+}
+
+#board.flipped .piece:hover {
+    transform: rotate(180deg) scale(1.1);
+}
+
+#board.flipped .piece.selected {
+    transform: rotate(180deg) scale(1.15);
+}
