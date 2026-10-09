@@ -2,6 +2,9 @@
 let currentTurn = 'white' // Weiß hat nach den bekannten Dame-Regeln immer den ersten Zug
 let selectedPiece = null; // Speichert das HTML-Element des aktuell angeklickten Steins.
 let moveCount = 0; // Zählt Züge mit
+let whiteTime = 300; // Startzeit Weiß (5min / 300s)
+let blackTime = 300; // Startzeit Schwarz (5min / 300s)
+let timerInterval = null;
 
 /**
  * Startet das eigentliche Brettspiel.
@@ -13,6 +16,12 @@ function startGame() {
     moveCount = 0;
     document.getElementById('p1Captured').innerHTML = '';
     document.getElementById('compCaptured').innerHTML = '';
+
+    // Startzeiten zurücksetzen und Anzeige aktualisieren
+    whiteTime = 35;
+    blackTime = 300;
+    updateTimerDisplays();
+    startTurnTimer();
 
     // Kopfzeile dynamisch anpassen, basierend auf Farbwahl-Zufallsevent
     document.getElementById('p1Color').textContent = playerGetsWhite ? "(Weiß)" : "(Schwarz)";
@@ -309,6 +318,9 @@ function handleBoardClick(event) {
 
     // Nach dem Spielerwechsel ist zu prüfen, ob der neue Spieler im Schlagzwang ist
     autoHighlightCaptures();
+
+    // Optischen Fokus der Uhr auf den neuen Spieler wechseln
+    updateActiveTimerStyle();
 }
 
 /**
@@ -459,7 +471,10 @@ function checkWinCondition() {
 /**
  * Funktion, die das Spiel beendet und den Gewinner anzeigt.
  */
-function endGame(winnerColor){
+function endGame(winnerColor, reason = "") {
+    // Uhr anhalten
+    clearInterval(timerInterval);
+
     let winner = "";
     if (winnerColor === 'white') {
         winner = playerGetsWhite ? currentPlayerName : "Computer";
@@ -468,8 +483,103 @@ function endGame(winnerColor){
     }
 
     const textEl = document.getElementById('winnerText');
-    textEl.textContent = `${winner} hat gewonnen in ${moveCount} Zügen!`;
+    if (reason === "timeout") {
+        textEl.textContent = `Zeit abgelaufen! ${winner} gewinnt!`;
+    } else {
+        textEl.textContent = `${winner} hat gewonnen in ${moveCount} Zügen!`;
+    }
     showScreen('endScreen');
+}
+
+/**
+ * Startet das Sekundenticken der Uhr
+ */
+function startTurnTimer() {
+    clearInterval(timerInterval);
+    updateActiveTimerStyle();
+
+    timerInterval = setInterval(() => {
+        if (currentTurn === 'white') {
+            whiteTime--;
+            if (whiteTime <= 0) {
+                whiteTime = 0;
+                updateTimerDisplays();
+                endGame('black', 'timeout');
+                return;
+            }
+        } else {
+            blackTime--;
+            if (blackTime <= 0) {
+                blackTime = 0;
+                updateTimerDisplays;
+                endGame('white', 'timeout');
+                return;
+            }
+        }
+        updateTimerDisplays();
+    }, 1000);
+}
+
+/**
+ * Formatiert Sekunden in MM:SS und schreibt sie ins HTML und prüft auf <= 30s
+ */
+function updateTimerDisplays() {
+    const format = (sec) => {
+        const m = Math.floor(sec / 60).toString().padStart(2, '0');
+        const s = (sec % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    };
+
+    const p1El = document.getElementById('p1Timer');
+    const compEl = document.getElementById('compTimer');
+    const p1Bar = document.getElementById('p1TimerBar');
+    const compBar = document.getElementById('compTimerBar');
+
+    const p1Time = playerGetsWhite ? whiteTime : blackTime;
+    const compTime = playerGetsWhite ? blackTime : whiteTime;
+
+    // a) Digitaluhren aktualisieren
+    p1El.textContent = format(p1Time);
+    compEl.textContent = format(compTime);
+
+    // b) Balkenbreite in Prozent berechnen (Basis: 300s)
+    p1Bar.style.width = `${(p1Time / 300) * 100}%`;
+    compBar.style.width = `${(compTime / 300) * 100}%`;
+
+    // Warn-Blinken ab 30s aktivieren und für neues Spiel wieder entfernen
+    if (p1Time <= 30) {
+        p1El.classList.add('low-time');
+        p1Bar.classList.add('low-time');
+    } else {
+        p1El.classList.remove('low-time');
+        p1Bar.classList.remove('low-time');
+    }
+    if (compTime <= 30) {
+        compEl.classList.add('low-time');
+        compBar.classList.add('low-time');
+    } else {
+        compEl.classList.remove('low-time');
+        compBar.classList.remove('low-time');
+    }
+}
+
+/**
+ * Hebt die Uhr des Spielers hervor, der am Zug ist
+ */
+
+function updateActiveTimerStyle() {
+    const p1El = document.getElementById('p1Timer');
+    const compEl = document.getElementById('compTimer');
+
+    const isP1Turn = (currentTurn === 'white' && playerGetsWhite || currentTurn === 'black' && !playerGetsWhite);
+
+    if (isP1Turn) {
+        p1El.classList.add('active-timer');
+        compEl.classList.remove('active-timer');
+    } else {
+        compEl.classList.add('active-timer');
+        p1El.classList.remove('active-timer');
+    }
 }
 
 
@@ -477,7 +587,6 @@ function endGame(winnerColor){
  * Zwischenstand:
  * TODOs:
  * Timer einbauen
- * Siegbedingung
  * Endscreen
  * UI Cleanup
  * Backend
