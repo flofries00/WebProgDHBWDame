@@ -586,8 +586,6 @@ function updateActiveTimerStyle() {
 /**
  * Zwischenstand:
  * TODOs:
- * Timer einbauen
- * Endscreen
  * UI Cleanup
  * Backend
  * Drag & Drop Option
@@ -596,7 +594,6 @@ function updateActiveTimerStyle() {
  * Ziehanimation?
  * Dameanimation?
  * Gameboard wesentlich größer. Evtl ganzer Bildschirm. Dann auch responsive für Handy.
- * Build-Process: Lässt sich Projekt nach Checkout bauen? (Build-Datei
- * Git Extra Branch?
+ * Build-Process: Lässt sich Projekt nach Checkout bauen? (Build-Datei)
  * Code-Review Sven
  */

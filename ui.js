@@ -3,6 +3,7 @@
         let playerGetsWhite = true;
         let searchTimeout; // Timer für Gegnersuche
         let gameMode = ""; // Merkt sich Spielmodus
+        let opponentName = "Computer" // Platzhalter für Gegnername
         
         /**
          * Speichert den gewählten Spielmodus und wechselt zur Anmeldung.
@@ -96,10 +97,22 @@
         function startSearch() {
             // Namen auslesen und speichern
             currentPlayerName = document.getElementById('playerName').value;
+
+            // Gegnername basierend auf Modus festlegen
+            if (gameMode === 'local') {
+                opponentName = "Spieler 2";
+            } else {
+                opponentName = "Computer";
+            }
             
             // Namen in die HTML-Platzhalter der anderen Bildschirme eintragen
             document.getElementById('waitName').textContent = currentPlayerName;
             document.getElementById('p1Name').textContent = currentPlayerName;
+
+            // Gegnernamen in HTML schreiben
+            document.getElementById('opponentNameDisplay').textContent = opponentName;
+            document.getElementById('legendOpponent').textContent = opponentName;
+            document.getElementById('opponentNameHeader').textContent = opponentName;
             
             // Wechsel zum Wartebildschirm
             showScreen('waitingScreen');
@@ -149,8 +162,8 @@
                 container.classList.add('bounce');
 
                 document.getElementById('startPlayerText').textContent = playerGetsWhite
-                    ? currentPlayerName + " bekommt die weißen Steine."
-                    : "Computer bekommt die weißen Steine. " + currentPlayerName + " spielt Schwarz.";
+                    ? `${currentPlayerName} bekommt die weißen Steine.`
+                    : `${opponentName} bekommt die weißen Steine. ${currentPlayerName} spielt Schwarz.`;
                 document.getElementById('toGameBtn').style.display = "inline-block";
             }, 2000);
         }

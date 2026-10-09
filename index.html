@@ -82,7 +82,7 @@
     <!-- 3. Bildschirm: Spielstart / Münzwurf -->
     <div id="coinTossScreen" class="screen">
         <h2>Gegner gefunden.</h2>
-        <p>Dein Gegner ist <strong>Computer</strong></p> <!-- Aktuell ein Platzhalter -->
+        <p>Dein Gegner ist <strong id="opponentNameDisplay">Computer</strong></p>
         <p>Auswahl des Spielers mit den weißen Steinen:</p>
         <!-- 3D-Raum für Münze erzeugen -->
         <div class="coin-container">
@@ -91,7 +91,7 @@
                 <div class="coin-face coin-back"></div> <!-- schwarz -->
             </div>
         </div>
-        <p class="coin-legend">⚪ <span id="legendName"></span> &nbsp; &nbsp; ⚫ Computer</p>
+        <p class="coin-legend">⚪ <span id="legendName"></span> &nbsp; &nbsp; ⚫ <span id="legendOpponent">Computer</span></p>
         <p id="startPlayerText">Auslosung läuft...</p>
         <!-- Button erscheint erst, wenn die Auslosungs-Simulation fertig ist -->
         <button onclick="startGame()" id="toGameBtn" style="display:none;">Zum Spiel</button>
@@ -116,7 +116,7 @@
             <!-- Container Spieler 2 -->
             <div style="display: flex; flex-direction: column; align-items: flex-end;">
                 <div id="compCaptured" class="captured-container"></div>
-                <div>Computer <span id="compColor">(Schwarz)</span></div>
+                <div><span id="opponentNameHeader">Computer</span> <span id="compColor">(Schwarz)</span></div>
                 <div id="compTimer" class="timer-display">5:00</div>
                 <div class="timer-bar-bg">
                     <div id="compTimerBar" class="timer-bar-fill"></div>
