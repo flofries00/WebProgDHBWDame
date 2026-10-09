@@ -628,6 +628,17 @@ button:disabled {
     animation: bounceEffect 0.4s ease-in-out;
 }
 
+/* Sicherstellen, dass springende Steine über den anderen liegen */
+.piece {
+    position: relative;
+    z-index: 1;
+}
+
+/* Krone temporär verstecken für die Beförderungs-Animation */
+.piece.hide-crown::after {
+    display: none;
+}
+
 /* --- Teil F: Responsive Design für Mobilgeräte --- */
 @media (max-width: 600px) {
     /* Wenn der Bildschirm 600 Pixel oder schmaler ist greifen nun diese Regeln: */

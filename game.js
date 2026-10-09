@@ -18,7 +18,7 @@ function startGame() {
     document.getElementById('compCaptured').innerHTML = '';
 
     // Startzeiten zurücksetzen und Anzeige aktualisieren
-    whiteTime = 35;
+    whiteTime = 300;
     blackTime = 300;
     updateTimerDisplays();
     startTurnTimer();
@@ -302,8 +302,12 @@ function handleBoardClick(event) {
         });
     }
 
+    // 1. Koordinaten VOR dem Wechsel speichern (für die Animation)
+    const startRect = selectedPiece.getBoundingClientRect();
+    const isCapture = targetCell.dataset.jumpR !== undefined;
+
     // Wurde ein Stein geschlagen?
-    if (targetCell.dataset.jumpR !== undefined) {
+    if (isCapture) {
         // "Opfer" suchen
         const victimCell = document.querySelector(`.cell[data-row="${targetCell.dataset.jumpR}"][data-col="${targetCell.dataset.jumpC}"]`);
         if (victimCell) {
@@ -313,26 +317,67 @@ function handleBoardClick(event) {
             // Kleine Trophäe erzeugen und in Kopfzeile packen
             const trophy = document.createElement('div');
             trophy.className = 'captured-piece ' + (victimIsWhite ? 'white-piece' : 'black-piece');
-            const targetContainer = (currentTurn === 'white' && playerGetsWhite) || (currentTurn === 'black' && !playerGetsWhite) ? 'p1Captured' : 'compCaptured';
-            document.getElementById(targetContainer).appendChild(trophy);
+            const tCont = (currentTurn === 'white' && playerGetsWhite) || 
+                          (currentTurn === 'black' && !playerGetsWhite) ? 'p1Captured' : 'compCaptured';
+            document.getElementById(tCont).appendChild(trophy);
         }
     }
 
-    // 'appendChild' verschiebt das HTML-Element automatisch aus der alten Zelle in die neue
-    targetCell.appendChild(selectedPiece);
+    // 'appendChild' verschiebt das HTML-Element automatisch in die neue Zelle
+    const pieceToAnimate = selectedPiece;
+    targetCell.appendChild(pieceToAnimate);
 
-    // Überprüfen ob Stein befördert werden muss:
-    // a) Zeile auslesen
+    // 2. Dame-Beförderung vorbereiten
     const newRow = parseInt(targetCell.dataset.row);
+    let getsPromoted = false;
+    
+    if (pieceToAnimate.classList.contains('white-piece') && newRow === 0 && !pieceToAnimate.classList.contains('dame')) getsPromoted = true;
+    if (pieceToAnimate.classList.contains('black-piece') && newRow === 7 && !pieceToAnimate.classList.contains('dame')) getsPromoted = true;
 
-    // b1) Weiß erreicht oberste Zeile (Index 0)
-    if (selectedPiece.classList.contains('white-piece') && newRow === 0) {
-        selectedPiece.classList.add('dame');
-    }
+    // Hilfsfunktion: Dreht die Dame um 180 Grad und blendet die Krone ein
+    const playPromoteAnim = () => {
+        pieceToAnimate.classList.add('hide-crown', 'dame');
+        const baseRot = document.getElementById('board').classList.contains('flipped') ? 180 : 0;
+        const spinAnim = pieceToAnimate.animate([
+            { transform: `rotate(${baseRot}deg) rotateY(0deg)` },
+            { transform: `rotate(${baseRot}deg) rotateY(180deg)` }
+        ], { duration: 400, easing: 'ease-in-out' });
+        
+        spinAnim.onfinish = () => pieceToAnimate.classList.remove('hide-crown');
+    };
 
-    // b2) Schwarz erreicht unterste Zeile (Index 7)
-    if (selectedPiece.classList.contains('black-piece') && newRow === 7) {
-        selectedPiece.classList.add('dame');
+    // 3. FLIP-Animation: NUR ausführen, wenn es kein Drag & Drop ('drop') war!
+    if (event.type !== 'drop') {
+        const endRect = pieceToAnimate.getBoundingClientRect();
+        let dx = startRect.left - endRect.left;
+        let dy = startRect.top - endRect.top;
+
+        // DER NEUE TRICK: Wenn das Brett um 180 Grad gedreht ist, fliegen die Steine
+        // lokal in die falsche Richtung. Wir drehen die Richtung mathematisch einfach um!
+        if (document.getElementById('board').classList.contains('flipped')) {
+            dx = -dx;
+            dy = -dy;
+        }
+
+        const moveKeyframes = isCapture 
+            ? [ // Sprung über gegnerischen Stein
+                { transform: `translate(${dx}px, ${dy}px) scale(1)`, zIndex: 10 },
+                { transform: `translate(${dx/2}px, ${dy/2}px) scale(1.3)`, zIndex: 10 },
+                { transform: `translate(0px, 0px) scale(1)`, zIndex: 10 }
+              ]
+            : [ // Normales, flaches Schweben
+                { transform: `translate(${dx}px, ${dy}px)`, zIndex: 10 },
+                { transform: `translate(0px, 0px)`, zIndex: 10 }
+              ];
+
+        const moveAnim = pieceToAnimate.animate(moveKeyframes, { duration: 350, easing: 'ease-in-out' });
+
+        // Wenn er befördert wird, warten wir den Flug ab und drehen ihn dann
+        if (getsPromoted) moveAnim.onfinish = playPromoteAnim;
+        
+    } else {
+        // Beim Drag & Drop: Keine Flug-Animation, aber falls er befördert wird, Drehung abspielen!
+        if (getsPromoted) playPromoteAnim();
     }
 
     // Markierungen aufheben
@@ -351,7 +396,7 @@ function handleBoardClick(event) {
     const turnText = currentTurn === 'white' ? 'Weiß' : 'Schwarz';
     document.getElementById('turnIndicator').textContent = turnText + ' ist am Zug';
 
-    // Nach dem Spielerwechsel ist zu prüfen, ob der neue Spieler im Schlagzwang ist
+    // Nach dem Spielerwechsel prüfen, ob der neue Spieler im Schlagzwang ist
     autoHighlightCaptures();
 
     // Optischen Fokus der Uhr auf den neuen Spieler wechseln
@@ -652,7 +697,7 @@ function handleDragStart(event) {
 /**
  * Setzt Optik des Steins nach Loslassen wieder zurück
  */
-function handleDragEnd(event){
+function handleDragEnd(event) {
     event.target.style.opacity = '1';
 }
 
@@ -690,4 +735,9 @@ function handleDrop(event) {
  * Gameboard wesentlich größer. Evtl ganzer Bildschirm. Dann auch responsive für Handy.
  * Build-Process: Lässt sich Projekt nach Checkout bauen? (Build-Datei)
  * Code-Review Sven
+ * Multischlagen?
+ * Sieganimation?
+ * Chat?
+ * Zug-Log?
+ * Boardbeschriftung (A-H, 1-8)?
  */
