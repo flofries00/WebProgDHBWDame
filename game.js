@@ -19,7 +19,7 @@ function startGame() {
     document.getElementById('compCaptured').innerHTML = '';
 
     // Startzeiten zurücksetzen und Anzeige aktualisieren
-    whiteTime = 300;
+    whiteTime = 15;
     blackTime = 300;
     updateTimerDisplays();
     startTurnTimer();
@@ -975,11 +975,9 @@ function updatePieceCursors() {
  * Gameboard wesentlich größer. Evtl ganzer Bildschirm. Dann auch responsive für Handy.
  * Build-Process: Lässt sich Projekt nach Checkout bauen? (Build-Datei)
  * Sieganimation?
- * Chat?
  * Letzte Boardstellung in Endbildschirm
  * UI Checkup
- * Klick auf "nochmal spielen" soll gegner Replay Wunsch anzeigen - dann in Warteschlange gegen gleichen Gegner
- * Klick auf Zurück zur Lobby soll Gegner anzeigen, dass gegner weg ist und Replay Button ausgrauen
+ * Abbrechen-Button während Spiel
  * Move-Sound?
  * Tutorial einbauen
  * Dark-Mode (UI Overhaul)

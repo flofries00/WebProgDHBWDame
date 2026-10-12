@@ -187,22 +187,45 @@ function simulateCoinToss() {
 }
 
 /**
- * Setzt das Spiel zurück und springt zur Anmeldung.
+ * Beantragt eine Revanche beim Server
  */
-function returnToLobby() {
-    document.getElementById('playerName').value = ""; // Eingabefeld leeren
-    checkInput(); // Button wieder deaktivieren
-    showScreen('modeScreen'); // Zurück zur Anmeldung
+function requestReplay() {
+    if (gameMode === 'local') {
+        const btn = document.getElementById('replayBtn');
+        btn.disabled = true;
+        btn.textContent = "Warte auf Gegner...";
+        socket.emit('requestReplay');
+    } else {
+        // Gegen Computer startet das Spiel sofort wieder
+        showScreen('coinTossScreen');
+        const text = document.getElementById('startPlayerText');
+        text.textContent = "Auslosung läuft...";
+        simulateCoinToss();
+    }
 }
 
 /**
- * Überspringt die Anmeldung und startet direkt einen neuen Münzwurf.
+ * Verlässt das Match und kehrt zur Anmeldung zurück
  */
-function restartGame() {
-    showScreen('coinTossScreen');
-    // UI wieder in den Lade-Zustand versetzen
-    document.getElementById('startPlayerText').textContent = "Auslosung läuft...";
-    simulateCoinToss();
+function leaveToLobby() {
+    if (gameMode === 'local') {
+        socket.emit('leaveMatch');
+    }
+
+    // Eingabefeld und Buttons für nächstes Mal zurücksetzen
+    document.getElementById('playerName').value = "";
+    checkInput();
+
+    const btn = document.getElementById('replayBtn');
+    if (btn) {
+        btn.disabled = false;
+        btn.textContent = "Nochmal spielen";
+    }
+
+    const status = document.getElementById('replayStatus');
+    if (status) status.textContent = "";
+
+    showScreen('modeScreen');
 }
 
 // Antwort von Server empfangen
@@ -218,6 +241,15 @@ socket.on('matchFound', (data) => {
     oppDisp.textContent = opponentName;
     legOpp.textContent = opponentName;
     oppHead.textContent = opponentName;
+
+    // Replay-UI für nächste Runde zurücksetzen
+    const replayBtn = document.getElementById('replayBtn');
+    const replayStatus = document.getElementById('replayStatus');
+    if (replayBtn) {
+        replayBtn.disabled = false;
+        replayBtn.textContent = "Nochmal spielen";
+    }
+    if (replayStatus) replayStatus.textContent = "";
 
     // Animation starten
     showScreen('coinTossScreen');
@@ -291,4 +323,26 @@ function addChatMessage(sender, msg, isSelf) {
 // Lauscht permanent auf eingehende Nachrichten vom Server
 socket.on('chatMessage', (msg) => {
     addChatMessage(opponentName, msg, false);
+});
+
+// Socket Events für die Revanche
+socket.on('opponentWantsReplay', () => {
+    const status = document.getElementById('replayStatus');
+    if (status) {
+        status.textContent = `${opponentName} möchte noch eine Runde spielen!`;
+    }
+});
+
+socket.on('opponentLeft', () => {
+    const status = document.getElementById('replayStatus');
+    const btn = document.getElementById('replayBtn');
+
+    if (status) {
+        status.textContent = `${opponentName} hat das Spiel verlassen.`;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Gegner ist weg";
+    }
 });

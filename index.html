@@ -179,10 +179,13 @@
             <h3>Spielverlauf</h3>
             <ul id="endLogList"></ul>
         </div>
+
+        <!-- Statusanzeige für Revanche -->
+        <div id="replayStatus" style="margin-bottom: 15px; font-weight: bold; color: var(--dhbw-rot); min-height: 20px;"></div>
         
         <!-- Buttons für Revanche oder Lobby-Rückkehr -->
-        <button onclick="restartGame()">Nochmal spielen</button>
-        <button onclick="returnToLobby()">Zurück zur Lobby</button>
+        <button id="replayBtn" onclick="requestReplay()">Nochmal spielen</button>
+        <button onclick="leaveToLobby()">Zurück zur Lobby</button>
     </div>
 </body>
 </html>

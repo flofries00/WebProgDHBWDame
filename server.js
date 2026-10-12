@@ -15,6 +15,7 @@ io.on('connection', (socket) => {
     console.log('Verbunden: ', socket.id);
 
     socket.on('findMatch', (name) => {
+        socket.name = name; // Namen speichern, wichtig für Revanche
         if (waiting) {
             // Zweiter Spieler ist da -> Match gefunden
             const p1 = waiting;
@@ -59,10 +60,54 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Replay-Logik
+    socket.on('requestReplay', () => {
+        socket.wantsReplay = true;
+        if (socket.oppId) {
+            const oppSocket = io.sockets.sockets.get(socket.oppId);
+
+            if (oppSocket && oppSocket.wantsReplay) {
+                // Beide wollen Revanche - Spiel starten
+                socket.wantsReplay = false;
+                oppSocket.wantsReplay = false;
+
+                const p1White = Math.random() < 0.5;
+                socket.emit('matchFound', {
+                    oppName: oppSocket.name || "Gegner", isWhite: p1White
+                });
+                oppSocket.emit('matchFound', {
+                    oppName: socket.name || "Gegner", isWhite: !p1White
+                });
+            } else {
+                // Gegner informieren
+                socket.to(socket.oppId).emit('opponentWantsReplay');
+            }
+        }
+    });
+
+    socket.on('leaveMatch', () => {
+        if (socket.oppId) {
+            socket.to(socket.oppId).emit('opponentLeft');
+            const oppSocket = io.sockets.sockets.get(socket.oppId);
+            if (oppSocket) oppSocket.oppId = null;
+            socket.oppId = null;
+            socket.wantsReplay = false;
+        }
+    });
+
     // Wenn ein Spieler während des Wartens den Tab schließt
     socket.on('disconnect', () => {
         if (waiting && waiting.socket.id === socket.id) {
             waiting = null;
+        }
+
+        if (socket.oppId) {
+            socket.to(socket.oppId).emit('opponentLeft');
+            const oppSocket = io.sockets.sockets.get(socket.oppId);
+            if (oppSocket) {
+                oppSocket.oppId = null;
+                oppSocket.wantsReplay = false;
+            }
         }
     });
 });
