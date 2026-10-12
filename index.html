@@ -142,6 +142,12 @@
                 <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span>
             </div>
         </div>
+
+        <!-- Zug-Log -->
+        <div id="moveLog" class="move-log">
+            <h3>Spielverlauf</h3>
+            <ul id="logList"></ul>
+        </div>
     </div>
 
     <!-- 5. Bildschirm: Spielende -->
@@ -149,6 +155,13 @@
         <!-- Platzhalter für den Gewinnertext -->
         <h2 id="winnerText">[Name] hat gewonnen in [X] Zügen</h2>
         <div class="animation-placeholder">🏆</div>
+
+        <!-- Kopie des Zug-Logs für den Endbildschirm -->
+        <div class="move-log" style="margin-bottom: 25px;">
+            <h3>Spielverlauf</h3>
+            <ul id="endLogList"></ul>
+        </div>
+        
         <!-- Buttons für Revanche oder Lobby-Rückkehr -->
         <button onclick="restartGame()">Nochmal spielen</button>
         <button onclick="returnToLobby()">Zurück zur Lobby</button>

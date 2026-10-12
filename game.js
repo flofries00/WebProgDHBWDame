@@ -26,7 +26,13 @@ function startGame() {
     // Kopfzeile dynamisch anpassen, basierend auf Farbwahl-Zufallsevent
     document.getElementById('p1Color').textContent = playerGetsWhite ? "(Weiß)" : "(Schwarz)";
     document.getElementById('compColor').textContent = playerGetsWhite ? "(Schwarz)" : "(Weiß)";
-    document.getElementById('turnIndicator').textContent = "Weiß ist am Zug";
+
+    // Dynamische Textanzeige
+    updateTurnIndicator();
+
+    // Zug-Log für neues Spiel leeren
+    const logList = document.getElementById('logList');
+    if (logList) logList.innerHTML = '';
 
     showScreen('gameScreen');
     generateBoard(); // Baut das HTML für das Spielbrett auf
@@ -303,9 +309,13 @@ function handleBoardClick(event) {
         });
     }
 
-    // 1. Koordinaten VOR dem Wechsel speichern (für die Animation)
+    // 1. Koordinaten VOR dem Wechsel speichern (für die Animation & Board-Log)
     const startRect = selectedPiece.getBoundingClientRect();
     const isCapture = targetCell.dataset.jumpR !== undefined;
+    const startRow = parseInt(selectedPiece.parentElement.dataset.row);
+    const startCol = parseInt(selectedPiece.parentElement.dataset.col);
+    const endRow = parseInt(targetCell.dataset.row);
+    const endCol = parseInt(targetCell.dataset.col);
 
     // Wurde ein Stein geschlagen?
     if (isCapture) {
@@ -383,6 +393,9 @@ function handleBoardClick(event) {
         if (getsPromoted) playPromoteAnim();
     }
 
+    // Zug in Log eintragen
+    addToLog(startRow, startCol, endRow, endCol, isCapture);
+
     // Markierungen aufheben
     clearSelection();
 
@@ -396,8 +409,7 @@ function handleBoardClick(event) {
     if (checkWinCondition()) return;
 
     // Statusleiste aktualisieren
-    const turnText = currentTurn === 'white' ? 'Weiß' : 'Schwarz';
-    document.getElementById('turnIndicator').textContent = turnText + ' ist am Zug';
+    updateTurnIndicator();
 
     // Nach dem Spielerwechsel prüfen, ob der neue Spieler im Schlagzwang ist
     autoHighlightCaptures();
@@ -560,9 +572,9 @@ function endGame(winnerColor, reason = "") {
 
     let winner = "";
     if (winnerColor === 'white') {
-        winner = playerGetsWhite ? currentPlayerName : "Computer";
+        winner = playerGetsWhite ? currentPlayerName : opponentName;
     } else {
-        winner = playerGetsWhite ? "Computer" : currentPlayerName;
+        winner = playerGetsWhite ? opponentName : currentPlayerName;
     }
 
     const textEl = document.getElementById('winnerText');
@@ -571,7 +583,22 @@ function endGame(winnerColor, reason = "") {
     } else {
         textEl.textContent = `${winner} hat gewonnen in ${moveCount} Zügen!`;
     }
+
+    // Spielverlauf in Endbildschirm kopieren
+    const logList = document.getElementById('logList');
+    const endLogList = document.getElementById('endLogList');
+    if (logList && endLogList) {
+        endLogList.innerHTML = logList.innerHTML;
+    }
+
+    // Bildschrim wechseln
     showScreen('endScreen');
+
+    // Erst nach dem Einblenden nach unten scrollen, sonst berechnet der Browser die Höhe falsch
+    if (endLogList) {
+        const endLogBox = endLogList.parentElement;
+        endLogBox.scrollTop = endLogBox.scrollHeight;
+    }
 }
 
 /**
@@ -724,6 +751,42 @@ function handleDrop(event) {
 }
 
 
+/**
+ * Aktualisiert Kopfzeile
+ */
+function updateTurnIndicator() {
+    const isMyTurn = (currentTurn === 'white' && playerGetsWhite) || (currentTurn === 'black' && !playerGetsWhite);
+
+    const text = isMyTurn ? "Du bist am Zug" : `${opponentName} ist am Zug`;
+    document.getElementById('turnIndicator').textContent = text;
+}
+
+/**
+ * Schreibt einen Zug in den Spielverlauf und scrollt mit
+ */
+function addToLog(sRow, sCol, eRow, eCol, isCapture) {
+    const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+    // Array-Indexe in Schach-Koordinaten umwandeln
+    const startStr = letters[sCol] + (8 - sRow);
+    const endStr = letters[eCol] + (8 - eRow);
+
+    const isMyTurn = (currentTurn === 'white' && playerGetsWhite) || (currentTurn === 'black' && !playerGetsWhite);
+
+    const name = isMyTurn ? "Du" : opponentName;
+    const verb = isCapture ? "schlägt" : "zieht";
+
+    const li = document.createElement('li');
+    li.innerHTML = `<strong>${name}</strong> ${verb} von ${startStr} nach ${endStr}`;
+
+    const list = document.getElementById('logList');
+    if (list) {
+        list.appendChild(li);
+        // Box nach unten scrollen lassen
+        const box = document.getElementById('moveLog');
+        box.scrollTop = box.scrollHeight;
+    }
+}
+
 
 
 /**
@@ -735,6 +798,7 @@ function handleDrop(event) {
  * Multischlagen?
  * Sieganimation?
  * Chat?
- * Zug-Log?
+ * Damentrafo in Log
+ * Letzte Boardstellung in Endbildschirm
  * UI Checkup
  */
