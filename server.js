@@ -3,9 +3,10 @@ const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
 
-// Sagt dem Server, dass er unsere HTML/CCS/JS Dateien
-// aus dem aktuellen Ordner ausliefern soll
-app.use(express.static(__dirname));
+// Sagt dem Server, dass er nur die Client-Dateien aus dem Ordner 'public' ausliefern soll
+// (sonst wären auch server.js, package.json und node_modules abrufbar)
+const path = require('path');
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Wartenden Spieler merken
 let waiting = null;
@@ -14,37 +15,40 @@ let waiting = null;
 io.on('connection', (socket) => {
     console.log('Verbunden: ', socket.id);
 
-    socket.on('findMatch', (name) => {
+        socket.on('findMatch', (name) => {
+        // Namen auch serverseitig prüfen (Client-Prüfung lässt sich umgehen)
+        if (typeof name !== 'string' || !/^[a-zA-Z0-9äöüÄÖÜß]{2,16}$/.test(name)) return;
+
         socket.name = name; // Namen speichern, wichtig für Revanche
-        if (waiting) {
-            // Zweiter Spieler ist da -> Match gefunden
+        socket.wantsReplay = false; // Alte Revanche-Wünsche verwerfen
+
+        // Zweiter Spieler ist da (und nicht derselbe Spieler) -> Match gefunden
+        if (waiting && waiting !== socket) {
             const p1 = waiting;
-            const p2 = { socket: socket, name: name };
+            const p2 = socket;
             waiting = null; // Warteschlange leeren
 
             // IDs für spätere Spielzüge merken
-            p1.socket.oppId = p2.socket.id;
-            p2.socket.oppId = p1.socket.id;
+            p1.oppId = p2.id;
+            p2.oppId = p1.id;
 
             // Server würfelt Startspieler aus
             const p1White = Math.random() < 0.5;
 
-            // Information an Spieler 1
-            p1.socket.emit('matchFound', {
-                oppName: p2.name,
-                isWhite: p1White
-            });
-
-            // Information an Spieler 2
-            p2.socket.emit('matchFound', {
-                oppName: p1.name,
-                isWhite: !p1White
-            });
+            // Information an beide Spieler
+            p1.emit('matchFound', { oppName: p2.name, isWhite: p1White });
+            p2.emit('matchFound', { oppName: p1.name, isWhite: !p1White });
         } else {
             // Erster Spieler wartet
-            waiting = { socket: socket, name: name };
+            waiting = socket;
         }
     });
+
+    // Spieler bricht die Suche ab
+    socket.on('cancelSearch', () => {
+        if (waiting === socket) waiting = null;
+    });
+
     // Wartet auf Züge und schickt diese an den Gegner
     socket.on('makeMove', (moveData) => {
         if (socket.oppId) {
@@ -86,18 +90,21 @@ io.on('connection', (socket) => {
     });
 
     socket.on('leaveMatch', () => {
+        socket.wantsReplay = false;
         if (socket.oppId) {
             socket.to(socket.oppId).emit('opponentLeft');
             const oppSocket = io.sockets.sockets.get(socket.oppId);
-            if (oppSocket) oppSocket.oppId = null;
+            if (oppSocket) {
+                oppSocket.oppId = null;
+                oppSocket.wantsReplay = false;
+            }
             socket.oppId = null;
-            socket.wantsReplay = false;
         }
     });
 
     // Wenn ein Spieler während des Wartens den Tab schließt
     socket.on('disconnect', () => {
-        if (waiting && waiting.socket.id === socket.id) {
+        if (waiting === socket) {
             waiting = null;
         }
 
