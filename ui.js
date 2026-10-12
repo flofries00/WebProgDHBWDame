@@ -233,7 +233,7 @@ function updateRealTimeClock() {
 
     const now = new Date();
     // Zeit formatieren zu HH:MM
-    const timeString = now.toLocaleDateString('de-DE', {
+    const timeString = now.toLocaleTimeString('de-DE', {
         hour: '2-digit',
         minute: '2-digit'
     });
