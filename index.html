@@ -19,136 +19,154 @@
 </head>
 <body>
 
-    <!-- 0. Bildschirm: Modus-Auswahl -->
-    <!-- 'screen active' bedeutet: Dies ist das Fenster, das zu Beginn sichtbar ist -->
-    <div id="modeScreen" class="screen active">
-        <!-- Selbst gebautes Logo rein in CSS -->
-        <div class="login-logo">
-            <div class="logo-piece black"></div>
-            <div class="logo-piece white"></div>
+    <!-- 1. NEU: Globale Kopfzeile (immer sichtbar) -->
+    <header class="global-header">
+        <h2 class="nav-logo">DAME</h2>
+        <div class="nav-controls">
+            <button id="tutorialBtn" class="nav-btn">?-Knopf Tutorial</button>
+            <span id="realTimeClock" class="clock-display">00:00</span>
         </div>
+    </header>
 
-        <h2>DAME</h2>
-        <p class="login-subtitle">Web-Engineering Projekt</p>
-        <p class="login-subtitle">Wähle deinen Spielmodus:</p>
+    <!-- 2. NEU: Haupt-Container für die zentrierten Bildschirme -->
+    <main class="screen-container">
 
-        <!-- Zwei große Buttons für die Auswahl -->
-        <div class="mode-buttons">
-            <button onclick="selectMode('computer')">🤖 Gegen Computer</button>
-            <button onclick="selectMode('local')">👤 Gegen Mensch</button>
-        </div>
-    </div>
-
-    <!-- 1. Bildschirm: Anmeldung -->
-    <div id="loginScreen" class="screen">
-        <!-- Selbst gebautes Logo rein in CSS -->
-        <div class="login-logo">
-            <div class="logo-piece black"></div>
-            <div class="logo-piece white"></div>
-        </div>
-
-        <h2>DAME</h2>
-        <p class="login-subtitle">Web-Engineering Projekt</p>
-
-        <div class="input-group">
-            <label for="playerName">Wie lautet dein Spielername?</label><br>
-
-            <!-- Hinweis für erlaubte Zeichen und Länge -->
-            <span class="input-hint">Erlaubt: 2 bis 16 Zeichen (nur Buchstaben und Zahlen)</span><br>
-
-            <!-- 'onkeydown' erkennt Tastenanschläge und soll dann durch JS Befehl den Namen bei Drücken der Enter-Taste absenden -->
-            <input type="text" id="playerName" placeholder="z.B. Max..." minlength="2" maxlength="16" oninput="checkInput()" onkeydown="handleEnter(event)">
-
-            <!-- Platzhalter für dynamische Fehlermeldung -->
-            <p id="nameError" class="error-text"></p>
-        </div>
-
-        <button id="searchBtn" onclick="startSearch()" disabled>Gegner suchen</button>
-    </div>
-
-    <!-- 2. Bildschirm: Wartebildschirm (standardmäßig ausgeblendet) -->
-    <div id="waitingScreen" class="screen">
-        <!-- Der leere span-Tag '#waitName' wird per JavaScript mit dem eingegebenen Namen gefüllt -->
-        <h2>Hallo, <span id="waitName"></span>!</h2>
-        <p>Warte auf Gegner...</p>
-        <!-- Animation einfügen -->
-        <div class="waiting-animation">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-        </div>    
-        <!-- Ruft eine Funktion auf, die zurück zur Anmeldung springt -->
-        <button onclick="cancelWait()">Warten abbrechen</button>
-    </div>
-
-    <!-- 3. Bildschirm: Spielstart / Münzwurf -->
-    <div id="coinTossScreen" class="screen">
-        <h2>Gegner gefunden.</h2>
-        <p>Dein Gegner ist <strong id="opponentNameDisplay">Computer</strong></p>
-        <p>Auswahl des Spielers mit den weißen Steinen:</p>
-        <!-- 3D-Raum für Münze erzeugen -->
-        <div class="coin-container">
-            <div class="coin" id="coinElement">
-                <div class="coin-face coin-front"></div> <!-- weiß -->
-                <div class="coin-face coin-back"></div> <!-- schwarz -->
+        <!-- 0. Bildschirm: Modus-Auswahl -->
+        <div id="modeScreen" class="screen active">
+            <div class="login-logo">
+                <div class="logo-piece black"></div>
+                <div class="logo-piece white"></div>
+            </div>
+            <h2>DAME</h2>
+            <p class="login-subtitle">Web-Engineering Projekt</p>
+            <p class="login-subtitle">Wähle deinen Spielmodus:</p>
+            <div class="mode-buttons">
+                <button onclick="selectMode('computer')">🤖 Gegen Computer</button>
+                <button onclick="selectMode('local')">👤 Gegen Mensch</button>
             </div>
         </div>
-        <p class="coin-legend">⚪ <span id="legendName"></span> &nbsp; &nbsp; ⚫ <span id="legendOpponent">Computer</span></p>
-        <p id="startPlayerText">Auslosung läuft...</p>
-    </div>
 
-    <!-- 4. Bildschirm: Das eigentliche Spiel -->
-    <div id="gameScreen" class="screen" style="max-width: 600px;">
-        <!-- Die Statusleiste über dem Spielbrett -->
-        <div class="game-header">
-            <!-- Container Spieler 1 -->
-            <div style="display: flex; flex-direction: column; align-items: flex-start;">
-                <div id="p1Captured" class="captured-container"></div>
-                <div><span id="p1Name">Spieler 1</span> <span id="p1Color">(Weiß)</span></div>
-                <div id="p1Timer" class="timer-display">5:00</div>
-                <div class="timer-bar-bg">
-                    <div id="p1TimerBar" class="timer-bar-fill"></div>
+        <!-- 1. Bildschirm: Anmeldung -->
+        <div id="loginScreen" class="screen">
+            <div class="login-logo">
+                <div class="logo-piece black"></div>
+                <div class="logo-piece white"></div>
+            </div>
+            <h2>DAME</h2>
+            <p class="login-subtitle">Web-Engineering Projekt</p>
+            <div class="input-group">
+                <label for="playerName">Wie lautet dein Spielername?</label><br>
+                <span class="input-hint">Erlaubt: 2 bis 16 Zeichen</span><br>
+                <input type="text" id="playerName" placeholder="z.B. Max..." 
+                       minlength="2" maxlength="16" oninput="checkInput()" 
+                       onkeydown="handleEnter(event)">
+                <p id="nameError" class="error-text"></p>
+            </div>
+            <button id="searchBtn" onclick="startSearch()" disabled>
+                Gegner suchen
+            </button>
+        </div>
+
+        <!-- 2. Bildschirm: Wartebildschirm -->
+        <div id="waitingScreen" class="screen">
+            <h2>Hallo, <span id="waitName"></span>!</h2>
+            <p>Warte auf Gegner...</p>
+            <div class="waiting-animation">
+                <div class="dot"></div><div class="dot"></div>
+                <div class="dot"></div><div class="dot"></div>
+            </div>    
+            <button onclick="cancelWait()">Warten abbrechen</button>
+        </div>
+
+        <!-- 3. Bildschirm: Spielstart / Münzwurf -->
+        <div id="coinTossScreen" class="screen">
+            <h2>Gegner gefunden.</h2>
+            <p>Dein Gegner ist <strong id="opponentNameDisplay">Computer</strong></p>
+            <p>Auswahl des Spielers mit den weißen Steinen:</p>
+            <div class="coin-container">
+                <div class="coin" id="coinElement">
+                    <div class="coin-face coin-front"></div>
+                    <div class="coin-face coin-back"></div>
                 </div>
             </div>
+            <p class="coin-legend">
+                ⚪ <span id="legendName"></span> &nbsp; &nbsp; 
+                ⚫ <span id="legendOpponent">Computer</span>
+            </p>
+            <p id="startPlayerText">Auslosung läuft...</p>
+        </div>
 
-            <div id="turnIndicator">Weiß ist am Zug</div>
+        <!-- 4. Bildschirm: Spiel (Zwei separate Boxen) -->
+        <div id="gameScreen" class="screen game-screen-wide">
+            <div class="game-layout">
+                
+                <!-- LINKE BOX: Brett und Timer -->
+                <div class="game-left-box">
+                    <div class="game-header-new">
+                        <div class="player-info">
+                            <span id="p1Name">Spieler 1</span> 
+                            <span id="p1Color">(Weiß)</span>
+                            <div id="p1Captured" class="captured-container"></div>
+                        </div>
+                        <div id="turnIndicator" class="turn-indicator-large">
+                            Weiß ist am Zug
+                        </div>
+                        <div class="player-info right-align">
+                            <span id="opponentNameHeader">Computer</span> 
+                            <span id="compColor">(Schwarz)</span>
+                            <div id="compCaptured" class="captured-container"></div>
+                        </div>
+                    </div>
 
-            <!-- Container Spieler 2 -->
-            <div style="display: flex; flex-direction: column; align-items: flex-end;">
-                <div id="compCaptured" class="captured-container"></div>
-                <div><span id="opponentNameHeader">Computer</span> <span id="compColor">(Schwarz)</span></div>
-                <div id="compTimer" class="timer-display">5:00</div>
-                <div class="timer-bar-bg">
-                    <div id="compTimerBar" class="timer-bar-fill"></div>
+                    <div class="board-area-flex">
+                        <div class="vertical-timer-container">
+                            <div id="p1Timer" class="timer-display">5:00</div>
+                            <div class="v-timer-bg">
+                                <div id="p1TimerBar" class="v-timer-fill"></div>
+                            </div>
+                        </div>
+
+                        <div id="boardWrapper" class="board-wrapper">
+                            <div class="coords-y">
+                                <span>8</span><span>7</span><span>6</span><span>5</span>
+                                <span>4</span><span>3</span><span>2</span><span>1</span>
+                            </div>
+                            <div id="board"></div>
+                            <div></div>
+                            <div class="coords-x">
+                                <span>A</span><span>B</span><span>C</span><span>D</span>
+                                <span>E</span><span>F</span><span>G</span><span>H</span>
+                            </div>
+                        </div>
+
+                        <div class="vertical-timer-container">
+                            <div id="compTimer" class="timer-display">5:00</div>
+                            <div class="v-timer-bg">
+                                <div id="compTimerBar" class="v-timer-fill"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- RECHTE BOX: Log und Chat -->
+                <div class="game-right-box">
+                    <div id="moveLog" class="move-log large-log">
+                        <h3>Spielverlauf</h3>
+                        <ul id="logList"></ul>
+                    </div>
+
+                    <div id="chatBox" class="chat-container">
+                        <h3>Chat</h3>
+                        <div class="chat-messages">
+                            <p class="sys-msg">Chat bereit...</p>
+                        </div>
+                        <input type="text" placeholder="Nachricht schreiben..." disabled>
+                    </div>
+                </div>
+
             </div>
         </div>
-        <!-- Wrapper für Boardbeschriftung -->
-        <div id="boardWrapper" class="board-wrapper">
-            <!-- Linke Seite (Y-Achse: 8 bis 1)-->
-            <div class="coords-y">
-                <span>8</span><span>7</span><span>6</span><span>5</span><span>4</span><span>3</span><span>2</span><span>1</span>
-            </div>
 
-            <!-- Leerer Container für das eigentliche Spielbrett -->
-            <div id="board"></div>
-
-            <!-- Leerer Platzhalter für das Grid links unten -->
-            <div></div>
-
-            <!-- Untere Zeile (X-Achse: A bis H) -->
-            <div class="coords-x">
-                <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span>
-            </div>
-        </div>
-
-        <!-- Zug-Log -->
-        <div id="moveLog" class="move-log">
-            <h3>Spielverlauf</h3>
-            <ul id="logList"></ul>
-        </div>
-    </div>
 
     <!-- 5. Bildschirm: Spielende -->
     <div id="endScreen" class="screen">

@@ -707,8 +707,8 @@ function updateTimerDisplays() {
     compEl.textContent = format(compTime);
 
     // b) Balkenbreite in Prozent berechnen (Basis: 300s)
-    p1Bar.style.width = `${(p1Time / 300) * 100}%`;
-    compBar.style.width = `${(compTime / 300) * 100}%`;
+    p1Bar.style.height = `${(p1Time / 300) * 100}%`;
+    compBar.style.height = `${(compTime / 300) * 100}%`;
 
     // Warn-Blinken ab 30s aktivieren und für neues Spiel wieder entfernen
     if (p1Time <= 30) {
@@ -964,4 +964,7 @@ function updatePieceCursors() {
  * UI Checkup
  * Klick auf "nochmal spielen" soll gegner Replay Wunsch anzeigen - dann in Warteschlange gegen gleichen Gegner
  * Klick auf Zurück zur Lobby soll Gegner anzeigen, dass gegner weg ist und Replay Button ausgrauen
+ * Move-Sound?
+ * Tutorial einbauen
+ * Dark-Mode (UI Overhaul)
  */

@@ -223,3 +223,25 @@ socket.on('matchFound', (data) => {
     showScreen('coinTossScreen');
     simulateCoinToss();
 });
+
+/**
+ * Aktualisiert Echtzeit-Uhr in der oberen Navigation
+ */
+function updateRealTimeClock() {
+    const clockEl = document.getElementById('realTimeClock');
+    if (!clockEl) return;
+
+    const now = new Date();
+    // Zeit formatieren zu HH:MM
+    const timeString = now.toLocaleDateString('de-DE', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    clockEl.textContent = timeString;
+}
+
+// Uhrzeitschleife starten (und jede Sekunde updaten)
+setInterval(updateRealTimeClock, 1000);
+// Direkt beim Laden der Seite aufrufen
+updateRealTimeClock();
