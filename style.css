@@ -645,19 +645,65 @@ button:disabled {
 }
 
 /* --- Teil F: Responsive Design für Mobilgeräte --- */
-@media (max-width: 600px) {
-    /* Wenn der Bildschirm 600 Pixel oder schmaler ist greifen nun diese Regeln: */
 
-    .screen {
-        padding: 30px;
-        /* Reduzierter Innenabstand, damit Inhalt auf dem Handy platz hat. */
-        border-radius: 8px;
-        /* Kleinere Ecken für kleine Bildschirme */
+/* Wenn der Bildschirm schmaler als 900px ist (Tablet/Handy) */
+@media (max-width: 900px) {
+    /* Boxen nicht mehr nebeneinander, sondern untereinander */
+    .game-layout {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
     }
 
-    input[type="text"] {
+    .game-left-box, .game-right-box {
         width: 100%;
-        /* Eingabefeld nutzt auf dem Handy die volle Breite der Karte */
+        max-width: 500px;
+        padding: 15px;
+        box-sizing: border-box; /* Verhindert, dass Padding das Layout sprengt */
+    }
+
+    /* Rechtes Panel in Handy-Ansicht in der Höhe beschränken */
+    .game-right-box {
+        height: auto;
+        min-height: 400px;
+    }
+
+    .move-log.large-log {
+        max-height: 150px;
+    }
+
+    /* Kopfzeile kompakter machen */
+    .game-header-new {
+        padding: 10px;
+        margin-bottom: 15px;
+    }
+
+    /* Globale Navigation kompakter machen */
+    .global-header {
+        padding: 10px 15px;
+    }
+    .nav-logo { font-size: 20px; }
+
+    /* Login-Screens anpassen */
+    .screen {
+        padding: 30px 15px;
+        width: 95%;
+        box-sizing: border-box;
+    }
+    input[type="text"] {
+        width: 90%;
+    }
+}
+
+/* Für noch schmalere Handys */
+@media (max-width: 450px) {
+    /* Timer neben dem Brett ausblenden, um Platz zu sparen */
+    .vertical-timer-container {
+        display: none;
+    }
+    /* Brett nimmt volle Breite ein */
+    .board-area-flex {
+        gap: 0;
     }
 }
 
@@ -928,40 +974,53 @@ body {
     background-color: var(--dhbw-rot);
 }
 
-/* --- Brett vergrößern (70px statt 55px) --- */
+/* --- Dynamisches, responsives Brett --- */
 #board {
-    grid-template-columns: repeat(8, 70px);
-    grid-template-rows: repeat(8, 70px);
-    width: 560px;
-    height: 560px;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+
+    /* Brett nimmt 100% des Platzes, den es bekommen kann
+    maximal aber 560px und mindestens 280px */
+    width: 100%;
+    min-width: 280px;
+    max-width: 560px;
+
+    /* Damit das Brett quadratisch bleibt */
+    aspect-ratio: 1 / 1;
+    height: auto;
 }
 
+/* Zellen und Steine passen sich prozentual an */
 .cell {
-    width: 70px;
-    height: 70px;
+    width: 100%;
+    height: 100%;
 }
 
 .piece {
-    width: 54px;
-    height: 54px;
+    width: 80%;
+    height: 80%;
 }
 
+/* Dynamische Font-Size für Krone */
 .piece.dame {
-    font-size: 30px;
+    font-size: clamp(16px, 4vw, 30px);
 }
 
+/* Wrapper um das Brett (inkl. Koordinaten) */
 .board-wrapper {
-    grid-template-columns: 20px 576px;
-    /* 560px Brett + 16px Rahmen */
-    grid-template-rows: 576px 20px;
+    /* 20px Zahlen, 1fr Brett */
+    grid-template-columns: 20px 1fr;
+    grid-template-rows: 1fr 20px;
+    width: 100%;
+    max-width: 596px;
 }
 
 .coords-y {
-    grid-template-rows: repeat(8, 70px);
+    grid-template-rows: repeat(8, 1fr);
 }
 
 .coords-x {
-    grid-template-columns: repeat(8, 70px);
+    grid-template-columns: repeat(8, 1fr);
 }
 
 /* --- Rechtes Panel (Log & Chat) --- */
@@ -1025,10 +1084,16 @@ body {
 
 /* Verkleinert das kopierte Board im Endbildschirm */
 .end-board-scale {
-    transform: scale(0.65);
-    transform-origin: top center;
-    height: 380px; /* Hält Platzhalter in der verkleinerten Höhe frei */
+    width: 80%;
+    max-width: 350px;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto;
     pointer-events: none; /* Brett im Endscreen nicht mehr klickbar */
+}
+
+/* Damit geklontes Brett keine Rahmen sprengt */
+.end-board-scale .board-wrapper {
+    max-width: 100%;
 }
 
 /* Basis Aussehen für Konfetti-Schnipsel */
