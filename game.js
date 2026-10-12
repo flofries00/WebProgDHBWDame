@@ -661,8 +661,27 @@ function endGame(winnerColor, reason = "") {
         endLogList.innerHTML = logList.innerHTML;
     }
 
+    // Finales Spielbrett kopieren
+    const endBoardCont = document.getElementById('endBoardContainer');
+    const origWrapper = document.getElementById('boardWrapper');
+    if (endBoardCont && origWrapper) {
+        endBoardCont.innerHTML = ''; // Altes Brett löschen
+        const clonedBoard = origWrapper.cloneNode(true);
+        clonedBoard.id = ''; // IDs entfernen, um Konflikte zu vermeiden
+        // NEU: Alle CSS-Klassen für Markierungen und Auswahl auf dem geklonten Brett entfernen
+        clonedBoard.querySelectorAll('.highlighted').forEach(el => el.classList.remove('highlighted'));
+        clonedBoard.querySelectorAll('.highlighted-capture').forEach(el => el.classList.remove('highlighted-capture'));
+        clonedBoard.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+        endBoardCont.appendChild(clonedBoard);
+    }
+
     // Bildschrim wechseln
     showScreen('endScreen');
+
+    // Konfetti zünden nur bei Gewinner
+    if ((winnerColor === 'white' && playerGetsWhite) || (winnerColor === 'black' && !playerGetsWhite)){
+        if (typeof fireConfetti === 'function') fireConfetti();
+    }
 
     // Erst nach dem Einblenden nach unten scrollen, sonst berechnet der Browser die Höhe falsch
     if (endLogList) {

@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <!-- Deklariert das Dokument als HTML5 und setzt die Sprache auf Deutsch -->
 <html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dame - Browser Multiplayer</title>
-    
+
     <!-- Hier wird die separate CSS-Datei geladen. Der Browser weiß nun, wie alles aussehen soll. -->
     <link rel="stylesheet" href="style.css">
 
@@ -17,6 +18,7 @@
     <!-- Socket.io Client-Bibliothek laden -->
     <script src="/socket.io/socket.io.js"></script>
 </head>
+
 <body>
 
     <!-- 1. NEU: Globale Kopfzeile (immer sichtbar) -->
@@ -57,9 +59,8 @@
             <div class="input-group">
                 <label for="playerName">Wie lautet dein Spielername?</label><br>
                 <span class="input-hint">Erlaubt: 2 bis 16 Zeichen</span><br>
-                <input type="text" id="playerName" placeholder="z.B. Max..." 
-                       minlength="2" maxlength="16" oninput="checkInput()" 
-                       onkeydown="handleEnter(event)">
+                <input type="text" id="playerName" placeholder="z.B. Max..." minlength="2" maxlength="16"
+                    oninput="checkInput()" onkeydown="handleEnter(event)">
                 <p id="nameError" class="error-text"></p>
             </div>
             <button id="searchBtn" onclick="startSearch()" disabled>
@@ -72,9 +73,11 @@
             <h2>Hallo, <span id="waitName"></span>!</h2>
             <p>Warte auf Gegner...</p>
             <div class="waiting-animation">
-                <div class="dot"></div><div class="dot"></div>
-                <div class="dot"></div><div class="dot"></div>
-            </div>    
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
             <button onclick="cancelWait()">Warten abbrechen</button>
         </div>
 
@@ -90,7 +93,7 @@
                 </div>
             </div>
             <p class="coin-legend">
-                ⚪ <span id="legendName"></span> &nbsp; &nbsp; 
+                ⚪ <span id="legendName"></span> &nbsp; &nbsp;
                 ⚫ <span id="legendOpponent">Computer</span>
             </p>
             <p id="startPlayerText">Auslosung läuft...</p>
@@ -99,12 +102,12 @@
         <!-- 4. Bildschirm: Spiel (Zwei separate Boxen) -->
         <div id="gameScreen" class="screen game-screen-wide">
             <div class="game-layout">
-                
+
                 <!-- LINKE BOX: Brett und Timer -->
                 <div class="game-left-box">
                     <div class="game-header-new">
                         <div class="player-info">
-                            <span id="p1Name">Spieler 1</span> 
+                            <span id="p1Name">Spieler 1</span>
                             <span id="p1Color">(Weiß)</span>
                             <div id="p1Captured" class="captured-container"></div>
                         </div>
@@ -112,7 +115,7 @@
                             Weiß ist am Zug
                         </div>
                         <div class="player-info right-align">
-                            <span id="opponentNameHeader">Computer</span> 
+                            <span id="opponentNameHeader">Computer</span>
                             <span id="compColor">(Schwarz)</span>
                             <div id="compCaptured" class="captured-container"></div>
                         </div>
@@ -160,7 +163,8 @@
                         <div class="chat-messages">
                             <p class="sys-msg">Chat bereit...</p>
                         </div>
-                        <input type="text" id="chatInput" placeholder="Nachricht schreiben..." disabled onkeydown="handleChatEnter(event)">
+                        <input type="text" id="chatInput" placeholder="Nachricht schreiben..." disabled
+                            onkeydown="handleChatEnter(event)">
                     </div>
                 </div>
 
@@ -168,24 +172,35 @@
         </div>
 
 
-    <!-- 5. Bildschirm: Spielende -->
-    <div id="endScreen" class="screen">
-        <!-- Platzhalter für den Gewinnertext -->
-        <h2 id="winnerText">[Name] hat gewonnen in [X] Zügen</h2>
-        <div class="animation-placeholder">🏆</div>
+        <!-- 5. Bildschirm: Spielende -->
+        <div id="endScreen" class="screen game-screen-wide">
+            <!-- Platzhalter für den Gewinnertext -->
+            <h2 id="winnerText" style="font-size: 2em; margin-bottom: 5px;">[Name] hat gewonnen in [X] Zügen</h2>
 
-        <!-- Kopie des Zug-Logs für den Endbildschirm -->
-        <div class="move-log" style="margin-bottom: 25px;">
-            <h3>Spielverlauf</h3>
-            <ul id="endLogList"></ul>
+            <div class="game-layout" style="margin-top: 20px;">
+
+                <!-- Linke Box: Finales Brett -->
+                <div class="game-left-box" style="align-items: center;">
+                    <h3 style="margin-top: 0; color: var(--dhbw-dunkel);">Endstand</h3>
+                    <!-- Hier wird das Brett per JavaScript hineinkopiert -->
+                    <div id="endBoardContainer" class="end-board-scale"></div>
+                </div>
+
+                <!-- Rechte Box: Log & Buttons -->
+                <div class="game-right-box">
+                    <div class="move-log large-log">
+                        <h3>Spielverlauf</h3>
+                        <ul id="endLogList"></ul>
+                    </div>
+                    <!-- Statusanzeige für Revanche -->
+                    <div id="replayStatus"
+                        style="margin-bottom: 15px; font-weight: bold; color: var(--dhbw-rot); min-height: 20px;"></div>
+                    <!-- Buttons für Revanche oder Lobby-Rückkehr -->
+                    <button id="replayBtn" onclick="requestReplay()">Nochmal spielen</button>
+                    <button onclick="leaveToLobby()">Zurück zur Lobby</button>
+                </div>
+            </div>
         </div>
-
-        <!-- Statusanzeige für Revanche -->
-        <div id="replayStatus" style="margin-bottom: 15px; font-weight: bold; color: var(--dhbw-rot); min-height: 20px;"></div>
-        
-        <!-- Buttons für Revanche oder Lobby-Rückkehr -->
-        <button id="replayBtn" onclick="requestReplay()">Nochmal spielen</button>
-        <button onclick="leaveToLobby()">Zurück zur Lobby</button>
-    </div>
 </body>
+
 </html>

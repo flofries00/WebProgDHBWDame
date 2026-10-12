@@ -346,3 +346,32 @@ socket.on('opponentLeft', () => {
         btn.textContent = "Gegner ist weg";
     }
 });
+
+/**
+ * Feuert eine CSS-basierte Konfetti-Animation ab.
+ */
+function fireConfetti() {
+    // Kleine Farbmischung
+    const colors = ['#e2001a', '#28a745', '#007bff', '#ffc107', '#ffd700'];
+
+    // 150 Schnipsel erzeugen
+    for (let i = 0; i < 150; i++) {
+        const conf = document.createElement('div');
+        conf.className = 'confetti-piece';
+
+        // Zufällige Position auf der x-Achse
+        conf.style.left = Math.random() * 100 + 'vw';
+        // Zufällige Farbe
+        const randColor = colors[Math.floor(Math.random() * colors.length)];
+        conf.style.backgroundColor = randColor;
+
+        // Zufällige Fallgeschwindigkeit und Verzögerung
+        conf.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        conf.style.animationDelay = (Math.random() * 1) + 's';
+
+        document.body.appendChild(conf);
+
+        // Nach Ablauf der Animation das Element aus dem HTML löschen
+        setTimeout(() => conf.remove(), 5000);
+    }
+}

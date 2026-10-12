@@ -702,7 +702,8 @@ button:disabled {
     align-items: center;
     justify-items: center;
     font-weight: bold;
-    margin-top: 8px; /* Ausgleich für oberen Brettrahmen */
+    margin-top: 8px;
+    /* Ausgleich für oberen Brettrahmen */
 }
 
 .coords-x {
@@ -711,7 +712,8 @@ button:disabled {
     align-items: center;
     justify-items: center;
     font-weight: bold;
-    margin-left: 8px; /* Ausgleich für linekn Brettrahmen */
+    margin-left: 8px;
+    /* Ausgleich für linekn Brettrahmen */
 }
 
 /* --- Teil J: Zug-Log --- */
@@ -765,16 +767,40 @@ body {
     align-items: center;
     background: white;
     padding: 10px 30px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     z-index: 100;
     border-bottom: 3px solid var(--dhbw-rot);
 }
 
-.nav-logo { margin: 0; color: var(--dhbw-dunkel); font-size: 24px; letter-spacing: 2px;}
-.nav-controls { display: flex; align-items: center; gap: 15px; }
-.nav-btn { padding: 8px 15px; font-size: 13px; margin: 0; background: #f0f0f0;}
-.nav-btn:hover { background: #e0e0e0; }
-.clock-display { font-size: 18px; font-family: monospace; font-weight: bold; }
+.nav-logo {
+    margin: 0;
+    color: var(--dhbw-dunkel);
+    font-size: 24px;
+    letter-spacing: 2px;
+}
+
+.nav-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.nav-btn {
+    padding: 8px 15px;
+    font-size: 13px;
+    margin: 0;
+    background: #f0f0f0;
+}
+
+.nav-btn:hover {
+    background: #e0e0e0;
+}
+
+.clock-display {
+    font-size: 18px;
+    font-family: monospace;
+    font-weight: bold;
+}
 
 /* Container für die Screens */
 .screen-container {
@@ -787,7 +813,9 @@ body {
 }
 
 /* Standard-Screens zentrieren */
-.screen { margin: auto; }
+.screen {
+    margin: auto;
+}
 
 /* Der neue breite Spielbildschirm "versteckt" seine ursprüngliche .screen Box */
 .game-screen-wide {
@@ -807,16 +835,27 @@ body {
 }
 
 /* Gemeinsamer Style für linke und rechte Box */
-.game-left-box, .game-right-box {
+.game-left-box,
+.game-right-box {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     padding: 30px;
     border-top: 5px solid var(--dhbw-rot);
 }
 
-.game-left-box { flex: 2; display: flex; flex-direction: column; }
-.game-right-box { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+.game-left-box {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+}
+
+.game-right-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
 
 /* Neue Kopfzeile in der linken Box */
 .game-header-new {
@@ -830,9 +869,22 @@ body {
     border: 1px solid #eee;
 }
 
-.player-info { display: flex; flex-direction: column; gap: 5px; font-weight: bold; }
-.right-align { align-items: flex-end; }
-.turn-indicator-large { font-size: 1.3em; font-weight: bold; color: var(--dhbw-rot); }
+.player-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-weight: bold;
+}
+
+.right-align {
+    align-items: flex-end;
+}
+
+.turn-indicator-large {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: var(--dhbw-rot);
+}
 
 /* Flexbox für Brett und seitliche Timer */
 .board-area-flex {
@@ -852,7 +904,8 @@ body {
 
 .v-timer-bg {
     width: 12px;
-    flex-grow: 1; /* Nimmt restliche Höhe ein */
+    flex-grow: 1;
+    /* Nimmt restliche Höhe ein */
     background-color: #e0e0e0;
     border-radius: 6px;
     margin-top: 10px;
@@ -862,13 +915,18 @@ body {
 
 .v-timer-fill {
     width: 100%;
-    height: 100%; /* Startet voll */
+    height: 100%;
+    /* Startet voll */
     background-color: #28a745;
     position: absolute;
-    bottom: 0; /* Füllt von unten nach oben */
+    bottom: 0;
+    /* Füllt von unten nach oben */
     transition: height 1s linear, background-color 0.3s;
 }
-.v-timer-fill.low-time { background-color: var(--dhbw-rot); }
+
+.v-timer-fill.low-time {
+    background-color: var(--dhbw-rot);
+}
 
 /* --- Brett vergrößern (70px statt 55px) --- */
 #board {
@@ -877,36 +935,128 @@ body {
     width: 560px;
     height: 560px;
 }
-.cell { width: 70px; height: 70px; }
-.piece { width: 54px; height: 54px; }
-.piece.dame { font-size: 30px; }
+
+.cell {
+    width: 70px;
+    height: 70px;
+}
+
+.piece {
+    width: 54px;
+    height: 54px;
+}
+
+.piece.dame {
+    font-size: 30px;
+}
 
 .board-wrapper {
-    grid-template-columns: 20px 576px; /* 560px Brett + 16px Rahmen */
+    grid-template-columns: 20px 576px;
+    /* 560px Brett + 16px Rahmen */
     grid-template-rows: 576px 20px;
 }
-.coords-y { grid-template-rows: repeat(8, 70px); }
-.coords-x { grid-template-columns: repeat(8, 70px); }
+
+.coords-y {
+    grid-template-rows: repeat(8, 70px);
+}
+
+.coords-x {
+    grid-template-columns: repeat(8, 70px);
+}
 
 /* --- Rechtes Panel (Log & Chat) --- */
 .move-log.large-log {
-    margin: 0; width: 100%; flex: 1; max-height: none; 
-    border: 1px solid #eee; display: flex; flex-direction: column;
-    box-shadow: none; /* Shadow übernimmt die Box */
+    margin: 0;
+    width: 100%;
+    flex: 1;
+    max-height: none;
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    box-shadow: none;
+    /* Shadow übernimmt die Box */
 }
-#logList { overflow-y: auto; flex: 1; }
+
+#logList {
+    overflow-y: auto;
+    flex: 1;
+}
 
 .chat-container {
-    flex: 1; background: #fff; border-radius: 8px; padding: 15px;
-    border: 1px solid #eee; display: flex; flex-direction: column;
+    flex: 1;
+    background: #fff;
+    border-radius: 8px;
+    padding: 15px;
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
 }
-.chat-container h3 { 
-    margin: 0 0 10px 0; font-size: 14px; 
-    border-bottom: 1px solid #eee; padding-bottom: 5px;
+
+.chat-container h3 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
 }
-.chat-messages { 
-    flex: 1; overflow-y: auto; font-size: 13px; margin-bottom: 10px; 
-    background: #fafafa; padding: 5px; border-radius: 4px;
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    font-size: 13px;
+    margin-bottom: 10px;
+    background: #fafafa;
+    padding: 5px;
+    border-radius: 4px;
 }
-.sys-msg { color: #888; font-style: italic; margin: 0;}
-.chat-container input { width: calc(100% - 24px); margin: 0; padding: 10px;}
+
+.sys-msg {
+    color: #888;
+    font-style: italic;
+    margin: 0;
+}
+
+.chat-container input {
+    width: calc(100% - 24px);
+    margin: 0;
+    padding: 10px;
+}
+
+/* --- Teil L: Endbildschirm Polish & Konfetti --- */
+
+/* Verkleinert das kopierte Board im Endbildschirm */
+.end-board-scale {
+    transform: scale(0.65);
+    transform-origin: top center;
+    height: 380px; /* Hält Platzhalter in der verkleinerten Höhe frei */
+    pointer-events: none; /* Brett im Endscreen nicht mehr klickbar */
+}
+
+/* Basis Aussehen für Konfetti-Schnipsel */
+.confetti-piece {
+    position: fixed;
+    width: 12px;
+    height: 24px;
+    top: -30px; /* Startet leicht über dem Bildschirm */
+    opacity: 0.9;
+    z-index: 9999; /* Immer ganz im Vordergrund */
+    animation: fall linear forwards;
+}
+
+/* Fall-Animation */
+@keyframes fall {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(110vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+#end-screen .game-left-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
