@@ -52,6 +52,9 @@ function startGame() {
     // Direkt bei Start prüfen, ob Felder hervorgehoben werden müssen
     autoHighlightCaptures();
 
+    // Initiales Sperren der Gegnerischen Steine
+    updatePieceCursors();
+
     // Wenn Computer weiß ist, fängt er an
     if (gameMode === 'computer') {
         makeComputerMove();
@@ -172,8 +175,6 @@ function selectPiece(event) {
 
     // Zeigt alle validen Züge an und teilt Schlagzwang mit
     showValidMoves(piece, mandatoryCaptureExists);
-
-
 }
 
 /**
@@ -348,6 +349,7 @@ function handleBoardClick(event) {
     // 'appendChild' verschiebt das HTML-Element automatisch in die neue Zelle
     const pieceToAnimate = selectedPiece;
     targetCell.appendChild(pieceToAnimate);
+    pieceToAnimate.style.opacity = '1'; // Bugfix: Verhindert unsichtbare Steine bei Drag&Drop
 
     // 2. Dame-Beförderung vorbereiten
     const newRow = parseInt(targetCell.dataset.row);
@@ -359,7 +361,7 @@ function handleBoardClick(event) {
     // Hilfsfunktion: Dreht die Dame um 180 Grad und blendet die Krone ein
     const playPromoteAnim = () => {
         pieceToAnimate.classList.add('hide-crown', 'dame');
-        const wrapper = document.getElementById('boardWrapper')
+        const wrapper = document.getElementById('boardWrapper');
         const baseRot = wrapper.classList.contains('flipped') ? 180 : 0;
         const spinAnim = pieceToAnimate.animate([
             { transform: `rotate(${baseRot}deg) rotateY(0deg)` },
@@ -377,7 +379,7 @@ function handleBoardClick(event) {
 
         // DER NEUE TRICK: Wenn das Brett um 180 Grad gedreht ist, fliegen die Steine
         // lokal in die falsche Richtung. Wir drehen die Richtung mathematisch einfach um!
-        const wrapper = document.getElementById('boardWrapper')
+        const wrapper = document.getElementById('boardWrapper');
         if (wrapper.classList.contains('flipped')) {
             dx = -dx;
             dy = -dy;
@@ -404,8 +406,8 @@ function handleBoardClick(event) {
         if (getsPromoted) playPromoteAnim();
     }
 
-    // Zug in Log eintragen
-    addToLog(startRow, startCol, endRow, endCol, isCapture);
+    // Zug in Log eintragen (übergibt nun auch getsPromoted)
+    addToLog(startRow, startCol, endRow, endCol, isCapture, getsPromoted);
 
     // Multischlag prüfen
     let canMultiJump = false;
@@ -421,15 +423,16 @@ function handleBoardClick(event) {
         clearSelection();
         selectedPiece = pieceToAnimate;
         selectedPiece.classList.add('selected');
-        showValidMoves(selectedPiece, true) // Zeigt zwangsweise nur die nächsten Schläge an
+        showValidMoves(selectedPiece, true); // Zeigt zwangsweise nur die nächsten Schläge an
+
+        updatePieceCursors(); // Andere Steine sperren
 
         // Falls Computer am Zug ist, darf auch er direkt nochmal springen
-
         const compIsWhite = !playerGetsWhite;
-        if (gameMode === 'computer' && ((currentTurn === 'white' && compIsWhite) || (currentTurn === 'black' && !compIsWhite))){
+        if (gameMode === 'computer' && ((currentTurn === 'white' && compIsWhite) || (currentTurn === 'black' && !compIsWhite))) {
             if (typeof makeComputerMove === 'function') makeComputerMove();
         }
-        return; // Funktion hier beenden - Kein  Spielerwechsel
+        return; // Funktion hier beenden - Kein Spielerwechsel
     }
 
     // Normales Zug-Ende - Multijump zurücksetzen
@@ -455,6 +458,9 @@ function handleBoardClick(event) {
 
     // Optischen Fokus der Uhr auf den neuen Spieler wechseln
     updateActiveTimerStyle();
+
+    // Mauszeiger für neuen Spieler aktualisieren
+    updatePieceCursors();
 
     // Falls Computer dran ist, nächsten regulären Zug auslösen
     const compIsWhite = !playerGetsWhite;
@@ -812,7 +818,7 @@ function updateTurnIndicator() {
 /**
  * Schreibt einen Zug in den Spielverlauf und scrollt mit
  */
-function addToLog(sRow, sCol, eRow, eCol, isCapture) {
+function addToLog(sRow, sCol, eRow, eCol, isCapture, getsPromoted = false) {
     const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
     // Array-Indexe in Schach-Koordinaten umwandeln
     const startStr = letters[sCol] + (8 - sRow);
@@ -822,9 +828,10 @@ function addToLog(sRow, sCol, eRow, eCol, isCapture) {
 
     const name = isMyTurn ? "Du" : opponentName;
     const verb = isCapture ? "schlägt" : "zieht";
+    const promoText = getsPromoted ? " und wird zur 👑 Dame" : "";
 
     const li = document.createElement('li');
-    li.innerHTML = `<strong>${name}</strong> ${verb} von ${startStr} nach ${endStr}`;
+    li.innerHTML = `<strong>${name}</strong> ${verb} von ${startStr} nach ${endStr}${promoText}`;
 
     const list = document.getElementById('logList');
     if (list) {
@@ -917,9 +924,34 @@ function makeComputerMove() {
     }
 }
 
+/**
+ * Setzt den Mauszeiger für gesperrte Steine auf "Verbot" und deaktiviert Drag & Drop
+ */
+function updatePieceCursors() {
+    const allPieces = document.querySelectorAll('.piece');
+    const isMyTurn = (currentTurn === 'white' && playerGetsWhite) || (currentTurn === 'black' && !playerGetsWhite);
 
+    allPieces.forEach(p => {
+        let isLocked = false;
 
+        // Option A: Nicht der eigene Stein
+        if (!p.classList.contains(currentTurn + '-piece')) isLocked = true;
 
+        // Option B: Gegner ist am Zug
+        if (!isMyTurn) isLocked = true;
+
+        // Option C: Multischlag läuft, aber falscher Stein
+        if (isMultiJumping && p !== selectedPiece) isLocked = true;
+
+        if (isLocked) {
+            p.classList.add('locked');
+            p.draggable = false; // Verhindert Geister-Drags
+        } else {
+            p.classList.remove('locked');
+            p.draggable = true;
+        }
+    });
+}
 
 /**
  * Zwischenstand:
@@ -928,11 +960,8 @@ function makeComputerMove() {
  * Build-Process: Lässt sich Projekt nach Checkout bauen? (Build-Datei)
  * Sieganimation?
  * Chat?
- * Gesperrte Steine mit Mauszeiger (Verbotsschild)
- * Damentrafo in Log extra darstellen
  * Letzte Boardstellung in Endbildschirm
  * UI Checkup
- * Weiße Steine verschwinden bei DragDrop?
  * Klick auf "nochmal spielen" soll gegner Replay Wunsch anzeigen - dann in Warteschlange gegen gleichen Gegner
  * Klick auf Zurück zur Lobby soll Gegner anzeigen, dass gegner weg ist und Replay Button ausgrauen
  */

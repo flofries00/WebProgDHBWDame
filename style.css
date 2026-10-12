@@ -368,6 +368,11 @@ button:disabled {
     /* Hebt die Krone etwas vom Stein ab */
 }
 
+.piece.locked {
+    cursor: not-allowed;
+    transform: none;
+}
+
 /* Styling für verfügbare Züge */
 .cell.highlighted {
     background-color: rgba(0, 255, 0, 0.4);
