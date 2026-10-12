@@ -657,19 +657,54 @@ button:disabled {
 }
 
 /* --- Teil G: Brett drehen für anderen Spieler --- */
-#board.flipped {
+.board-wrapper.flipped {
     transform: rotate(180deg);
 }
 
-/* Damit Steine nicht auf dem Kopf stehen */
-#board.flipped .piece {
+.board-wrapper.flipped .piece {
     transform: rotate(180deg);
 }
 
-#board.flipped .piece:hover {
+.board-wrapper.flipped .piece:hover {
     transform: rotate(180deg) scale(1.1);
 }
 
-#board.flipped .piece.selected {
+.board-wrapper.flipped .piece.selected {
     transform: rotate(180deg) scale(1.15);
+}
+
+/* Dreht Texte wieder richtig herum, damit diese nicht auf dem Kopf stehen */
+.board-wrapper.flipped .coords-x span,
+.board-wrapper.flipped .coords-y span {
+    transform: rotate(180deg);
+}
+
+/* --- Teil I: Boardbeschriftung --- */
+.board-wrapper {
+    display: grid;
+    /* 20px für Beschriftung, 456px für Brett inkl. 8px Rahmen auf beiden Seiten */
+    grid-template-columns: 20px 456px;
+    grid-template-rows: 456px 20px;
+    gap: 5px;
+    justify-content: center;
+    margin: 0 auto;
+    transition: transform 0.5s ease;
+}
+
+.coords-y {
+    display: grid;
+    grid-template-rows: repeat(8, 55px);
+    align-items: center;
+    justify-items: center;
+    font-weight: bold;
+    margin-top: 8px; /* Ausgleich für oberen Brettrahmen */
+}
+
+.coords-x {
+    display: grid;
+    grid-template-columns: repeat(8, 55px);
+    align-items: center;
+    justify-items: center;
+    font-weight: bold;
+    margin-left: 8px; /* Ausgleich für linekn Brettrahmen */
 }

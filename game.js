@@ -99,10 +99,11 @@ function generateBoard() {
     }
 
     // Brett visuell um 180° drehen, wenn man Schwarz hat
+    const wrapper = document.getElementById('boardWrapper');
     if (!playerGetsWhite) {
-        boardElement.classList.add('flipped');
+        wrapper.classList.add('flipped');
     } else {
-        boardElement.classList.remove('flipped');
+        wrapper.classList.remove('flipped');
     }
 }
 
@@ -317,8 +318,8 @@ function handleBoardClick(event) {
             // Kleine Trophäe erzeugen und in Kopfzeile packen
             const trophy = document.createElement('div');
             trophy.className = 'captured-piece ' + (victimIsWhite ? 'white-piece' : 'black-piece');
-            const tCont = (currentTurn === 'white' && playerGetsWhite) || 
-                          (currentTurn === 'black' && !playerGetsWhite) ? 'p1Captured' : 'compCaptured';
+            const tCont = (currentTurn === 'white' && playerGetsWhite) ||
+                (currentTurn === 'black' && !playerGetsWhite) ? 'p1Captured' : 'compCaptured';
             document.getElementById(tCont).appendChild(trophy);
         }
     }
@@ -330,19 +331,20 @@ function handleBoardClick(event) {
     // 2. Dame-Beförderung vorbereiten
     const newRow = parseInt(targetCell.dataset.row);
     let getsPromoted = false;
-    
+
     if (pieceToAnimate.classList.contains('white-piece') && newRow === 0 && !pieceToAnimate.classList.contains('dame')) getsPromoted = true;
     if (pieceToAnimate.classList.contains('black-piece') && newRow === 7 && !pieceToAnimate.classList.contains('dame')) getsPromoted = true;
 
     // Hilfsfunktion: Dreht die Dame um 180 Grad und blendet die Krone ein
     const playPromoteAnim = () => {
         pieceToAnimate.classList.add('hide-crown', 'dame');
-        const baseRot = document.getElementById('board').classList.contains('flipped') ? 180 : 0;
+        const wrapper = document.getElementById('boardWrapper')
+        const baseRot = wrapper.classList.contains('flipped') ? 180 : 0;
         const spinAnim = pieceToAnimate.animate([
             { transform: `rotate(${baseRot}deg) rotateY(0deg)` },
             { transform: `rotate(${baseRot}deg) rotateY(180deg)` }
         ], { duration: 400, easing: 'ease-in-out' });
-        
+
         spinAnim.onfinish = () => pieceToAnimate.classList.remove('hide-crown');
     };
 
@@ -354,27 +356,28 @@ function handleBoardClick(event) {
 
         // DER NEUE TRICK: Wenn das Brett um 180 Grad gedreht ist, fliegen die Steine
         // lokal in die falsche Richtung. Wir drehen die Richtung mathematisch einfach um!
-        if (document.getElementById('board').classList.contains('flipped')) {
+        const wrapper = document.getElementById('boardWrapper')
+        if (wrapper.classList.contains('flipped')) {
             dx = -dx;
             dy = -dy;
         }
 
-        const moveKeyframes = isCapture 
+        const moveKeyframes = isCapture
             ? [ // Sprung über gegnerischen Stein
                 { transform: `translate(${dx}px, ${dy}px) scale(1)`, zIndex: 10 },
-                { transform: `translate(${dx/2}px, ${dy/2}px) scale(1.3)`, zIndex: 10 },
+                { transform: `translate(${dx / 2}px, ${dy / 2}px) scale(1.3)`, zIndex: 10 },
                 { transform: `translate(0px, 0px) scale(1)`, zIndex: 10 }
-              ]
+            ]
             : [ // Normales, flaches Schweben
                 { transform: `translate(${dx}px, ${dy}px)`, zIndex: 10 },
                 { transform: `translate(0px, 0px)`, zIndex: 10 }
-              ];
+            ];
 
         const moveAnim = pieceToAnimate.animate(moveKeyframes, { duration: 350, easing: 'ease-in-out' });
 
         // Wenn er befördert wird, warten wir den Flug ab und drehen ihn dann
         if (getsPromoted) moveAnim.onfinish = playPromoteAnim;
-        
+
     } else {
         // Beim Drag & Drop: Keine Flug-Animation, aber falls er befördert wird, Drehung abspielen!
         if (getsPromoted) playPromoteAnim();
@@ -726,18 +729,12 @@ function handleDrop(event) {
 /**
  * Zwischenstand:
  * TODOs:
- * UI Cleanup
- * Backend (Servereinbindung)
- * Drag & Drop Option
  * Computerlogik (Zufallszüge)
- * Ziehanimation?
- * Dameanimation?
  * Gameboard wesentlich größer. Evtl ganzer Bildschirm. Dann auch responsive für Handy.
  * Build-Process: Lässt sich Projekt nach Checkout bauen? (Build-Datei)
- * Code-Review Sven
  * Multischlagen?
  * Sieganimation?
  * Chat?
  * Zug-Log?
- * Boardbeschriftung (A-H, 1-8)?
+ * UI Checkup
  */
