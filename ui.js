@@ -245,3 +245,50 @@ function updateRealTimeClock() {
 setInterval(updateRealTimeClock, 1000);
 // Direkt beim Laden der Seite aufrufen
 updateRealTimeClock();
+
+/**
+ * Verarbeitet Chat-Eingaben
+ */
+function handleChatEnter(event) {
+    if (event.key === 'Enter') {
+        const input = document.getElementById('chatInput');
+        const msg = input.value.trim();
+
+        if (msg.length > 0) {
+            // a) Nachricht lokal anzeigen
+            addChatMessage("Du", msg, true);
+
+            // b) Nachricht an Server senden
+            if (gameMode === 'local') {
+                socket.emit('chatMessage', msg);
+            }
+
+            // c) Eingabefeld wieder leeren
+            input.value = "";
+        }
+    }
+}
+
+/**
+ * Fügt eine Nachricht zur Chatbox hinzu
+ */
+function addChatMessage(sender, msg, isSelf) {
+    const container = document.querySelector('.chat-messages');
+    const p = document.createElement('p');
+
+    // Eigene Nachrichten farblich hervorheben
+    const color = isSelf ? 'var(--dhbw-rot)' : '#333';
+
+    p.innerHTML = `<strong style="color: ${color}">${sender}:</strong> ${msg}`;
+    p.style.margin = "5px 0";
+
+    container.appendChild(p);
+
+    // Automatisch nach unten scrollen
+    container.scrollTop = container.scrollHeight;
+}
+
+// Lauscht permanent auf eingehende Nachrichten vom Server
+socket.on('chatMessage', (msg) => {
+    addChatMessage(opponentName, msg, false);
+});

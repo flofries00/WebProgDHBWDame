@@ -55,6 +55,22 @@ function startGame() {
     // Initiales Sperren der Gegnerischen Steine
     updatePieceCursors();
 
+    // Chatbox nur im Multiplayer aktivieren
+    const chatInput = document.getElementById('chatInput');
+    const chatBox = document.querySelector('.chat-messages');
+
+    if (chatInput && chatBox) {
+        if (gameMode === 'local') {
+            chatInput.disabled = false;
+            chatInput.placeholder = "Nachricht schreiben...";
+            chatBox.innerHTML = '<p class="sys-mag">Chat bereit. Sag Hallo!</p>';
+        } else {
+            chatInput.disabled = true;
+            chatInput.placeholder = "Chat im Singleplayer deaktiviert.";
+            chatBox.innerHTML = '<p class "sys-mag">System offline.</p>';
+        }
+    }
+
     // Wenn Computer weiß ist, fängt er an
     if (gameMode === 'computer') {
         makeComputerMove();

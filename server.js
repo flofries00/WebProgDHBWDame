@@ -51,6 +51,14 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Wartet auf Chat-Nachrichten und schickt sie an den Gegner
+    socket.on('chatMessage', (msg) => {
+        if (socket.oppId) {
+            // Leitet Nachricht nur an den verknüpften Gegner weiter
+            socket.to(socket.oppId).emit('chatMessage', msg);
+        }
+    });
+
     // Wenn ein Spieler während des Wartens den Tab schließt
     socket.on('disconnect', () => {
         if (waiting && waiting.socket.id === socket.id) {
