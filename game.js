@@ -5,6 +5,7 @@ let moveCount = 0; // Zählt Züge mit
 let whiteTime = 300; // Startzeit Weiß (5min / 300s)
 let blackTime = 300; // Startzeit Schwarz (5min / 300s)
 let timerInterval = null;
+let isMultiJumping = false; // Sperrt andere Steine während eines Multisprungs
 
 /**
  * Startet das eigentliche Brettspiel.
@@ -123,6 +124,11 @@ function generateBoard() {
  */
 function selectPiece(event) {
     const piece = event.target;
+
+    // Multischlag-Sperre einbauen, kein Stein anklickbar
+    if (isMultiJumping && piece !== selectedPiece) {
+        return;
+    }
 
     // a) Prüfen: Gehört der Stein dem Spieler, der gerade am Zug ist?
     // Wenn Weiß am Zug ist, darf man keine schwarzen Steine anklicken und umgekehrt
@@ -401,6 +407,34 @@ function handleBoardClick(event) {
     // Zug in Log eintragen
     addToLog(startRow, startCol, endRow, endCol, isCapture);
 
+    // Multischlag prüfen
+    let canMultiJump = false;
+    // Wenn geschlagen hat UND nicht zur Dame befördert wurde
+    if (isCapture && !getsPromoted) {
+        if (canCapture(pieceToAnimate)) {
+            canMultiJump = true;
+        }
+    }
+
+    if (canMultiJump) {
+        isMultiJumping = true; // Brett für andere Steine sperren
+        clearSelection();
+        selectedPiece = pieceToAnimate;
+        selectedPiece.classList.add('selected');
+        showValidMoves(selectedPiece, true) // Zeigt zwangsweise nur die nächsten Schläge an
+
+        // Falls Computer am Zug ist, darf auch er direkt nochmal springen
+
+        const compIsWhite = !playerGetsWhite;
+        if (gameMode === 'computer' && ((currentTurn === 'white' && compIsWhite) || (currentTurn === 'black' && !compIsWhite))){
+            if (typeof makeComputerMove === 'function') makeComputerMove();
+        }
+        return; // Funktion hier beenden - Kein  Spielerwechsel
+    }
+
+    // Normales Zug-Ende - Multijump zurücksetzen
+    isMultiJumping = false;
+
     // Markierungen aufheben
     clearSelection();
 
@@ -422,9 +456,10 @@ function handleBoardClick(event) {
     // Optischen Fokus der Uhr auf den neuen Spieler wechseln
     updateActiveTimerStyle();
 
-    // Computer bescheid geben, dass er dran ist
-    if (gameMode === 'computer') {
-        makeComputerMove();
+    // Falls Computer dran ist, nächsten regulären Zug auslösen
+    const compIsWhite = !playerGetsWhite;
+    if (gameMode === 'computer' && ((currentTurn === 'white' && compIsWhite) || (currentTurn === 'black' && !compIsWhite))) {
+        if (typeof makeComputerMove === 'function') makeComputerMove();
     }
 }
 
@@ -500,6 +535,9 @@ function handleGlobalClick(event) {
 
     // Geht Klick auf ein gültiges Zielfeld greift handleBoardClick()
     if (event.target.closest('.cell.highlighted, .cell.highlighted-capture')) return;
+
+    // Mehrfachsprung darf nicht durch Klick ins Leere abgebrochen werden
+    if (isMultiJumping) return;
 
     // In allen anderen Fällen
     clearSelection();
@@ -809,7 +847,7 @@ function makeComputerMove() {
         return;
     }
 
-    const compPieces = document.querySelectorAll(`.${currentTurn}-piece`);
+    const compPieces = (isMultiJumping && selectedPiece) ? [selectedPiece] : Array.from(document.querySelectorAll(`.${currentTurn}-piece`));
     let validMoves = [];
     let captureMoves = [];
 
@@ -886,13 +924,15 @@ function makeComputerMove() {
 /**
  * Zwischenstand:
  * TODOs:
- * Computerlogik (Zufallszüge)
  * Gameboard wesentlich größer. Evtl ganzer Bildschirm. Dann auch responsive für Handy.
  * Build-Process: Lässt sich Projekt nach Checkout bauen? (Build-Datei)
- * Multischlagen?
  * Sieganimation?
  * Chat?
+ * Gesperrte Steine mit Mauszeiger (Verbotsschild)
  * Damentrafo in Log extra darstellen
  * Letzte Boardstellung in Endbildschirm
  * UI Checkup
+ * Weiße Steine verschwinden bei DragDrop?
+ * Klick auf "nochmal spielen" soll gegner Replay Wunsch anzeigen - dann in Warteschlange gegen gleichen Gegner
+ * Klick auf Zurück zur Lobby soll Gegner anzeigen, dass gegner weg ist und Replay Button ausgrauen
  */
