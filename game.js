@@ -50,6 +50,11 @@ function startGame() {
 
     // Direkt bei Start prüfen, ob Felder hervorgehoben werden müssen
     autoHighlightCaptures();
+
+    // Wenn Computer weiß ist, fängt er an
+    if (gameMode === 'computer') {
+        makeComputerMove();
+    }
 }
 
 /**
@@ -416,6 +421,11 @@ function handleBoardClick(event) {
 
     // Optischen Fokus der Uhr auf den neuen Spieler wechseln
     updateActiveTimerStyle();
+
+    // Computer bescheid geben, dass er dran ist
+    if (gameMode === 'computer') {
+        makeComputerMove();
+    }
 }
 
 /**
@@ -787,6 +797,90 @@ function addToLog(sRow, sCol, eRow, eCol, isCapture) {
     }
 }
 
+/**
+ * Führt einen zufälligen, gültigen Zug für den Computer aus.
+ */
+function makeComputerMove() {
+    if (gameMode !== 'computer') return;
+
+    // Nur agieren, wenn der Computer (der Gegner) dran ist
+    const compIsWhite = !playerGetsWhite;
+    if ((currentTurn === 'white' && !compIsWhite) || (currentTurn === 'black' && compIsWhite)) {
+        return;
+    }
+
+    const compPieces = document.querySelectorAll(`.${currentTurn}-piece`);
+    let validMoves = [];
+    let captureMoves = [];
+
+    // 1. Alle Steine scannen und mögliche Züge/Schläge sammeln
+    compPieces.forEach(piece => {
+        const row = parseInt(piece.parentElement.dataset.row);
+        const col = parseInt(piece.parentElement.dataset.col);
+        const isDame = piece.classList.contains('dame');
+        const oppClass = piece.classList.contains('white-piece') ? 'black-piece' : 'white-piece';
+
+        if (isDame) {
+            const dirs = [{ dr: -1, dc: -1 }, { dr: -1, dc: 1 }, { dr: 1, dc: -1 }, { dr: 1, dc: 1 }];
+            dirs.forEach(dir => {
+                let r = row + dir.dr, c = col + dir.dc, foundOpp = false, oppR = -1, oppC = -1;
+                while (r >= 0 && r <= 7 && c >= 0 && c <= 7) {
+                    const target = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+                    if (target) {
+                        if (target.children.length === 0) {
+                            if (foundOpp) captureMoves.push({ piece, target });
+                            else validMoves.push({ piece, target });
+                        } else {
+                            if (!foundOpp && target.children[0].classList.contains(oppClass)) {
+                                foundOpp = true;
+                                oppR = r; oppC = c;
+                            } else break;
+                        }
+                    }
+                    r += dir.dr; c += dir.dc;
+                }
+            });
+        } else {
+            const dir = piece.classList.contains('white-piece') ? -1 : 1;
+            const moves = [{ r: row + dir, c: col - 1 }, { r: row + dir, c: col + 1 }];
+            moves.forEach(m => {
+                if (m.r >= 0 && m.r <= 7 && m.c >= 0 && m.c <= 7) {
+                    const target = document.querySelector(`.cell[data-row="${m.r}"][data-col="${m.c}"]`);
+                    if (target) {
+                        if (target.children.length === 0) {
+                            validMoves.push({ piece, target });
+                        } else if (target.children[0].classList.contains(oppClass)) {
+                            const jR = m.r + dir, jC = m.c + (m.c - col);
+                            if (jR >= 0 && jR <= 7 && jC >= 0 && jC <= 7) {
+                                const jumpT = document.querySelector(`.cell[data-row="${jR}"][data-col="${jC}"]`);
+                                if (jumpT && jumpT.children.length === 0) captureMoves.push({ piece, target: jumpT });
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+    // 2. Schlagzwang priorisieren
+    const movesToPlay = captureMoves.length > 0 ? captureMoves : validMoves;
+
+    if (movesToPlay.length > 0) {
+        // 3. Zufälligen Zug auswählen
+        const randomMove = movesToPlay[Math.floor(Math.random() * movesToPlay.length)];
+
+        // 4. Zug mit Verzögerung ausführen (wirkt menschlicher)
+        setTimeout(() => {
+            randomMove.piece.click(); // Stein anwählen
+            setTimeout(() => {
+                randomMove.target.click(); // Ziel klicken
+            }, 300);
+        }, 800);
+    }
+}
+
+
+
 
 
 /**
@@ -798,7 +892,7 @@ function addToLog(sRow, sCol, eRow, eCol, isCapture) {
  * Multischlagen?
  * Sieganimation?
  * Chat?
- * Damentrafo in Log
+ * Damentrafo in Log extra darstellen
  * Letzte Boardstellung in Endbildschirm
  * UI Checkup
  */
