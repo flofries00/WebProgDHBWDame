@@ -13,18 +13,29 @@ Ein modernes, browserbasiertes Dame-Spiel, entwickelt als Projekt für den Kurs 
 * **UX-Features:** Optische Trophäen-Anzeige geschlagener Steine in der Kopfzeile, globale Deselektion ("Klick-ins-Leere") und Anzeige der Zugberechtigung.
 
 ## Dateistruktur
-Das Projekt ist modular und verzichtet vollständig auf externe Frameworks (Vanilla HTML/CSS/JS):
-* `index.html` – Semantisches Grundgerüst und Container für die verschiedenen Bildschirme (Screens).
-* `style.css` – Komplettes Styling inkl. CSS-Grid für das Spielbrett, Flexbox für UI-Elemente und Keyframe-Animationen.
-* `ui.js` – Verwaltung der Benutzeroberfläche, Screen-Wechsel, Formularvalidierung und Münzwurf-Logik.
-* `game.js` – Kernlogik des Brettspiels (Zugberechnung, Schlagzwang-Prüfung, DOM-Manipulation beim Verschieben der Steine).
+Das Projekt verzichtet im Frontend vollständig auf externe Frameworks (Vanilla HTML/CSS/JS):
+* `server.js` – Node.js-Server (Express + Socket.io): liefert das Frontend aus, vermittelt Online-Partien und leitet Züge, Chat und Revanche-Anfragen weiter.
+* `public/index.html` – Semantisches Grundgerüst und Container für die verschiedenen Bildschirme (Screens).
+* `public/style.css` – Komplettes Styling inkl. CSS-Grid für das Spielbrett, Flexbox für UI-Elemente und Keyframe-Animationen.
+* `public/ui.js` – Verwaltung der Benutzeroberfläche, Screen-Wechsel, Formularvalidierung, Münzwurf und Chat.
+* `public/game.js` – Kernlogik des Brettspiels (Zugberechnung, Schlagzwang, Timer, Siegbedingungen, Computergegner).
 
 ## Lokale Ausführung
-Da sich das Projekt aktuell im reinen Frontend-Zwischenstand befindet, wird noch kein Webserver benötigt.
-1. Das Archiv entpacken oder das Repository klonen.
-2. Die Datei `index.html` mit einem beliebigen modernen Webbrowser öffnen.
+Voraussetzung: [Node.js](https://nodejs.org/) ab Version 18.
+
+1. Repository klonen:
+   `git clone https://github.com/flofries00/WebProgDHBWDame.git`
+2. In den Projektordner wechseln und Abhängigkeiten installieren:
+   `npm install`
+3. Server starten:
+   `npm start`
+4. Im Browser `http://localhost:3000` öffnen.
+   Für eine Online-Partie die Seite in einem zweiten Tab öffnen und in beiden „Gegen Mensch“ wählen.
+
+Optional kann ein anderer Port gesetzt werden, z.B. unter Linux: `PORT=8080 npm start`
 
 ## Nächste Entwicklungsschritte
-* Implementierung einer Timer-Funktion für die Züge.
-* Automatische Auswertung der Siegbedingungen (keine Steine / keine gültigen Züge mehr übrig) und Aufruf des End-Screens.
-* **Backend-Integration:** Aufsetzen eines Node.js-Servers auf der Ubuntu-Umgebung für echte Netzwerk-Multiplayer-Sitzungen via WebSockets.
+* Abbrechen-Button während des Spiels
+* Tutorial
+* Dark-Mode
+* Zug-Sounds

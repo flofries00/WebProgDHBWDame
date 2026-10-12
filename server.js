@@ -119,6 +119,6 @@ io.on('connection', (socket) => {
     });
 });
 
-// Server auf Port 3000 starten
-const PORT = 3000;
+// Server starten (Port über Umgebungsvariable PORT änderbar, Standard: 3000)
+const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => console.log(`Läuft auf Port ${PORT}`));

@@ -1,0 +1,10 @@
+# Abhängigkeiten werden per "npm install" geladen und nicht versioniert
+node_modules/
+
+# Lokale Einstellungen von Editor / Claude
+.claude/
+.vscode/
+
+# Betriebssystem-Dateien
+Thumbs.db
+.DS_Store

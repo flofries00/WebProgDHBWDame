@@ -866,7 +866,6 @@ document.addEventListener('click', handleGlobalClick);
 /**
  * Zwischenstand:
  * TODOs:
- * Build-Process: Lässt sich Projekt nach Checkout bauen? (Build-Datei)
  * UI abschließend kontrollieren
  * Abbrechen-Button während Spiel
  * Move-Sound?
