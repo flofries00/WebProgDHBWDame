@@ -13,6 +13,7 @@
     <!-- JavaScript-Dateien modular laden-->
     <!-- defer ist wichtig: Sagt Browser, dass er zuerst die gesamte HTML Datei laden soll bevor das Script ausgeführt wird-->
     <script src="ui.js" defer></script>
+    <script src="sound.js" defer></script>
     <script src="game.js" defer></script>
 
     <!-- Socket.io Client-Bibliothek laden -->
@@ -26,6 +27,7 @@
         <h2 class="nav-logo">DAME</h2>
         <div class="nav-controls">
             <button id="tutorialBtn" class="nav-btn">?</button>
+            <button id="soundBtn" class="nav-btn" onclick="toggleSound()" title="Ton an/aus">🔊</button>
             <span id="realTimeClock" class="clock-display">00:00</span>
         </div>
     </header>

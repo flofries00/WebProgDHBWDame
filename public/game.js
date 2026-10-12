@@ -360,6 +360,9 @@ function handleBoardClick(event) {
     targetCell.appendChild(pieceToAnimate);
     pieceToAnimate.style.opacity = '1'; // Bugfix: Verhindert unsichtbare Steine bei Drag&Drop
 
+    // Sound abspielen (Schlag oder normaler Zug)
+    playSound(isCapture ? 'capture' : 'move');
+
     // 2. Dame-Beförderung vorbereiten
     let getsPromoted = false;
 
@@ -368,6 +371,7 @@ function handleBoardClick(event) {
 
     // Hilfsfunktion: Dreht die Dame um 180 Grad und blendet die Krone ein
     const playPromoteAnim = () => {
+        playSound('promote');
         pieceToAnimate.classList.add('hide-crown', 'dame');
         const wrapper = document.getElementById('boardWrapper');
         const baseRot = wrapper.classList.contains('flipped') ? 180 : 0;
@@ -868,7 +872,10 @@ document.addEventListener('click', handleGlobalClick);
  * TODOs:
  * UI abschließend kontrollieren
  * Abbrechen-Button während Spiel
- * Move-Sound?
  * Tutorial einbauen
  * Dark-Mode
+ * Zurück zur Lobby-Knopf im Namensbildschirm
+ * Sounds auch bei Münzwurf und Sieg/Niederlage
+ * Wenn Zug-Log länger wird zieht sich das gesamte Overlay nach oben
+ * Endbildschirm noch sehr unpassend
  */
