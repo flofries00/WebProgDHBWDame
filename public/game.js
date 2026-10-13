@@ -878,4 +878,10 @@ document.addEventListener('click', handleGlobalClick);
  * Sounds auch bei Münzwurf und Sieg/Niederlage
  * Wenn Zug-Log länger wird zieht sich das gesamte Overlay nach oben
  * Endbildschirm noch sehr unpassend
+ * Barrierefreiheit prüfen
+ * Linter prüfen (ggf. einbauen)
+ * Code-Kommentare verbessern
+ * Eingaben bereinigen, kürzen, prüfen
+ * Tests einbauen (alles testen)
+ * Performance optimieren
  */
