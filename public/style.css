@@ -653,6 +653,7 @@ button:disabled {
     margin: 0;
     width: 100%;
     flex: 1;
+    min-height: 0;
     background: #fff;
     border-radius: 8px;
     border: 1px solid #eee;
@@ -680,6 +681,7 @@ button:disabled {
     color: #555;
     overflow-y: auto;
     flex: 1;
+    min-height: 0;
 }
 
 #logList li {
@@ -776,6 +778,7 @@ button:disabled {
 
 .game-right-box {
     flex: 1;
+    contain: size; /* Inhalt beeinflusst Boxhöhe nicht. Box übernimmt Höhe der linken Box */
     display: flex;
     flex-direction: column;
     gap: 20px;
@@ -854,6 +857,7 @@ button:disabled {
 
 .chat-container {
     flex: 1;
+    min-height: 0; /* Darf schrumpfen, damit der Chat intern scrollt statt die Box zu vergrößern */
     background: #fff;
     border-radius: 8px;
     padding: 15px;
@@ -959,6 +963,7 @@ button:disabled {
     .game-right-box {
         height: auto;
         min-height: 400px;
+        contain: none; /* Auf dem Handy (Boxen untereinander) darf die Box mit dem Inhalt wachsen */
     }
 
     .move-log.large-log {

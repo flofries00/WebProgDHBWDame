@@ -789,8 +789,8 @@ function addToLog(sRow, sCol, eRow, eCol, isCapture, getsPromoted = false) {
     const list = document.getElementById('logList');
     if (list) {
         list.appendChild(li);
-        // Box nach unten scrollen lassen
-        li.scrollIntoView({block: 'nearest'});
+        // Liste nach unten scrollen lassen
+        list.scrollTop = list.scrollHeight;
     }
 }
 
@@ -865,8 +865,6 @@ document.addEventListener('click', handleGlobalClick);
 
 /**
  * TODOs (in Bearbeitungsreihenfolge, neue Punkte passend einsortieren):
- * Linter einbauen
- * Zug-Log: Wenn es länger wird, zieht sich das gesamte Overlay nach oben
  * Zurück-zur-Lobby-Knopf im Namensbildschirm
  * Abbrechen-Button während Spiel
  * Endbildschirm überarbeiten (noch sehr unpassend)
@@ -875,9 +873,9 @@ document.addEventListener('click', handleGlobalClick);
  * Barrierefreiheit prüfen (Kontraste, Tastatur, Screenreader, reduzierte Animationen)
  * Dark-Mode
  * Tutorial einbauen
+ * Code aufteilen? (In Verschiedene Dateien bzw Unterordner)
  * Tests einbauen (Playwright für Spielabläufe, Server-Tests)
  * Performance optimieren (vorher messen)
  * UI abschließend kontrollieren
  * Code-Kommentare verbessern
- * Code aufteilen? (In Verschiedene Dateien bzw Unterordner)
  */
