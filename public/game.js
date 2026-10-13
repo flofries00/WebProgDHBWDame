@@ -556,12 +556,8 @@ function endGame(winnerColor, reason = "") {
     // Ausstehenden Computerzug abbrechen
     clearTimeout(computerMoveTimeout);
 
-    let winner = "";
-    if (winnerColor === 'white') {
-        winner = playerGetsWhite ? currentPlayerName : opponentName;
-    } else {
-        winner = playerGetsWhite ? opponentName : currentPlayerName;
-    }
+    // Gewinner ist der Spieler, dessen Farbe der Siegerfarbe entspricht
+    const winner = (winnerColor === 'white') === playerGetsWhite ? currentPlayerName : opponentName;
 
     const textEl = document.getElementById('winnerText');
     if (reason === "timeout") {
@@ -868,20 +864,20 @@ document.getElementById('board').addEventListener('drop', handleDrop);
 document.addEventListener('click', handleGlobalClick);
 
 /**
- * Zwischenstand:
- * TODOs:
- * UI abschließend kontrollieren
+ * TODOs (in Bearbeitungsreihenfolge, neue Punkte passend einsortieren):
+ * Linter einbauen
+ * Zug-Log: Wenn es länger wird, zieht sich das gesamte Overlay nach oben
+ * Zurück-zur-Lobby-Knopf im Namensbildschirm
  * Abbrechen-Button während Spiel
- * Tutorial einbauen
- * Dark-Mode
- * Zurück zur Lobby-Knopf im Namensbildschirm
+ * Endbildschirm überarbeiten (noch sehr unpassend)
+ * Eingaben bereinigen, kürzen, prüfen (Chat-Länge, Zugdaten im Server)
  * Sounds auch bei Münzwurf und Sieg/Niederlage
- * Wenn Zug-Log länger wird zieht sich das gesamte Overlay nach oben
- * Endbildschirm noch sehr unpassend
- * Barrierefreiheit prüfen
- * Linter prüfen (ggf. einbauen)
+ * Barrierefreiheit prüfen (Kontraste, Tastatur, Screenreader, reduzierte Animationen)
+ * Dark-Mode
+ * Tutorial einbauen
+ * Tests einbauen (Playwright für Spielabläufe, Server-Tests)
+ * Performance optimieren (vorher messen)
+ * UI abschließend kontrollieren
  * Code-Kommentare verbessern
- * Eingaben bereinigen, kürzen, prüfen
- * Tests einbauen (alles testen)
- * Performance optimieren
+ * Code aufteilen? (In Verschiedene Dateien bzw Unterordner)
  */
