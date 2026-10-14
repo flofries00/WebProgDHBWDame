@@ -5,12 +5,38 @@ Ein modernes, browserbasiertes Dame-Spiel, entwickelt als Projekt für den Kurs 
 ## Aktueller Funktionsumfang (Frontend)
 * **Lobby & Validierung:** Namenseingabe mit Regex-Prüfung und Fail-Safes.
 * **Münzwurf-Animation:** 3D-CSS-Animation zur zufälligen Bestimmung des Startspielers inkl. Bounce-Effekt.
-* **Vollständige Regel-Engine:**
-  * Diagonales Ziehen und Schlagen.
-  * Systemweiter Schlagzwang (mit automatischer Erkennung und roter Hervorhebung der Pflichtzüge).
-  * Beförderung zur "Dame" (gekennzeichnet durch ein Kronen-Emoji) bei Erreichen der gegnerischen Grundlinie.
-  * "Fliegende Dame": Gekrönte Steine können beliebig weit in alle vier diagonalen Richtungen ziehen und schlagen.
+* **Vollständige Regel-Engine** für die Variante „Klassisch“ (siehe [Spielregeln](#spielregeln)), inkl. automatischer Erkennung und roter Hervorhebung der Pflichtschläge.
 * **UX-Features:** Optische Trophäen-Anzeige geschlagener Steine in der Kopfzeile, globale Deselektion ("Klick-ins-Leere") und Anzeige der Zugberechtigung.
+
+## Spielregeln
+
+Aktuell wird die Variante **„Klassisch“** gespielt. Eine zweite Variante „International“ (10×10) ist geplant.
+
+### Variante „Klassisch“
+**Aufbau**
+* Brett mit 8×8 Feldern, gespielt wird nur auf den dunklen Feldern.
+* Jede Seite beginnt mit 12 Steinen auf den ersten drei Reihen.
+* Weiß beginnt.
+
+**Ziehen**
+* Normale Steine ziehen ein Feld diagonal **vorwärts**.
+* Eine **Dame** zieht beliebig weit diagonal in alle vier Richtungen („fliegende Dame“).
+
+**Schlagen**
+* Normale Steine schlagen nur **vorwärts**: Sie springen über einen direkt benachbarten gegnerischen Stein auf das leere Feld dahinter.
+* Eine Dame schlägt in alle Richtungen: Sie überspringt aus beliebiger Entfernung genau einen gegnerischen Stein und landet auf einem beliebigen freien Feld dahinter.
+* Es gilt **Schlagzwang**: Kann ein Stein schlagen, muss geschlagen werden. Gibt es mehrere Möglichkeiten, ist die Wahl frei (kein Mehrheitsschlag).
+* **Mehrfachsprung:** Kann derselbe Stein nach einem Schlag erneut schlagen, muss er weiterschlagen.
+* Geschlagene Steine werden sofort vom Brett genommen.
+
+**Beförderung**
+* Ein Stein, der die gegnerische Grundlinie erreicht, wird zur Dame (gekennzeichnet durch eine Krone).
+* Wird ein Stein während eines Schlags befördert, endet der Zug sofort.
+
+**Spielende**
+* Gewonnen hat, wessen Gegner keine Steine mehr hat **oder** keinen gültigen Zug mehr ausführen kann.
+* Jede Seite hat 5 Minuten Bedenkzeit (Schachuhr-Prinzip). Wer die Zeit überschreitet, verliert.
+* Wer aufgibt oder eine Online-Partie verlässt, verliert.
 
 ## Dateistruktur
 Das Projekt verzichtet im Frontend vollständig auf externe Frameworks (Vanilla HTML/CSS/JS):
@@ -35,7 +61,7 @@ Voraussetzung: [Node.js](https://nodejs.org/) ab Version 18.
 Optional kann ein anderer Port gesetzt werden, z.B. unter Linux: `PORT=8080 npm start`
 
 ## Nächste Entwicklungsschritte
-* Abbrechen-Button während des Spiels
-* Tutorial
-* Dark-Mode
-* Zug-Sounds
+* Umstellung auf ES-Module und CSP-taugliches HTML (ohne Inline-Handler)
+* Private Räume für Online-Partien
+* Zweite Variante „International“ (10×10, Rückwärtsschlagen, Mehrheitsschlag)
+* Barrierefreiheit, Dark-Mode und Tutorial

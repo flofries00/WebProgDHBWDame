@@ -95,6 +95,9 @@ function checkInput() {
  * Wechselt in den Wartebildschirm.
  */
 function startSearch() {
+    //Schutz vor Doppelauslösung, nur dann suchen, wenn der Namensbildschirm wirklich angezeigt wird
+    if (!document.getElementById('loginScreen').classList.contains('active')) return;
+
     // Namen auslesen und speichern
     currentPlayerName = document.getElementById('playerName').value;
 
@@ -116,6 +119,9 @@ function startSearch() {
         document.getElementById('legendOpponent').textContent = opponentName;
         document.getElementById('opponentNameHeader').textContent = opponentName;
 
+        // Sicherheitshalber alten Timer stoppen, bevor ein neuer Startet
+        clearTimeout(searchTimeout);
+        
         // Simuliert eine Netzwerksuche: Nach 2000 Millisekunden (2 Sekunden) geht es weiter
         searchTimeout = setTimeout(() => {
             playerGetsWhite = Math.random() < 0.5;
@@ -171,7 +177,8 @@ function simulateCoinToss() {
         // Münz-Container hüpfen lassen
         container.classList.add('bounce');
 
-        const baseText = playerGetsWhite ? `${currentPlayerName} bekommt die weißen Steine.` : `${opponentName} bekommt die weißen Steine. ${currentPlayerName} spielt Schwarz.`
+        // Formuliert aus sicht des Spielers
+        const baseText = playerGetsWhite ? 'Du hast die weißen Steine' : 'Du hast die schwarzen Steine';
         
         const textEl = document.getElementById('startPlayerText');
         let timeLeft = 5;

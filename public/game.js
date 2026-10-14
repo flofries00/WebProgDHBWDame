@@ -324,10 +324,10 @@ function handleBoardClick(event) {
     // Sende Zug an Gegner
     if (gameMode === 'online' && event.isTrusted) {
         socket.emit('makeMove', {
-            fromR: selectedPiece.parentElement.dataset.row,
-            fromC: selectedPiece.parentElement.dataset.col,
-            toR: targetCell.dataset.row,
-            toC: targetCell.dataset.col
+            fromR: Number(selectedPiece.parentElement.dataset.row),
+            fromC: Number(selectedPiece.parentElement.dataset.col),
+            toR: Number(targetCell.dataset.row),
+            toC: Number(targetCell.dataset.col)
         });
     }
 
@@ -885,32 +885,39 @@ document.getElementById('board').addEventListener('drop', handleDrop);
 document.addEventListener('click', handleGlobalClick);
 
 /**
- * TODOs (in Bearbeitungsreihenfolge, neue Punkte passend einsortieren):
- * Endbildschirm überarbeiten (noch sehr unpassend)
- * Eingaben bereinigen, kürzen, prüfen (Chat-Länge, Zugdaten im Server)
+ * TODOs (sortiert nach Bewertungskriterien, Abgabe 27.10. 8:00 Uhr):
+ *
+ * A) Pflicht-Anforderungen
+ * npm build + Port als Argument, .env.example, README: Start auf Ubuntu (nohup)
+ * Verbindungsabbruch: Spiel sauber beenden (auch eigener Abbruch), Server darf nie abstürzen
+ * Spielbar ab 1024x768 prüfen und beheben (#7)
+ * Firefox + Safari testen, mehrere gleichzeitige Partien testen
+ *
+ * B) Werkzeuge
+ * Prettier einbauen + npm run format
+ *
+ * C) Umbau der Struktur
+ * ES-Module + Klassen, Regel-Logik vom DOM trennen, Listener entfernen (#11, #12)
+ * Keine Inline-Handler/-Styles (auch style.* in ui.js), kein <br> -> CSP-tauglich (#13)
+ * Semantisches HTML: h1, Überschriften, Labels, Felder als Buttons (#16, #3)
+ * CSS modernisieren: @layer, Nesting, Custom Properties, rem, kein !important, aufteilen
+ *
+ * D) Robustheit & Qualität
+ * Server prüft Züge selbst (Anti-Cheating, gemeinsames Regel-Modul für Client + Server)
+ * Tests: Regel-Modul + Server (Jest oder node:test)
+ * Architektur + Kommunikationsablauf als Mermaid-Diagramme in die README
+ *
+ * E) Oberfläche
+ * Endbildschirm überarbeiten
+ * Barrierefreiheit: nicht nur Farbe + Kontrast (#10), Schriftgrößen (#14)
  * Sounds auch bei Münzwurf und Sieg/Niederlage
- * Barrierefreiheit prüfen (Kontraste, Tastatur, Screenreader, reduzierte Animationen)
- * Dark-Mode
- * Tutorial einbauen
- * Code aufteilen? (In Verschiedene Dateien bzw Unterordner)
- * Tests einbauen (Playwright für Spielabläufe, Server-Tests)
- * Performance optimieren (vorher messen)
+ *
+ * F) Abschluss
  * UI abschließend kontrollieren
  * Code-Kommentare verbessern
- * Node_modules NICHT HOCHLADEN
- * Keine Inline-Scripts in HTML (CSP)
- * Kein !important in CSS
- * onclick und <br> vermeiden
- * Private Räume (Lobby) einbauen
- * Saubere Terminierung bei Verbindungsabbruch (Server + Client)
- * Chat-Log speichern (Server + Client)
- * Einen Prittier einbauen neben dem Linter
- * Github CI?
- * Münzwurftext anpassen ("Du bist Weiß" / "Du bist Schwarz")
- * Lobbyanzahl begrenzen
- * Github-Repo aufräumen (README, Lizenz, Ordnerstruktur)
- * Github-Issues bearbeiten
- * Aus semantisches HTML achten (u.a auch Labels)
- * Auf modernes CSS achten
- * CSS-Datei aufräumen und auch aufspiltten
+ * Github-Repo aufräumen (README, Lizenz), Präsentation vorbereiten
+ *
+ * G) Optional, nur wenn Zeit bleibt
+ * Github CI, Dark-Mode, Tutorial, Performance
+ * Variante "International" (#18), Private Räume
  */

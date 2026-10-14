@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const io = require('socket.io')(http, { maxHttpBufferSize: 1e4 }); // So werden Nachrichten über 10kB abgelehnt
 
 // Sagt dem Server, dass er nur die Client-Dateien aus dem Ordner 'public' ausliefern soll
 // (sonst wären auch server.js, package.json und node_modules abrufbar)
@@ -10,6 +10,17 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Wartenden Spieler merken
 let waiting = null;
+
+// Grenzen für Eingaben vom Client
+const MAX_CHAT_LENGTH = 200;
+const BOARD_SIZE = 8;
+
+/**
+ * Prüft, ob ein Wert eine gültige Brettkoordinate ist
+ */
+function isValidCoord(value) {
+    return Number.isInteger(value) && value >= 0 && value < BOARD_SIZE;
+}
 
 // Wartet auf Browser-Verbindungen
 io.on('connection', (socket) => {
@@ -51,17 +62,27 @@ io.on('connection', (socket) => {
 
     // Wartet auf Züge und schickt diese an den Gegner
     socket.on('makeMove', (moveData) => {
-        if (socket.oppId) {
-            socket.to(socket.oppId).emit('recieveMove', moveData);
-        }
+        if (!socket.oppId || !moveData) return;
+
+        const { fromR, fromC, toR, toC } = moveData;
+
+        // Nur gültige Koordinaten akzeptieren, sonst Nachricht verwerfen
+        if (![fromR, fromC, toR, toC].every(isValidCoord)) return;
+
+        // Nur die vier geprüften Werte weiterleiten
+        socket.to(socket.oppId).emit('recieveMove', { fromR, fromC, toR, toC });
     });
 
-    // Wartet auf Chat-Nachrichten und schickt sie an den Gegner
+    // Wartet auf Chat-Nachrichten, bereinigt sie und schickt sie an den Gegner
     socket.on('chatMessage', (msg) => {
-        if (socket.oppId) {
-            // Leitet Nachricht nur an den verknüpften Gegner weiter
-            socket.to(socket.oppId).emit('chatMessage', msg);
-        }
+        if (!socket.oppId || typeof msg !== 'string') return;
+
+        // Leerzeichen am Rand entfernen und auf Maximallänge kürzen
+        const cleanMsg = msg.trim().slice(0, MAX_CHAT_LENGTH);
+        if (cleanMsg.length === 0) return; // Leere Nachrichten verwerfen
+
+        // Leitet Nachricht nur an den verknüpften Gegner weiter
+        socket.to(socket.oppId).emit('chatMessage', cleanMsg);
     });
 
     // Replay-Logik
