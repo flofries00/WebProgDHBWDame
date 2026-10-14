@@ -888,7 +888,6 @@ document.addEventListener('click', handleGlobalClick);
  * TODOs (sortiert nach Bewertungskriterien, Abgabe 27.10. 8:00 Uhr):
  *
  * A) Pflicht-Anforderungen
- * npm build + Port als Argument, .env.example, README: Start auf Ubuntu (nohup)
  * Verbindungsabbruch: Spiel sauber beenden (auch eigener Abbruch), Server darf nie abstürzen
  * Spielbar ab 1024x768 prüfen und beheben (#7)
  * Firefox + Safari testen, mehrere gleichzeitige Partien testen

@@ -8,3 +8,6 @@ node_modules/
 # Betriebssystem-Dateien
 Thumbs.db
 .DS_Store
+
+# Lokale Einstellungen (Vorlage: .env.example)
+.env

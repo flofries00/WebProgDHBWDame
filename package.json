@@ -2,8 +2,9 @@
   "name": "webprogdhbwdame",
   "version": "1.0.0",
   "description": "Ein modernes, browserbasiertes Dame-Spiel, entwickelt als Projekt für den Kurs Web-Engineering an der DHBW. Der Fokus liegt aktuell auf einer sauberen Trennung von Benutzeroberfläche und Spiellogik im Frontend sowie einer intuitiven User Experience durch visuelles Feedback.",
-  "main": "game.js",
+  "main": "server.js",
   "scripts": {
+    "build": "echo \"Kein Build-Schritt nötig: Das Frontend wird direkt aus public/ ausgeliefert.\"",
     "start": "node server.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"

@@ -6,6 +6,7 @@ const io = require('socket.io')(http, { maxHttpBufferSize: 1e4 }); // So werden 
 // Sagt dem Server, dass er nur die Client-Dateien aus dem Ordner 'public' ausliefern soll
 // (sonst wären auch server.js, package.json und node_modules abrufbar)
 const path = require('path');
+const fs = require('fs');
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Wartenden Spieler merken
@@ -140,6 +141,28 @@ io.on('connection', (socket) => {
     });
 });
 
-// Server starten (Port über Umgebungsvariable PORT änderbar, Standard: 3000)
-const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => console.log(`Läuft auf Port ${PORT}`));
+// Einstellungen aus .env laden, falls vorhanden (process.loadEnvFile existiert ab Node 20.12)
+const envFile = path.join(__dirname, '.env');
+if (fs.existsSync(envFile) && typeof process.loadEnvFile === 'function') {
+    process.loadEnvFile(envFile);
+}
+
+// Port bestimmen: 1. Kommandozeile (npm start -- PORT_NR), 2. Umgebungsvariable PORT, 3. Standardport 3000
+const portInput = process.argv[2] || process.env.PORT || '3000';
+const PORT = Number(portInput);
+if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) {
+    console.error(`Ungüliger Port "${portInput}". Erlaubt sind nur ganze Zahlen von 1 bis 65535.`);
+    process.exit(1);
+}
+
+// Verständliche Meldung, falls der Port schon belegt ist
+http.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} ist bereits belegt. Anderen Port wählen, z.B.: npm start --8080`);
+    } else {
+        console.error('Server konnte nicht gestartet werden.', err.message);
+    }
+    process.exit(1);
+});
+
+http.listen(PORT, () => console.log(`Server läuft auf http://localhost:${PORT}`));

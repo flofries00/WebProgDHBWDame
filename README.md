@@ -47,18 +47,37 @@ Das Projekt verzichtet im Frontend vollständig auf externe Frameworks (Vanilla 
 * `public/game.js` – Kernlogik des Brettspiels (Zugberechnung, Schlagzwang, Timer, Siegbedingungen, Computergegner).
 
 ## Lokale Ausführung
-Voraussetzung: [Node.js](https://nodejs.org/) ab Version 18.
+Voraussetzung: [Node.js](https://nodejs.org/) ab Version 18 (für die `.env`-Datei ab Version 20.12).
 
 1. Repository klonen:
    `git clone https://github.com/flofries00/WebProgDHBWDame.git`
 2. In den Projektordner wechseln und Abhängigkeiten installieren:
    `npm install`
-3. Server starten:
-   `npm start`
-4. Im Browser `http://localhost:3000` öffnen.
+3. Build-Schritt (es wird nichts kompiliert, der Befehl ist der Vollständigkeit halber vorhanden):
+   `npm run build`
+4. Server starten:
+   `npm start` (Standard-Port 3000)
+5. Im Browser `http://localhost:3000` öffnen.
    Für eine Online-Partie die Seite in einem zweiten Tab öffnen und in beiden „Gegen Mensch“ wählen.
 
-Optional kann ein anderer Port gesetzt werden, z.B. unter Linux: `PORT=8080 npm start`
+### Port festlegen
+Der Port kann auf drei Arten gesetzt werden (in dieser Priorität):
+1. Als Argument: `npm start -- 8080`
+2. Als Umgebungsvariable: `PORT=8080 npm start`
+3. In einer Datei `.env` (Vorlage: `cp .env.example .env`)
+
+Hinweis: `npm build` (ohne `run`) existiert in aktuellen npm-Versionen nicht, richtig ist `npm run build`.
+
+## Betrieb auf dem Ubuntu-Server
+```bash
+git clone https://github.com/flofries00/WebProgDHBWDame.git
+cd WebProgDHBWDame
+npm install
+npm run build
+nohup npm start -- 8080 > server.log 2>&1 &
+```
+Der Server läuft dann im Hintergrund weiter, auch nach dem Abmelden. Ausgaben stehen in `server.log`.
+Beenden mit: `pkill -f "node server.js"`
 
 ## Nächste Entwicklungsschritte
 * Umstellung auf ES-Module und CSP-taugliches HTML (ohne Inline-Handler)
