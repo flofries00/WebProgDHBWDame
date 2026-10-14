@@ -607,6 +607,27 @@ function endGame(winnerColor, reason = "") {
 }
 
 /**
+ * Bricht das laufende Spiel nach Rückfrage ab und kehrt zur Lobby zurück
+ * Online gewinnt dadurch automatisch der Gegner
+ */
+async function abortGame() {
+    const text = gameMode === 'online' ? 'Dein Gegner gewinnt dann automatisch.' : 'Die aktuelle Partie ist damit beendet.';
+    
+    // Auf die Antwort in der Bestätigungs-Box warten
+    const confirmed = await showConfirm('Spiel wirklich aufgeben?', text, 'Aufgeben', 'Weiterspielen');
+    if (!confirmed) return;
+
+    // Uhr und ausstehenden Computerzug stoppen, sonst laufen sie im Hintergrund weiter
+    clearInterval(timerInterval);
+    clearTimeout(computerMoveTimeout);
+    clearSelection();
+    isMultiJumping = false;
+
+    // Meldet den Abbruch im Online-Modus dem Server und wechselt zur Modusauswahl
+    leaveToLobby();
+}
+
+/**
  * Startet das Sekundenticken der Uhr
  */
 function startTurnTimer() {
@@ -865,8 +886,6 @@ document.addEventListener('click', handleGlobalClick);
 
 /**
  * TODOs (in Bearbeitungsreihenfolge, neue Punkte passend einsortieren):
- * Zurück-zur-Lobby-Knopf im Namensbildschirm
- * Abbrechen-Button während Spiel
  * Endbildschirm überarbeiten (noch sehr unpassend)
  * Eingaben bereinigen, kürzen, prüfen (Chat-Länge, Zugdaten im Server)
  * Sounds auch bei Münzwurf und Sieg/Niederlage
@@ -878,4 +897,20 @@ document.addEventListener('click', handleGlobalClick);
  * Performance optimieren (vorher messen)
  * UI abschließend kontrollieren
  * Code-Kommentare verbessern
+ * Node_modules NICHT HOCHLADEN
+ * Keine Inline-Scripts in HTML (CSP)
+ * Kein !important in CSS
+ * onclick und <br> vermeiden
+ * Private Räume (Lobby) einbauen
+ * Saubere Terminierung bei Verbindungsabbruch (Server + Client)
+ * Chat-Log speichern (Server + Client)
+ * Einen Prittier einbauen neben dem Linter
+ * Github CI?
+ * Münzwurftext anpassen ("Du bist Weiß" / "Du bist Schwarz")
+ * Lobbyanzahl begrenzen
+ * Github-Repo aufräumen (README, Lizenz, Ordnerstruktur)
+ * Github-Issues bearbeiten
+ * Aus semantisches HTML achten (u.a auch Labels)
+ * Auf modernes CSS achten
+ * CSS-Datei aufräumen und auch aufspiltten
  */

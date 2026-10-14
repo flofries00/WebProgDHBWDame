@@ -406,3 +406,25 @@ function fireConfetti() {
         setTimeout(() => conf.remove(), 5000);
     }
 }
+
+/**
+ * Zeigt eine Bestätigungs-Box im Spielfenster (anstatt des Browser Popups)
+ * Returned ein Promise: true = bestätigt, false = abgelehnt
+ */
+function showConfirm(title, text, confirmLabel, cancelLabel) {
+    const dialog = document.getElementById('confirmDialog');
+
+    // Inhalte der Box setzen
+    document.getElementById('confirmTitle').textContent = title;
+    document.getElementById('confirmText').textContent = text;
+    document.getElementById('confirmYes').textContent = confirmLabel;
+    document.getElementById('confirmNo').textContent = cancelLabel;
+
+    dialog.returnValue = ''; // Ergebnis vom letzten Mal zurücksetzen
+    dialog.showModal(); // Öffnet die Box, der Rest der Seite ist solange gesperrt
+
+    // Warten, bis die Box geschlossen wird
+    return new Promise(resolve => {
+        dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), { once: true });
+    });
+}

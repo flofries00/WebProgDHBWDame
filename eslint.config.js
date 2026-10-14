@@ -44,7 +44,9 @@ module.exports = [
                 socket: 'readonly',
                 showScreen: 'readonly',
                 fireConfetti: 'readonly',
-                playSound: 'readonly'
+                playSound: 'readonly',
+                leaveToLobby: 'readonly',
+                showConfirm: 'readonly'
             }
         }
     },

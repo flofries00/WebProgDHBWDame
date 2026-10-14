@@ -217,6 +217,18 @@ button:disabled {
     transform: none;
 }
 
+/* Zweitrangige Buttons (z.B "Zurück") */
+.secondary-btn {
+    background-color: transparent;
+    color: var(--dhbw-dunkel);
+    border: 2px solid #ccc;
+    box-shadow: none;
+}
+
+.secondary-btn:hover:not(:disabled) {
+    background-color: #f0f0f0;
+}
+
 /* Styling für die Modus-Auswahl */
 .mode-buttons {
     display: flex;
@@ -939,6 +951,40 @@ button:disabled {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+}
+
+/* --- Teil M: Bestätigungs-Box (Dialog) --- */
+.confirm-dialog {
+    border: none;
+    border-top: 5px solid var(--dhbw-rot);
+    border-radius: 12px;
+    padding: 30px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    color: var(--dhbw-dunkel);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Sanftes Einblenden beim Öffnen */
+.confirm-dialog[open] {
+    animation: fadeIn 0.2s ease-out;
+}
+
+.confirm-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.confirm-dialog h3 {
+    margin-top: 0;
+}
+
+/* Buttons nebeneinander und mittig */
+.dialog-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
 }
 
 /* --- Teil F: Responsive Design für Mobilgeräte --- */

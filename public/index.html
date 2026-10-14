@@ -65,6 +65,7 @@
                     oninput="checkInput()" onkeydown="handleEnter(event)">
                 <p id="nameError" class="error-text"></p>
             </div>
+            <button class="secondary-btn" onclick="showScreen('modeScreen')">← Zurück</button>
             <button id="searchBtn" onclick="startSearch()" disabled>
                 Gegner suchen
             </button>
@@ -168,6 +169,7 @@
                         <input type="text" id="chatInput" placeholder="Nachricht schreiben..." disabled
                             onkeydown="handleChatEnter(event)">
                     </div>
+                    <button class="secondary-btn" onclick="abortGame()">Spiel aufgeben</button>
                 </div>
 
             </div>
@@ -204,6 +206,18 @@
             </div>
         </div>
         </main>
+        <!-- Bestätigungs-Box wiederverwendbar, Inhalt wird per JavaScript gefüllt -->
+        <dialog id="confirmDialog" class="confirm-dialog">
+            <!-- method="dialog": Ein Klick auf einen Button schließt die Box und merkt sich dessen value -->
+            <form method="dialog">
+                <h3 id="confirmTitle"></h3>
+                <p id="confirmText"></p>
+                <div class="dialog-buttons">
+                    <button id="confirmNo" class="secondary-btn" value="cancel"></button>
+                    <button id="confirmYes" value="confirm"></button>
+                </div>
+            </form>
+        </dialog>
 </body>
 
 </html>
