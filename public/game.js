@@ -618,13 +618,21 @@ async function abortGame() {
     if (!confirmed) return;
 
     // Uhr und ausstehenden Computerzug stoppen, sonst laufen sie im Hintergrund weiter
+    stopGame();
+
+    // Meldet den Abbruch im Online-Modus dem Server und wechselt zur Modusauswahl
+    leaveToLobby();
+}
+
+/**
+ * Stoppt alles, was im Hintergrund weiterhin laufen könnte
+ * Wird beim Aufgeben und bei Verbindungsabbruch benutzt
+ */
+function stopGame() {
     clearInterval(timerInterval);
     clearTimeout(computerMoveTimeout);
     clearSelection();
     isMultiJumping = false;
-
-    // Meldet den Abbruch im Online-Modus dem Server und wechselt zur Modusauswahl
-    leaveToLobby();
 }
 
 /**
@@ -888,7 +896,6 @@ document.addEventListener('click', handleGlobalClick);
  * TODOs (sortiert nach Bewertungskriterien, Abgabe 27.10. 8:00 Uhr):
  *
  * A) Pflicht-Anforderungen
- * Verbindungsabbruch: Spiel sauber beenden (auch eigener Abbruch), Server darf nie abstürzen
  * Spielbar ab 1024x768 prüfen und beheben (#7)
  * Firefox + Safari testen, mehrere gleichzeitige Partien testen
  *

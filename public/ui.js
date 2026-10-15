@@ -98,6 +98,12 @@ function startSearch() {
     //Schutz vor Doppelauslösung, nur dann suchen, wenn der Namensbildschirm wirklich angezeigt wird
     if (!document.getElementById('loginScreen').classList.contains('active')) return;
 
+    // Ohne Serververbindung ist keine Online-Partie möglich
+    if (gameMode === 'online' && !socket.connected) {
+        showConfirm('Keine Verbindung', 'Der Server ist gerade nicht erreichbar.', 'OK');
+        return;
+    }
+
     // Namen auslesen und speichern
     currentPlayerName = document.getElementById('playerName').value;
 
@@ -121,7 +127,7 @@ function startSearch() {
 
         // Sicherheitshalber alten Timer stoppen, bevor ein neuer Startet
         clearTimeout(searchTimeout);
-        
+
         // Simuliert eine Netzwerksuche: Nach 2000 Millisekunden (2 Sekunden) geht es weiter
         searchTimeout = setTimeout(() => {
             playerGetsWhite = Math.random() < 0.5;
@@ -425,7 +431,10 @@ function showConfirm(title, text, confirmLabel, cancelLabel) {
     document.getElementById('confirmTitle').textContent = title;
     document.getElementById('confirmText').textContent = text;
     document.getElementById('confirmYes').textContent = confirmLabel;
-    document.getElementById('confirmNo').textContent = cancelLabel;
+    // Ohne cancelLabel wird nur ein Button angezeigt (reine Hinweisbox)
+    const noBtn = document.getElementById('confirmNo');
+    noBtn.textContent = cancelLabel || '';
+    noBtn.hidden = !cancelLabel;
 
     dialog.returnValue = ''; // Ergebnis vom letzten Mal zurücksetzen
     dialog.showModal(); // Öffnet die Box, der Rest der Seite ist solange gesperrt
@@ -435,3 +444,23 @@ function showConfirm(title, text, confirmLabel, cancelLabel) {
         dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), { once: true });
     });
 }
+
+/**
+ * Eigene Verbindung zum Server ist abgebrochen (z.B. WLAN weg oder Server beendet).
+ * EIne Online-Partie lässt sich danach nicht fortsetzen: Spiel beenden und zurück zur Lobby
+ */
+socket.on('disconnect', () => {
+    if (gameMode !== 'online') return; // Partien gegen den Computer brauchen keinen Server
+
+    // Auf Modus- und Namensbildschirm läuft nichts, was beendet werden müsste
+    const activeScreen = document.querySelector('.screen-active').id;
+    if (activeScreen === 'modeScreen' || activeScreen === 'loginScreen') return;
+
+    // Alles stoppen, was im Hintergrund weiterläuft
+    stopGame();
+    clearTimeout(coinTossTimeout);
+    clearInterval(countdownInterval);
+
+    leaveToLobby();
+    showConfirm('Verbindung verloren', 'Die Verbindung zum Server ist abgebrochen. Die Partie wurde beendet.', 'OK');
+});

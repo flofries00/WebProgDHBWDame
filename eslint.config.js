@@ -57,7 +57,8 @@ module.exports = [
         languageOptions: {
             globals: {
                 startGame: 'readonly',
-                endGame: 'readonly'
+                endGame: 'readonly',
+                stopGame: 'readonly'
             }
         }
     },
