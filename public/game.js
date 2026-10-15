@@ -756,6 +756,9 @@ function handleDragStart(event) {
         return;
     }
 
+    // Firefox startet das Ziehen nur, wenn Daten gesetzt werden (Chrome und Safari brauchen das nicht)
+    event.dataTransfer.setData('text/plain', '');
+
     // Stein halbtransparent machen, während er am Mauszeiger hängt
     setTimeout(() => {
         if (selectedPiece === event.target) event.target.style.opacity = '0.3';
@@ -896,7 +899,7 @@ document.addEventListener('click', handleGlobalClick);
  * TODOs (sortiert nach Bewertungskriterien, Abgabe 27.10. 8:00 Uhr):
  *
  * A) Pflicht-Anforderungen
- * Firefox + Safari testen, mehrere gleichzeitige Partien testen
+ * Firefox + Safari von Hand testen
  *
  * B) Werkzeuge
  * Prettier einbauen + npm run format
@@ -916,6 +919,7 @@ document.addEventListener('click', handleGlobalClick);
  * Endbildschirm überarbeiten
  * Barrierefreiheit: nicht nur Farbe + Kontrast (#10), Schriftgrößen (#14)
  * Sounds auch bei Münzwurf und Sieg/Niederlage
+ * Andere Farbschemata einbauen (Kontrast beachten!)
  *
  * F) Abschluss
  * UI abschließend kontrollieren
