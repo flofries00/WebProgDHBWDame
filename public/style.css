@@ -39,7 +39,7 @@ body {
     /* Standardmäßig sind alle Bildschirme unsichtbar */
     background: white;
     /* Weißer Hintergrund für das jeweilige Fenster */
-    padding: 80px;
+    padding: 50px 80px;
     /* Innenabstand, damit der Text nicht am Rand klebt */
     border-radius: 12px;
     /* Abgerundete Ecken für ein moderneres Design */
@@ -635,7 +635,7 @@ button:disabled {
     gap: 5px;
     justify-content: center;
     width: 100%;
-    max-width: 596px;
+    max-width: min(596px, 100dvh - 305px); /* Höchstens 596px, aber nie höher als das Fenster minus Kopfzeile */
     margin: 0 auto;
     transition: transform 0.5s ease;
 }
@@ -1034,6 +1034,10 @@ button:disabled {
         width: 95%;
         box-sizing: border-box;
     }
+    .board-wrapper {
+        max-width: 596px;
+    }
+
     input[type="text"] {
         width: 90%;
     }

@@ -896,7 +896,6 @@ document.addEventListener('click', handleGlobalClick);
  * TODOs (sortiert nach Bewertungskriterien, Abgabe 27.10. 8:00 Uhr):
  *
  * A) Pflicht-Anforderungen
- * Spielbar ab 1024x768 prüfen und beheben (#7)
  * Firefox + Safari testen, mehrere gleichzeitige Partien testen
  *
  * B) Werkzeuge
