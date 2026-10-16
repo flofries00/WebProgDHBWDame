@@ -7,7 +7,9 @@
     "build": "echo \"Kein Build-Schritt nötig: Das Frontend wird direkt aus public/ ausgeliefert.\"",
     "start": "node server.js",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "repository": {
     "type": "git",
@@ -31,6 +33,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.12.0",
-    "globals": "^17.13.0"
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10"
   }
 }

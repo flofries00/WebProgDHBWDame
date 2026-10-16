@@ -902,7 +902,6 @@ document.addEventListener('click', handleGlobalClick);
  * Firefox + Safari von Hand testen
  *
  * B) Werkzeuge
- * Prettier einbauen + npm run format
  *
  * C) Umbau der Struktur
  * ES-Module + Klassen, Regel-Logik vom DOM trennen, Listener entfernen (#11, #12)

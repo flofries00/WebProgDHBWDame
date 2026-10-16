@@ -1,0 +1,3 @@
+# Installierte Parkete und automatisch erzeugte Dateien nicht formatieren
+node_modules/
+package-lock.json

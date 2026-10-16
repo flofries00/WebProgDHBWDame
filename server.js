@@ -24,24 +24,24 @@ function isValidCoord(value) {
 }
 
 /**
- * Umhüllt einen Socket-Handler mit try/catch: Ein Fehler bei einem einzelnen Ereignis
- * wird protokolliert, bringt aber nicht den ganzen Server zum Absturz
+ * Registriert einen Socket-Handler, der in try/catch läuft: Ein Fehler bei einem einzelnen
+ * Ereignis wird protokolliert, bringt aber nicht den ganzen Server zum Absturz
  */
-function safe(handler) {
-    return (...args) => {
+function onSafe(socket, eventName, handler) {
+    socket.on(eventName, (...args) => {
         try {
             handler(...args);
         } catch (err) {
-            console.error('Fehler bei der Verarbeitung eines Socket-Ereignisses:', err);
+            console.error(`Fehler bei der Verarbeitung von "${eventName}":`, err);
         }
-    };
+    });
 }
 
 // Wartet auf Browser-Verbindungen
 io.on('connection', (socket) => {
     console.log('Verbunden: ', socket.id);
 
-    socket.on('findMatch', safe((name) => {
+    onSafe(socket, 'findMatch', (name) => {
         // Namen auch serverseitig prüfen (Client-Prüfung lässt sich umgehen)
         if (typeof name !== 'string' || !/^[a-zA-Z0-9äöüÄÖÜß]{2,16}$/.test(name)) return;
 
@@ -68,15 +68,15 @@ io.on('connection', (socket) => {
             // Erster Spieler wartet
             waiting = socket;
         }
-    }));
+    });
 
     // Spieler bricht die Suche ab
-    socket.on('cancelSearch', safe(() => {
+    onSafe(socket, 'cancelSearch', () => {
         if (waiting === socket) waiting = null;
-    }));
+    });
 
     // Wartet auf Züge und schickt diese an den Gegner
-    socket.on('makeMove', safe((moveData) => {
+    onSafe(socket, 'makeMove', (moveData) => {
         if (!socket.oppId || !moveData) return;
 
         const { fromR, fromC, toR, toC } = moveData;
@@ -86,10 +86,10 @@ io.on('connection', (socket) => {
 
         // Nur die vier geprüften Werte weiterleiten
         socket.to(socket.oppId).emit('recieveMove', { fromR, fromC, toR, toC });
-    }));
+    });
 
     // Wartet auf Chat-Nachrichten, bereinigt sie und schickt sie an den Gegner
-    socket.on('chatMessage', safe((msg) => {
+    onSafe(socket, 'chatMessage', (msg) => {
         if (!socket.oppId || typeof msg !== 'string') return;
 
         // Leerzeichen am Rand entfernen und auf Maximallänge kürzen
@@ -98,10 +98,10 @@ io.on('connection', (socket) => {
 
         // Leitet Nachricht nur an den verknüpften Gegner weiter
         socket.to(socket.oppId).emit('chatMessage', cleanMsg);
-    }));
+    });
 
     // Replay-Logik
-    socket.on('requestReplay', safe(() => {
+    onSafe(socket, 'requestReplay', () => {
         socket.wantsReplay = true;
         if (socket.oppId) {
             const oppSocket = io.sockets.sockets.get(socket.oppId);
@@ -123,9 +123,9 @@ io.on('connection', (socket) => {
                 socket.to(socket.oppId).emit('opponentWantsReplay');
             }
         }
-    }));
+    });
 
-    socket.on('leaveMatch', safe(() => {
+    onSafe(socket, 'leaveMatch', () => {
         socket.wantsReplay = false;
         if (socket.oppId) {
             socket.to(socket.oppId).emit('opponentLeft');
@@ -136,10 +136,10 @@ io.on('connection', (socket) => {
             }
             socket.oppId = null;
         }
-    }));
+    });
 
     // Wenn ein Spieler während des Wartens den Tab schließt
-    socket.on('disconnect', safe(() => {
+    onSafe(socket, 'disconnect', () => {
         if (waiting === socket) {
             waiting = null;
         }
@@ -152,7 +152,7 @@ io.on('connection', (socket) => {
                 oppSocket.wantsReplay = false;
             }
         }
-    }));
+    });
 });
 
 // Einstellungen aus .env laden, falls vorhanden (process.loadEnvFile existiert ab Node 20.12)
