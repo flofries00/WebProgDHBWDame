@@ -1,19 +1,19 @@
 // Globale Variablen für den Spielablauf
-let currentPlayerName = ""; // Merkt sich Spielernamen
+let currentPlayerName = ''; // Merkt sich Spielernamen
 let playerGetsWhite = true;
 let searchTimeout; // Timer für Gegnersuche
 let coinTossTimeout; // Timer bis zur Landung der Münze
 let countdownInterval; // Countdown bis Spielstart
-let gameMode = ""; // Merkt sich Spielmodus
-let opponentName = "Computer" // Platzhalter für Gegnername
+let gameMode = ''; // Merkt sich Spielmodus
+let opponentName = 'Computer'; // Platzhalter für Gegnername
 const socket = io(); // Baut Verbindung zum Server auf
 
 /**
  * Speichert den gewählten Spielmodus und wechselt zur Anmeldung.
  */
 function selectMode(mode) {
-    gameMode = mode;
-    showScreen('loginScreen');
+  gameMode = mode;
+  showScreen('loginScreen');
 }
 
 /**
@@ -21,10 +21,10 @@ function selectMode(mode) {
  * @param {string} screenId - Die ID des divs (z.B. 'loginScreen')
  */
 function showScreen(screenId) {
-    // Sucht alle Elemente mit der Klasse '.screen' und entfernt die Klasse '.active'
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    // Fügt die Klasse '.active' nur dem gewünschten Bildschirm hinzu
-    document.getElementById(screenId).classList.add('active');
+  // Sucht alle Elemente mit der Klasse '.screen' und entfernt die Klasse '.active'
+  document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
+  // Fügt die Klasse '.active' nur dem gewünschten Bildschirm hinzu
+  document.getElementById(screenId).classList.add('active');
 }
 
 /**
@@ -32,14 +32,14 @@ function showScreen(screenId) {
  */
 
 function handleEnter(event) {
-    // Prüfen, ob die Gedrückte Taste "Enter" ist.
-    if (event.key === 'Enter') {
-        const btn = document.getElementById('searchBtn');
-        // Löst Klick nur aus, wenn Button nicht ausgegraut (disabled) ist.
-        if (!btn.disabled) {
-            startSearch();
-        }
+  // Prüfen, ob die Gedrückte Taste "Enter" ist.
+  if (event.key === 'Enter') {
+    const btn = document.getElementById('searchBtn');
+    // Löst Klick nur aus, wenn Button nicht ausgegraut (disabled) ist.
+    if (!btn.disabled) {
+      startSearch();
     }
+  }
 }
 
 /**
@@ -47,47 +47,47 @@ function handleEnter(event) {
  * Aktiviert/Deaktiviert den "Suchen"-Button entsprechend und zeigt spezifische Fehler an.
  */
 function checkInput() {
-    const inputField = document.getElementById('playerName');
-    const nameInput = inputField.value;
-    const errorText = document.getElementById('nameError');
-    const searchBtn = document.getElementById('searchBtn');
+  const inputField = document.getElementById('playerName');
+  const nameInput = inputField.value;
+  const errorText = document.getElementById('nameError');
+  const searchBtn = document.getElementById('searchBtn');
 
-    // Fail-Safe Bedingung: Such-Button sofort sperren sobald getippt wird.
-    searchBtn.disabled = true;
+  // Fail-Safe Bedingung: Such-Button sofort sperren sobald getippt wird.
+  searchBtn.disabled = true;
 
-    // RegEx (Regulärer Ausdruck): ^ = Start, $ = Ende.
-    // [a-zA-Z0-9äöüÄÖÜß] bedeutet: Nur Klein-, Großbuchstaben, Umlaute und Zahlen sind erlaubt.
-    // Das + bedeutet: mindestens ein Zeichen muss vorhanden sein
-    const isValidChars = /^[a-zA-Z0-9äöüÄÖÜß]+$/.test(nameInput);
+  // RegEx (Regulärer Ausdruck): ^ = Start, $ = Ende.
+  // [a-zA-Z0-9äöüÄÖÜß] bedeutet: Nur Klein-, Großbuchstaben, Umlaute und Zahlen sind erlaubt.
+  // Das + bedeutet: mindestens ein Zeichen muss vorhanden sein
+  const isValidChars = /^[a-zA-Z0-9äöüÄÖÜß]+$/.test(nameInput);
 
-    // Testen auf Fälle:
-    // Fall 1: Feld ist komplett leer (oder User hat Input wieder komplett gelöscht)
-    if (nameInput.length === 0) {
-        errorText.textContent = ""; // Keinen Fehler anzeigen, wenn noch kein Input getätigt.
-        inputField.classList.remove('invalid');
-        return; // Funktion hier abbrechen, button bleibt gesperrt
-    }
+  // Testen auf Fälle:
+  // Fall 1: Feld ist komplett leer (oder User hat Input wieder komplett gelöscht)
+  if (nameInput.length === 0) {
+    errorText.textContent = ''; // Keinen Fehler anzeigen, wenn noch kein Input getätigt.
+    inputField.classList.remove('invalid');
+    return; // Funktion hier abbrechen, button bleibt gesperrt
+  }
 
-    // Fall 2: Es wurden Verbotene Zeichen (Sonderzeichen, Leerzeichen, Emojism etc.) eingegeben
-    if (!isValidChars) {
-        errorText.textContent = "Bitte nur Buchstaben und Zahlen eingeben.";
-        inputField.classList.add('invalid');
-        return; // Funktion hier abbrechen, button bleibt gesperrt
-    }
+  // Fall 2: Es wurden Verbotene Zeichen (Sonderzeichen, Leerzeichen, Emojism etc.) eingegeben
+  if (!isValidChars) {
+    errorText.textContent = 'Bitte nur Buchstaben und Zahlen eingeben.';
+    inputField.classList.add('invalid');
+    return; // Funktion hier abbrechen, button bleibt gesperrt
+  }
 
-    // Fall 3: Der Name ist zu kurz
-    else if (nameInput.length < 2) {
-        errorText.textContent = "Der Name muss mindestens zwei Zeichen lang sein";
-        inputField.classList.add('invalid');
-        return; // Funktion hier abbrechen, button bleibt gesperrt
-    }
+  // Fall 3: Der Name ist zu kurz
+  else if (nameInput.length < 2) {
+    errorText.textContent = 'Der Name muss mindestens zwei Zeichen lang sein';
+    inputField.classList.add('invalid');
+    return; // Funktion hier abbrechen, button bleibt gesperrt
+  }
 
-    // Fall 4: Keine Fehler, alles passt.
-    errorText.textContent = ""; // Fehlertext löschen
-    inputField.classList.remove('invalid'); // Roten Rahmen entfernen
+  // Fall 4: Keine Fehler, alles passt.
+  errorText.textContent = ''; // Fehlertext löschen
+  inputField.classList.remove('invalid'); // Roten Rahmen entfernen
 
-    // Erst jetzt, wenn kein return ausgelöst wurde, wird der Button aktiviert.
-    searchBtn.disabled = false;
+  // Erst jetzt, wenn kein return ausgelöst wurde, wird der Button aktiviert.
+  searchBtn.disabled = false;
 }
 
 /**
@@ -95,209 +95,213 @@ function checkInput() {
  * Wechselt in den Wartebildschirm.
  */
 function startSearch() {
-    //Schutz vor Doppelauslösung, nur dann suchen, wenn der Namensbildschirm wirklich angezeigt wird
-    if (!document.getElementById('loginScreen').classList.contains('active')) return;
+  //Schutz vor Doppelauslösung, nur dann suchen, wenn der Namensbildschirm wirklich angezeigt wird
+  if (!document.getElementById('loginScreen').classList.contains('active')) return;
 
-    // Ohne Serververbindung ist keine Online-Partie möglich
-    if (gameMode === 'online' && !socket.connected) {
-        showConfirm('Keine Verbindung', 'Der Server ist gerade nicht erreichbar.', 'OK');
-        return;
-    }
+  // Ohne Serververbindung ist keine Online-Partie möglich
+  if (gameMode === 'online' && !socket.connected) {
+    showConfirm('Keine Verbindung', 'Der Server ist gerade nicht erreichbar.', 'OK');
+    return;
+  }
 
-    // Namen auslesen und speichern
-    currentPlayerName = document.getElementById('playerName').value;
+  // Namen auslesen und speichern
+  currentPlayerName = document.getElementById('playerName').value;
 
-    // Namen in die HTML-Platzhalter der anderen Bildschirme eintragen
-    document.getElementById('waitName').textContent = currentPlayerName;
-    document.getElementById('p1Name').textContent = currentPlayerName;
+  // Namen in die HTML-Platzhalter der anderen Bildschirme eintragen
+  document.getElementById('waitName').textContent = currentPlayerName;
+  document.getElementById('p1Name').textContent = currentPlayerName;
 
-    // Wechsel zum Wartebildschirm
-    showScreen('waitingScreen');
+  // Wechsel zum Wartebildschirm
+  showScreen('waitingScreen');
 
-    if (gameMode === 'online') {
-        // Echter Multiplayer: Server um Match bitten
-        socket.emit('findMatch', currentPlayerName);
-    } else {
-        // Computer: Wie bisher simuliert
-        opponentName = "Computer";
-        // Gegnernamen in HTML schreiben
-        document.getElementById('opponentNameDisplay').textContent = opponentName;
-        document.getElementById('legendOpponent').textContent = opponentName;
-        document.getElementById('opponentNameHeader').textContent = opponentName;
+  if (gameMode === 'online') {
+    // Echter Multiplayer: Server um Match bitten
+    socket.emit('findMatch', currentPlayerName);
+  } else {
+    // Computer: Wie bisher simuliert
+    opponentName = 'Computer';
+    // Gegnernamen in HTML schreiben
+    document.getElementById('opponentNameDisplay').textContent = opponentName;
+    document.getElementById('legendOpponent').textContent = opponentName;
+    document.getElementById('opponentNameHeader').textContent = opponentName;
 
-        // Sicherheitshalber alten Timer stoppen, bevor ein neuer Startet
-        clearTimeout(searchTimeout);
+    // Sicherheitshalber alten Timer stoppen, bevor ein neuer Startet
+    clearTimeout(searchTimeout);
 
-        // Simuliert eine Netzwerksuche: Nach 2000 Millisekunden (2 Sekunden) geht es weiter
-        searchTimeout = setTimeout(() => {
-            playerGetsWhite = Math.random() < 0.5;
-            showScreen('coinTossScreen');
-            simulateCoinToss();
-        }, 2000)
-    }
+    // Simuliert eine Netzwerksuche: Nach 2000 Millisekunden (2 Sekunden) geht es weiter
+    searchTimeout = setTimeout(() => {
+      playerGetsWhite = Math.random() < 0.5;
+      showScreen('coinTossScreen');
+      simulateCoinToss();
+    }, 2000);
+  }
 }
 
 /**
  * Bricht die Suche ab und geht zurück zur Anmeldung.
  */
 function cancelWait() {
-    // Laufenden Timer abbrechen
-    clearTimeout(searchTimeout);
+  // Laufenden Timer abbrechen
+  clearTimeout(searchTimeout);
 
-    // Beim Server aus der Warteschlange austragen
-    if (gameMode === 'online') {
-        socket.emit('cancelSearch');
-    }
+  // Beim Server aus der Warteschlange austragen
+  if (gameMode === 'online') {
+    socket.emit('cancelSearch');
+  }
 
-    showScreen('loginScreen');
+  showScreen('loginScreen');
 }
 
 /**
  * Simuliert den Münzwurf für den Startspieler.
  */
 function simulateCoinToss() {
-    // Evtl. noch laufende Timer einer vorherigen Auslosung stoppen
-    clearTimeout(coinTossTimeout);
-    clearInterval(countdownInterval);
+  // Evtl. noch laufende Timer einer vorherigen Auslosung stoppen
+  clearTimeout(coinTossTimeout);
+  clearInterval(countdownInterval);
 
-    // Text der letzten Runde zurücksetzen
-    document.getElementById('startPlayerText').textContent = "Auslosung läuft...";
+  // Text der letzten Runde zurücksetzen
+  document.getElementById('startPlayerText').textContent = 'Auslosung läuft...';
 
-    // Eingegebenen Spielernamen dynamisch auf Münze anzeigen
-    document.getElementById('legendName').textContent = currentPlayerName;
+  // Eingegebenen Spielernamen dynamisch auf Münze anzeigen
+  document.getElementById('legendName').textContent = currentPlayerName;
 
-    const coin = document.getElementById('coinElement');
-    const container = document.querySelector('.coin-container'); // Container für den Bounce holen
+  const coin = document.getElementById('coinElement');
+  const container = document.querySelector('.coin-container'); // Container für den Bounce holen
 
-    coin.style.setProperty('--end-rotation', playerGetsWhite ? '1800deg' : '1980deg');
+  coin.style.setProperty('--end-rotation', playerGetsWhite ? '1800deg' : '1980deg');
 
-    // Kleiner Trick um Animationen bei einer Revanche auch abspielen zu lassen
-    coin.classList.remove('spin');
-    container.classList.remove('bounce');
+  // Kleiner Trick um Animationen bei einer Revanche auch abspielen zu lassen
+  coin.classList.remove('spin');
+  container.classList.remove('bounce');
 
-    void coin.offsetWidth;
-    coin.classList.add('spin');
+  void coin.offsetWidth;
+  coin.classList.add('spin');
 
-    coinTossTimeout = setTimeout(() => {
+  coinTossTimeout = setTimeout(() => {
+    // Münz-Container hüpfen lassen
+    container.classList.add('bounce');
 
-        // Münz-Container hüpfen lassen
-        container.classList.add('bounce');
+    // Formuliert aus sicht des Spielers
+    const baseText = playerGetsWhite ? 'Du hast die weißen Steine' : 'Du hast die schwarzen Steine';
 
-        // Formuliert aus sicht des Spielers
-        const baseText = playerGetsWhite ? 'Du hast die weißen Steine' : 'Du hast die schwarzen Steine';
-        
-        const textEl = document.getElementById('startPlayerText');
-        let timeLeft = 5;
+    const textEl = document.getElementById('startPlayerText');
+    let timeLeft = 5;
 
-        // Kurze Hilfsfunktion, die Text und Countdown in HMTL schreibt
-        const updateText = () => {
-            // Ohne innerHTML aufbauen, damit Namen kein HTML einschleusen können
-            textEl.textContent = baseText;
-            const strong = document.createElement('strong');
-            strong.textContent = timeLeft;
-            textEl.append(document.createElement('br'), document.createElement('br'), 'Spiel startet in ', strong, ' Sekunden...');
-        };
+    // Kurze Hilfsfunktion, die Text und Countdown in HMTL schreibt
+    const updateText = () => {
+      // Ohne innerHTML aufbauen, damit Namen kein HTML einschleusen können
+      textEl.textContent = baseText;
+      const strong = document.createElement('strong');
+      strong.textContent = timeLeft;
+      textEl.append(
+        document.createElement('br'),
+        document.createElement('br'),
+        'Spiel startet in ',
+        strong,
+        ' Sekunden...'
+      );
+    };
 
-        updateText(); // Startwert, direkt nach dem Münzaufprall anzeigen.
+    updateText(); // Startwert, direkt nach dem Münzaufprall anzeigen.
 
-        // Sekundentakt für Countdown starten
-        countdownInterval = setInterval(() => {
-            timeLeft--;
-            if (timeLeft > 0) {
-                updateText();
-            } else {
-                clearInterval(countdownInterval); // Timer stoppen
-                startGame(); // Ins Spiel wechseln
-            }
-        }, 1000);
-
-    }, 2000);
+    // Sekundentakt für Countdown starten
+    countdownInterval = setInterval(() => {
+      timeLeft--;
+      if (timeLeft > 0) {
+        updateText();
+      } else {
+        clearInterval(countdownInterval); // Timer stoppen
+        startGame(); // Ins Spiel wechseln
+      }
+    }, 1000);
+  }, 2000);
 }
 
 /**
  * Beantragt eine Revanche beim Server
  */
 function requestReplay() {
-    if (gameMode === 'online') {
-        const btn = document.getElementById('replayBtn');
-        btn.disabled = true;
-        btn.textContent = "Warte auf Gegner...";
-        socket.emit('requestReplay');
-    } else {
-        // Gegen Computer startet das Spiel sofort wieder, Farbe wird neu ausgelost
-        playerGetsWhite = Math.random() < 0.5;
-        showScreen('coinTossScreen');
-        simulateCoinToss();
-    }
+  if (gameMode === 'online') {
+    const btn = document.getElementById('replayBtn');
+    btn.disabled = true;
+    btn.textContent = 'Warte auf Gegner...';
+    socket.emit('requestReplay');
+  } else {
+    // Gegen Computer startet das Spiel sofort wieder, Farbe wird neu ausgelost
+    playerGetsWhite = Math.random() < 0.5;
+    showScreen('coinTossScreen');
+    simulateCoinToss();
+  }
 }
 
 /**
  * Verlässt das Match und kehrt zur Anmeldung zurück
  */
 function leaveToLobby() {
-    if (gameMode === 'online') {
-        socket.emit('leaveMatch');
-    }
+  if (gameMode === 'online') {
+    socket.emit('leaveMatch');
+  }
 
-    // Eingabefeld und Buttons für nächstes Mal zurücksetzen
-    document.getElementById('playerName').value = "";
-    checkInput();
+  // Eingabefeld und Buttons für nächstes Mal zurücksetzen
+  document.getElementById('playerName').value = '';
+  checkInput();
 
-    const btn = document.getElementById('replayBtn');
-    if (btn) {
-        btn.disabled = false;
-        btn.textContent = "Nochmal spielen";
-    }
+  const btn = document.getElementById('replayBtn');
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = 'Nochmal spielen';
+  }
 
-    const status = document.getElementById('replayStatus');
-    if (status) status.textContent = "";
+  const status = document.getElementById('replayStatus');
+  if (status) status.textContent = '';
 
-    showScreen('modeScreen');
+  showScreen('modeScreen');
 }
 
 // Antwort von Server empfangen
 socket.on('matchFound', (data) => {
-    opponentName = data.oppName;
-    playerGetsWhite = data.isWhite;
+  opponentName = data.oppName;
+  playerGetsWhite = data.isWhite;
 
-    // Namen in HTML eintragen
-    const oppDisp = document.getElementById('opponentNameDisplay');
-    const legOpp = document.getElementById('legendOpponent');
-    const oppHead = document.getElementById('opponentNameHeader');
+  // Namen in HTML eintragen
+  const oppDisp = document.getElementById('opponentNameDisplay');
+  const legOpp = document.getElementById('legendOpponent');
+  const oppHead = document.getElementById('opponentNameHeader');
 
-    oppDisp.textContent = opponentName;
-    legOpp.textContent = opponentName;
-    oppHead.textContent = opponentName;
+  oppDisp.textContent = opponentName;
+  legOpp.textContent = opponentName;
+  oppHead.textContent = opponentName;
 
-    // Replay-UI für nächste Runde zurücksetzen
-    const replayBtn = document.getElementById('replayBtn');
-    const replayStatus = document.getElementById('replayStatus');
-    if (replayBtn) {
-        replayBtn.disabled = false;
-        replayBtn.textContent = "Nochmal spielen";
-    }
-    if (replayStatus) replayStatus.textContent = "";
+  // Replay-UI für nächste Runde zurücksetzen
+  const replayBtn = document.getElementById('replayBtn');
+  const replayStatus = document.getElementById('replayStatus');
+  if (replayBtn) {
+    replayBtn.disabled = false;
+    replayBtn.textContent = 'Nochmal spielen';
+  }
+  if (replayStatus) replayStatus.textContent = '';
 
-    // Animation starten
-    showScreen('coinTossScreen');
-    simulateCoinToss();
+  // Animation starten
+  showScreen('coinTossScreen');
+  simulateCoinToss();
 });
 
 /**
  * Aktualisiert Echtzeit-Uhr in der oberen Navigation
  */
 function updateRealTimeClock() {
-    const clockEl = document.getElementById('realTimeClock');
-    if (!clockEl) return;
+  const clockEl = document.getElementById('realTimeClock');
+  if (!clockEl) return;
 
-    const now = new Date();
-    // Zeit formatieren zu HH:MM
-    const timeString = now.toLocaleTimeString('de-DE', {
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+  const now = new Date();
+  // Zeit formatieren zu HH:MM
+  const timeString = now.toLocaleTimeString('de-DE', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
-    clockEl.textContent = timeString;
+  clockEl.textContent = timeString;
 }
 
 // Uhrzeitschleife starten (und jede Sekunde updaten)
@@ -309,115 +313,115 @@ updateRealTimeClock();
  * Verarbeitet Chat-Eingaben
  */
 function handleChatEnter(event) {
-    if (event.key === 'Enter') {
-        const input = document.getElementById('chatInput');
-        const msg = input.value.trim();
+  if (event.key === 'Enter') {
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
 
-        if (msg.length > 0) {
-            // a) Nachricht lokal anzeigen
-            addChatMessage("Du", msg, true);
+    if (msg.length > 0) {
+      // a) Nachricht lokal anzeigen
+      addChatMessage('Du', msg, true);
 
-            // b) Nachricht an Server senden
-            if (gameMode === 'online') {
-                socket.emit('chatMessage', msg);
-            }
+      // b) Nachricht an Server senden
+      if (gameMode === 'online') {
+        socket.emit('chatMessage', msg);
+      }
 
-            // c) Eingabefeld wieder leeren
-            input.value = "";
-        }
+      // c) Eingabefeld wieder leeren
+      input.value = '';
     }
+  }
 }
 
 /**
  * Fügt eine Nachricht zur Chatbox hinzu
  */
 function addChatMessage(sender, msg, isSelf) {
-    const container = document.querySelector('.chat-messages');
-    const p = document.createElement('p');
+  const container = document.querySelector('.chat-messages');
+  const p = document.createElement('p');
 
-    // Eigene Nachrichten farblich hervorheben
-    // textContent statt innerHTML, damit Nachrichten kein HTML/JS einschleusen können
-    const strong = document.createElement('strong');
-    strong.style.color = isSelf ? 'var(--dhbw-rot)' : '#333';
-    strong.textContent = `${sender}:`;
-    p.append(strong, ` ${msg}`);
+  // Eigene Nachrichten farblich hervorheben
+  // textContent statt innerHTML, damit Nachrichten kein HTML/JS einschleusen können
+  const strong = document.createElement('strong');
+  strong.style.color = isSelf ? 'var(--dhbw-rot)' : '#333';
+  strong.textContent = `${sender}:`;
+  p.append(strong, ` ${msg}`);
 
-    p.style.margin = "5px 0";
+  p.style.margin = '5px 0';
 
-    container.appendChild(p);
+  container.appendChild(p);
 
-    // Automatisch nach unten scrollen
-    container.scrollTop = container.scrollHeight;
+  // Automatisch nach unten scrollen
+  container.scrollTop = container.scrollHeight;
 }
 
 // Lauscht permanent auf eingehende Nachrichten vom Server
 socket.on('chatMessage', (msg) => {
-    addChatMessage(opponentName, msg, false);
+  addChatMessage(opponentName, msg, false);
 });
 
 // Socket Events für die Revanche
 socket.on('opponentWantsReplay', () => {
-    const status = document.getElementById('replayStatus');
-    if (status) {
-        status.textContent = `${opponentName} möchte noch eine Runde spielen!`;
-    }
+  const status = document.getElementById('replayStatus');
+  if (status) {
+    status.textContent = `${opponentName} möchte noch eine Runde spielen!`;
+  }
 });
 
 socket.on('opponentLeft', () => {
-    const status = document.getElementById('replayStatus');
-    const btn = document.getElementById('replayBtn');
+  const status = document.getElementById('replayStatus');
+  const btn = document.getElementById('replayBtn');
 
-    // Gegner verlässt während des Münzwurfs -> Start abbrechen, zurück zur Lobby
-    if (document.getElementById('coinTossScreen').classList.contains('active')) {
-        clearTimeout(coinTossTimeout);
-        clearInterval(countdownInterval);
-        document.getElementById('startPlayerText').textContent = `${opponentName} hat das Spiel verlassen.`;
-        setTimeout(leaveToLobby, 3000);
-        return;
-    }
+  // Gegner verlässt während des Münzwurfs -> Start abbrechen, zurück zur Lobby
+  if (document.getElementById('coinTossScreen').classList.contains('active')) {
+    clearTimeout(coinTossTimeout);
+    clearInterval(countdownInterval);
+    document.getElementById('startPlayerText').textContent = `${opponentName} hat das Spiel verlassen.`;
+    setTimeout(leaveToLobby, 3000);
+    return;
+  }
 
-    // Gegner verlässt laufendes Spiel -> man gewinnt automatisch
-    if (document.getElementById('gameScreen').classList.contains('active')) {
-        endGame(playerGetsWhite ? 'white' : 'black', 'opponentLeft');
-    }
+  // Gegner verlässt laufendes Spiel -> man gewinnt automatisch
+  if (document.getElementById('gameScreen').classList.contains('active')) {
+    endGame(playerGetsWhite ? 'white' : 'black', 'opponentLeft');
+  }
 
-    if (status) {
-        status.textContent = `${opponentName} hat das Spiel verlassen.`;
-    }
+  if (status) {
+    status.textContent = `${opponentName} hat das Spiel verlassen.`;
+  }
 
-    if (btn) {
-        btn.disabled = true;
-        btn.textContent = "Gegner ist weg.";
-    }
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Gegner ist weg.';
+  }
 });
 
 /**
  * Feuert eine CSS-basierte Konfetti-Animation ab.
  */
 function fireConfetti() {
-    // Kleine Farbmischung
-    const colors = ['#e2001a', '#28a745', '#007bff', '#ffc107', '#ffd700'];
+  // Kleine Farbmischung
+  const colors = ['#e2001a', '#28a745', '#007bff', '#ffc107', '#ffd700'];
 
-    // 150 Schnipsel erzeugen
-    for (let i = 0; i < 150; i++) {
-        const conf = document.createElement('div');
-        conf.className = 'confetti-piece';
+  // 150 Schnipsel erzeugen
+  for (let i = 0; i < 150; i++) {
+    const conf = document.createElement('div');
+    conf.className = 'confetti-piece';
 
-        // Zufällige Position auf der x-Achse
-        conf.style.left = Math.random() * 100 + 'vw';
-        // Zufällige Farbe
-        const randColor = colors[Math.floor(Math.random() * colors.length)];
-        conf.style.backgroundColor = randColor;
+    // Zufällige Position auf der x-Achse
+    conf.style.left = Math.random() * 100 + 'vw';
+    // Zufällige Farbe
+    const randColor = colors[Math.floor(Math.random() * colors.length)];
+    conf.style.backgroundColor = randColor;
 
-        // Zufällige Fallgeschwindigkeit und Verzögerung
-        conf.style.animationDuration = (Math.random() * 3 + 2) + 's';
-        conf.style.animationDelay = (Math.random() * 1) + 's';
+    // Zufällige Fallgeschwindigkeit und Verzögerung
+    conf.style.animationDuration = Math.random() * 3 + 2 + 's';
+    conf.style.animationDelay = Math.random() * 1 + 's';
 
-        document.body.appendChild(conf);
+    document.body.appendChild(conf);
 
-        // Nach Ablauf der Animation das Element aus dem HTML löschen
-        setTimeout(() => conf.remove(), 5000);
-    }
+    // Nach Ablauf der Animation das Element aus dem HTML löschen
+    setTimeout(() => conf.remove(), 5000);
+  }
 }
 
 /**
@@ -425,24 +429,24 @@ function fireConfetti() {
  * Returned ein Promise: true = bestätigt, false = abgelehnt
  */
 function showConfirm(title, text, confirmLabel, cancelLabel) {
-    const dialog = document.getElementById('confirmDialog');
+  const dialog = document.getElementById('confirmDialog');
 
-    // Inhalte der Box setzen
-    document.getElementById('confirmTitle').textContent = title;
-    document.getElementById('confirmText').textContent = text;
-    document.getElementById('confirmYes').textContent = confirmLabel;
-    // Ohne cancelLabel wird nur ein Button angezeigt (reine Hinweisbox)
-    const noBtn = document.getElementById('confirmNo');
-    noBtn.textContent = cancelLabel || '';
-    noBtn.hidden = !cancelLabel;
+  // Inhalte der Box setzen
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmText').textContent = text;
+  document.getElementById('confirmYes').textContent = confirmLabel;
+  // Ohne cancelLabel wird nur ein Button angezeigt (reine Hinweisbox)
+  const noBtn = document.getElementById('confirmNo');
+  noBtn.textContent = cancelLabel || '';
+  noBtn.hidden = !cancelLabel;
 
-    dialog.returnValue = ''; // Ergebnis vom letzten Mal zurücksetzen
-    dialog.showModal(); // Öffnet die Box, der Rest der Seite ist solange gesperrt
+  dialog.returnValue = ''; // Ergebnis vom letzten Mal zurücksetzen
+  dialog.showModal(); // Öffnet die Box, der Rest der Seite ist solange gesperrt
 
-    // Warten, bis die Box geschlossen wird
-    return new Promise(resolve => {
-        dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), { once: true });
-    });
+  // Warten, bis die Box geschlossen wird
+  return new Promise((resolve) => {
+    dialog.addEventListener('close', () => resolve(dialog.returnValue === 'confirm'), { once: true });
+  });
 }
 
 /**
@@ -450,17 +454,17 @@ function showConfirm(title, text, confirmLabel, cancelLabel) {
  * EIne Online-Partie lässt sich danach nicht fortsetzen: Spiel beenden und zurück zur Lobby
  */
 socket.on('disconnect', () => {
-    if (gameMode !== 'online') return; // Partien gegen den Computer brauchen keinen Server
+  if (gameMode !== 'online') return; // Partien gegen den Computer brauchen keinen Server
 
-    // Auf Modus- und Namensbildschirm läuft nichts, was beendet werden müsste
-    const activeScreen = document.querySelector('.screen-active').id;
-    if (activeScreen === 'modeScreen' || activeScreen === 'loginScreen') return;
+  // Auf Modus- und Namensbildschirm läuft nichts, was beendet werden müsste
+  const activeScreen = document.querySelector('.screen-active').id;
+  if (activeScreen === 'modeScreen' || activeScreen === 'loginScreen') return;
 
-    // Alles stoppen, was im Hintergrund weiterläuft
-    stopGame();
-    clearTimeout(coinTossTimeout);
-    clearInterval(countdownInterval);
+  // Alles stoppen, was im Hintergrund weiterläuft
+  stopGame();
+  clearTimeout(coinTossTimeout);
+  clearInterval(countdownInterval);
 
-    leaveToLobby();
-    showConfirm('Verbindung verloren', 'Die Verbindung zum Server ist abgebrochen. Die Partie wurde beendet.', 'OK');
+  leaveToLobby();
+  showConfirm('Verbindung verloren', 'Die Verbindung zum Server ist abgebrochen. Die Partie wurde beendet.', 'OK');
 });
