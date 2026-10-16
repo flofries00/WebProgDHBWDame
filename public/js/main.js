@@ -3,12 +3,11 @@ import {
     selectMode,
     showScreen,
     checkInput,
-    handleEnter,
     startSearch,
     cancelWait,
     requestReplay,
     leaveToLobby,
-    handleChatEnter,
+    handleChatSubmit,
 } from './ui.js';
 import { abortGame } from './game.js';
 import { toggleSound } from './sound.js';
@@ -28,17 +27,18 @@ onClick('modeComputerBtn', () => selectMode('computer'));
 onClick('modeOnlineBtn', () => selectMode('online'));
 
 // Namensbildschirm
-const nameInput = document.getElementById('playerName');
-nameInput.addEventListener('input', checkInput);
-nameInput.addEventListener('keydown', handleEnter);
+document.getElementById('playerName').addEventListener('input', checkInput);
+document.getElementById('loginForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+    startSearch();
+});
 onClick('loginBackBtn', () => showScreen('modeScreen'));
-onClick('searchBtn', startSearch);
 
 // Wartebildschirm
 onClick('cancelWaitBtn', cancelWait);
 
 // Spielbildschirm
-document.getElementById('chatInput').addEventListener('keydown', handleChatEnter);
+document.getElementById('chatForm').addEventListener('submit', handleChatSubmit);
 onClick('abortBtn', abortGame);
 
 // Endbildschirm

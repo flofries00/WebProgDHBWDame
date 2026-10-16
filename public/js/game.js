@@ -791,8 +791,6 @@ document.getElementById('board').addEventListener('drop', handleDrop);
  * B) Werkzeuge
  *
  * C) Umbau der Struktur
- * Keine Inline-Handler/-Styles (auch style.* in ui.js), kein <br> -> CSP-tauglich (#13)
- * Semantisches HTML: h1, Überschriften, Labels, Felder als Buttons (#16, #3)
  * CSS modernisieren: @layer, Nesting, Custom Properties, rem, kein !important, aufteilen
  *
  * D) Robustheit & Qualität
@@ -802,7 +800,7 @@ document.getElementById('board').addEventListener('drop', handleDrop);
  *
  * E) Oberfläche
  * Endbildschirm überarbeiten
- * Barrierefreiheit: nicht nur Farbe + Kontrast (#10), Schriftgrößen (#14)
+ * Barrierefreiheit: Felder als Buttons + Tastaturbedienung (#3), nicht nur Farbe + Kontrast (#10), Schriftgrößen (#14)
  * Sounds auch bei Münzwurf und Sieg/Niederlage
  * Andere Farbschemata für Brett und Steine einbauen (Kontrast beachten!)
  * Keine Emojikrone, sondern anderes Icon für Dame

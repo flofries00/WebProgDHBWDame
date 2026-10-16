@@ -28,21 +28,6 @@ export function showScreen(screenId) {
 }
 
 /**
- * Erlaubt das Starten der Gegnersuche durch Drücken der Enter-Taste im Eingabefeld
- */
-
-export function handleEnter(event) {
-    // Prüfen, ob die Gedrückte Taste "Enter" ist.
-    if (event.key === 'Enter') {
-        const btn = document.getElementById('searchBtn');
-        // Löst Klick nur aus, wenn Button nicht ausgegraut (disabled) ist.
-        if (!btn.disabled) {
-            startSearch();
-        }
-    }
-}
-
-/**
  * Prüft die Eingabe im Namensfeld auf Länge und erlaubte Zeichen.
  * Aktiviert/Deaktiviert den "Suchen"-Button entsprechend und zeigt spezifische Fehler an.
  */
@@ -162,6 +147,7 @@ export function simulateCoinToss() {
 
     // Text der letzten Runde zurücksetzen
     document.getElementById('startPlayerText').textContent = 'Auslosung läuft...';
+    document.getElementById('countdownText').textContent = '';
 
     // Eingegebenen Spielernamen dynamisch auf Münze anzeigen
     document.getElementById('legendName').textContent = state.currentPlayerName;
@@ -185,22 +171,15 @@ export function simulateCoinToss() {
         // Formuliert aus sicht des Spielers
         const baseText = state.playerGetsWhite ? 'Du hast die weißen Steine' : 'Du hast die schwarzen Steine';
 
-        const textEl = document.getElementById('startPlayerText');
+        document.getElementById('startPlayerText').textContent = baseText;
+        const countdownEl = document.getElementById('countdownText');
         let timeLeft = 5;
 
-        // Kurze Hilfsfunktion, die Text und Countdown in HMTL schreibt
+        // Kurze Hilfsfunktion, die den Countdown in HTML schreibt
         const updateText = () => {
-            // Ohne innerHTML aufbauen, damit Namen kein HTML einschleusen können
-            textEl.textContent = baseText;
             const strong = document.createElement('strong');
             strong.textContent = timeLeft;
-            textEl.append(
-                document.createElement('br'),
-                document.createElement('br'),
-                'Spiel startet in ',
-                strong,
-                ' Sekunden...'
-            );
+            countdownEl.replaceChildren('Spiel startet in ', strong, ' Sekunden...');
         };
 
         updateText(); // Startwert, direkt nach dem Münzaufprall anzeigen.
@@ -312,23 +291,23 @@ updateRealTimeClock();
 /**
  * Verarbeitet Chat-Eingaben
  */
-export function handleChatEnter(event) {
-    if (event.key === 'Enter') {
-        const input = document.getElementById('chatInput');
-        const msg = input.value.trim();
+export function handleChatSubmit(event) {
+    event.preventDefault(); // Formular nicht wirklich abschicken (sonst lädt Seite neu)
 
-        if (msg.length > 0) {
-            // a) Nachricht lokal anzeigen
-            addChatMessage('Du', msg, true);
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
 
-            // b) Nachricht an Server senden
-            if (state.gameMode === 'online') {
-                socket.emit('chatMessage', msg);
-            }
+    if (msg.length > 0) {
+        // a) Nachricht lokal anzeigen
+        addChatMessage('Du', msg, true);
 
-            // c) Eingabefeld wieder leeren
-            input.value = '';
+        // b) Nachricht an Server senden
+        if (state.gameMode === 'online') {
+            socket.emit('chatMessage', msg);
         }
+
+        // c) Eingabefeld wieder leeren
+        input.value = '';
     }
 }
 
@@ -338,15 +317,14 @@ export function handleChatEnter(event) {
 function addChatMessage(sender, msg, isSelf) {
     const container = document.querySelector('.chat-messages');
     const p = document.createElement('p');
+    p.className = 'chat-message';
 
-    // Eigene Nachrichten farblich hervorheben
+    // Eigene Nachrichten farblich hervorheben (Farben stehen im CSS)
     // textContent statt innerHTML, damit Nachrichten kein HTML/JS einschleusen können
     const strong = document.createElement('strong');
-    strong.style.color = isSelf ? 'var(--dhbw-rot)' : '#333';
+    strong.className = isSelf ? 'chat-sender self' : 'chat-sender';
     strong.textContent = `${sender}:`;
     p.append(strong, ` ${msg}`);
-
-    p.style.margin = '5px 0';
 
     container.appendChild(p);
 
@@ -376,6 +354,7 @@ socket.on('opponentLeft', () => {
         clearTimeout(coinTossTimeout);
         clearInterval(countdownInterval);
         document.getElementById('startPlayerText').textContent = `${state.opponentName} hat das Spiel verlassen.`;
+        document.getElementById('countdownText').textContent = '';
         setTimeout(leaveToLobby, 3000);
         return;
     }
