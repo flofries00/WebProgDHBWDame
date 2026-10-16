@@ -1,39 +1,39 @@
 {
-  "name": "webprogdhbwdame",
-  "version": "1.0.0",
-  "description": "Ein modernes, browserbasiertes Dame-Spiel, entwickelt als Projekt für den Kurs Web-Engineering an der DHBW. Der Fokus liegt aktuell auf einer sauberen Trennung von Benutzeroberfläche und Spiellogik im Frontend sowie einer intuitiven User Experience durch visuelles Feedback.",
-  "main": "server.js",
-  "scripts": {
-    "build": "echo \"Kein Build-Schritt nötig: Das Frontend wird direkt aus public/ ausgeliefert.\"",
-    "start": "node server.js",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/flofries00/WebProgDHBWDame.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "engines": {
-    "node": ">=18"
-  },
-  "bugs": {
-    "url": "https://github.com/flofries00/WebProgDHBWDame/issues"
-  },
-  "homepage": "https://github.com/flofries00/WebProgDHBWDame#readme",
-  "dependencies": {
-    "express": "^5.2.1",
-    "socket.io": "^4.8.4"
-  },
-  "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "eslint": "^10.12.0",
-    "globals": "^17.13.0",
-    "prettier": "^3.9.10"
-  }
+    "name": "webprogdhbwdame",
+    "version": "1.0.0",
+    "description": "Ein modernes, browserbasiertes Dame-Spiel, entwickelt als Projekt für den Kurs Web-Engineering an der DHBW. Der Fokus liegt aktuell auf einer sauberen Trennung von Benutzeroberfläche und Spiellogik im Frontend sowie einer intuitiven User Experience durch visuelles Feedback.",
+    "main": "server.js",
+    "scripts": {
+        "build": "echo \"Kein Build-Schritt nötig: Das Frontend wird direkt aus public/ ausgeliefert.\"",
+        "start": "node server.js",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "format": "prettier --write .",
+        "format:check": "prettier --check ."
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/flofries00/WebProgDHBWDame.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "commonjs",
+    "engines": {
+        "node": ">=18"
+    },
+    "bugs": {
+        "url": "https://github.com/flofries00/WebProgDHBWDame/issues"
+    },
+    "homepage": "https://github.com/flofries00/WebProgDHBWDame#readme",
+    "dependencies": {
+        "express": "^5.2.1",
+        "socket.io": "^4.8.4"
+    },
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "eslint": "^10.12.0",
+        "globals": "^17.13.0",
+        "prettier": "^3.9.10"
+    }
 }
