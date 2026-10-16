@@ -2,8 +2,10 @@ import { state } from './state.js';
 import { socket } from './socket.js';
 import { showScreen, leaveToLobby, fireConfetti, showConfirm } from './ui.js';
 import { playSound } from './sound.js';
+import { BOARD_SIZE, createInitialBoard, getLegalMoves, findMove, applyMove, getWinner } from './rules.js';
 
 // Globale Variablen für das Spielfeld
+let board = []; // Spielbrett als Daten
 let currentTurn = 'white'; // Weiß hat nach den bekannten Dame-Regeln immer den ersten Zug
 let selectedPiece = null; // Speichert das HTML-Element des aktuell angeklickten Steins.
 let moveCount = 0; // Zählt Züge mit
@@ -12,16 +14,7 @@ let blackTime = 300; // Startzeit Schwarz (5min / 300s)
 let timerInterval = null;
 let isMultiJumping = false; // Sperrt andere Steine während eines Multisprungs
 
-/* Hilfsfunktionen */
 let computerMoveTimeout = null; // Ausstehender Computerzug (damit er abgebrochen werden kann)
-
-// Alle vier Diagonalen
-const DIRECTIONS = [
-    { dr: -1, dc: -1 }, // Oben Links
-    { dr: -1, dc: 1 }, // Oben Rechts
-    { dr: 1, dc: -1 }, // Unten Links
-    { dr: 1, dc: 1 }, // Unten Rechts
-];
 
 /**
  * Liefert ein Feld des ECHTEN Spielbretts (nicht der Kopie im Endbildschirm)
@@ -31,17 +24,11 @@ function getCell(r, c) {
 }
 
 /**
- * Liefert alle Steine einer Farbe auf dem echten Spielbrett (ohne Trophäen und Endbildschirm-Kopie)
+ * Liefert Zeile und Spalte des Feldes, in dem ein Element (Stein oder Feld) liegt
  */
-function getPieces(color) {
-    return document.getElementById('board').querySelectorAll(`.${color}-piece`);
-}
-
-/**
- * Prüft, ob Koordinaten auf dem Brett liegen
- */
-function isOnBoard(r, c) {
-    return r >= 0 && r <= 7 && c >= 0 && c <= 7;
+function getPosition(element) {
+    const cell = element.closest('.cell');
+    return { row: Number(cell.dataset.row), col: Number(cell.dataset.col) };
 }
 
 /**
@@ -52,60 +39,12 @@ function isMyTurn() {
 }
 
 /**
- * Berechnet alle möglichen Züge eines Steins (normale Steine und Damen)
- * Rückgabe: Array aus { target: Zielzelle, victim: Zelle des geschlagenen Steins oder null }
+ * Erlaubte Züge des Spielers am Zug (Schlagzwang berücksichtigt).
+ * Während eines Mehrfachsprungs nur die Schläge des springenden Steins.
  */
-function getMoves(piece) {
-    const row = parseInt(piece.parentElement.dataset.row);
-    const col = parseInt(piece.parentElement.dataset.col);
-    const opponentClass = piece.classList.contains('white-piece') ? 'black-piece' : 'white-piece';
-    const moves = [];
-
-    if (piece.classList.contains('dame')) {
-        // Damen-Logik: Darf beliebig weit ziehen
-        DIRECTIONS.forEach((dir) => {
-            let r = row + dir.dr;
-            let c = col + dir.dc;
-            let victim = null;
-
-            while (isOnBoard(r, c)) {
-                const cell = getCell(r, c);
-                if (cell.children.length === 0) {
-                    //Leeres Feld: vor einem Gegner normaler Zug, dahinter Schlagzug
-                    moves.push({ target: cell, victim: victim });
-                } else if (!victim && cell.children[0].classList.contains(opponentClass)) {
-                    victim = cell;
-                } else {
-                    break;
-                }
-                r += dir.dr;
-                c += dir.dc;
-            }
-        });
-    } else {
-        // Normale Steine: Weiß zieht nach oben (-1), Schwarz nach unten (+1)
-        const direction = piece.classList.contains('white-piece') ? -1 : 1;
-
-        [-1, 1].forEach((dc) => {
-            const r = row + direction;
-            const c = col + dc;
-            if (!isOnBoard(r, c)) return;
-
-            const cell = getCell(r, c);
-            if (cell.children.length === 0) {
-                moves.push({ target: cell, victim: null });
-            } else if (cell.children[0].classList.contains(opponentClass)) {
-                // Feld direkt hinter Gegner prüfen
-                const jumpR = r + direction;
-                const jumpC = c + dc;
-                if (isOnBoard(jumpR, jumpC)) {
-                    const jumpCell = getCell(jumpR, jumpC);
-                    if (jumpCell.children.length === 0) moves.push({ target: jumpCell, victim: cell });
-                }
-            }
-        });
-    }
-    return moves;
+function getCurrentLegalMoves() {
+    const onlyFrom = isMultiJumping ? getPosition(selectedPiece) : null;
+    return getLegalMoves(board, currentTurn, onlyFrom);
 }
 
 /**
@@ -174,51 +113,30 @@ export function startGame() {
 }
 
 /**
- * Generiert dynamisch das 8x8 Spielbrett und platziert die Steine.
+ * Erstellt das Brett in der Startaufstellung und zeichnet es als HTML.
  */
 function generateBoard() {
+    board = createInitialBoard(); // Startaufstellung als Daten (rules.js)
+
     const boardElement = document.getElementById('board');
     boardElement.innerHTML = ''; // Brett komplett leeren, bevor es neu gebaut wird
 
-    // Zwei ineinandergeschachtelte Schleifen für 8 Zeilen (row) und 8 Spalten (col)
-    for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
-            // Ein neues div für die Kachel (Zelle) erstellen
+    for (let row = 0; row < BOARD_SIZE; row++) {
+        for (let col = 0; col < BOARD_SIZE; col++) {
             const cell = document.createElement('div');
 
-            // Mathematischer Trick zur Schachbrettmuster-Berechnung:
-            // Wenn Zeile + Spalte eine ungerade Zahl ergibt, ist das Feld dunkel.
+            // Schachbrettmuster: Ist Zeile + Spalte ungerade, ist das Feld dunkel
             const isBlackCell = (row + col) % 2 !== 0;
-
-            // Die entsprechenden CSS-Klassen vergeben
             cell.className = 'cell ' + (isBlackCell ? 'black-bg' : 'white-bg');
 
-            // Die Koordinaten (Zeile/Spalte) als Daten-Attribute speichern (wichtig für spätere Spiel-Logik!)
+            // Koordinaten speichern, damit ein Klick dem richtigen Feld in den Brett-Daten zugeordnet werden kann
             cell.dataset.row = row;
             cell.dataset.col = col;
 
-            // Spielsteine dürfen nach den Dame-Regeln nur auf dunklen Feldern liegen
-            if (isBlackCell) {
-                if (row < 3) {
-                    const piece = document.createElement('div');
-                    piece.className = 'piece black-piece'; // Oben immer Schwarz
-                    piece.draggable = true; // Draggable machen
-                    piece.addEventListener('click', selectPiece); // Klick-Event hinzufügen
-                    piece.addEventListener('dragstart', handleDragStart); // DragDrop
-                    piece.addEventListener('dragend', handleDragEnd);
-                    cell.appendChild(piece); // Stein in die Kachel legen
-                } else if (row > 4) {
-                    const piece = document.createElement('div');
-                    piece.className = 'piece white-piece'; // Unten immer Weiß
-                    piece.draggable = true;
-                    piece.addEventListener('click', selectPiece); // Klick-Event hinzufügen
-                    piece.addEventListener('dragstart', handleDragStart); // DragDrop
-                    piece.addEventListener('dragend', handleDragEnd);
-                    cell.appendChild(piece); // Stein in die Kachel legen
-                }
-            }
+            // Stein laut Brett-Daten einsetzen
+            const piece = board[row][col];
+            if (piece) cell.appendChild(createPieceElement(piece));
 
-            // Die fertige Kachel an das Spielbrett im HTML anhängen
             boardElement.appendChild(cell);
         }
     }
@@ -233,20 +151,33 @@ function generateBoard() {
 }
 
 /**
+ * Erstellt das HTML-Element für einen Stein aus den Brett-Daten ({ color, king })
+ */
+function createPieceElement(piece) {
+    const element = document.createElement('div');
+    element.className = `piece ${piece.color}-piece` + (piece.king ? ' dame' : '');
+    element.draggable = true;
+    element.addEventListener('click', selectPiece);
+    element.addEventListener('dragstart', handleDragStart);
+    element.addEventListener('dragend', handleDragEnd);
+    return element;
+}
+
+/**
  * Wird ausgelöst, wenn ein Spieler auf einen Spielstein klickt.
  */
 function selectPiece(event) {
-    const piece = event.target;
+    const pieceElement = event.target;
 
-    // Multischlag-Sperre einbauen, kein Stein anklickbar
-    if (isMultiJumping && piece !== selectedPiece) {
+    // Während eines Mehrfachsprungs ist nur der springende Stein anklickbar
+    if (isMultiJumping && pieceElement !== selectedPiece) {
         return;
     }
 
-    // a) Prüfen: Gehört der Stein dem Spieler, der gerade am Zug ist?
-    // Wenn Weiß am Zug ist, darf man keine schwarzen Steine anklicken und umgekehrt
-    if (!piece.classList.contains(currentTurn + '-piece')) {
-        return; // Funktion abbrechen
+    // a) Gehört der Stein dem Spieler, der gerade am Zug ist? (laut Brett-Daten)
+    const { row, col } = getPosition(pieceElement);
+    if (board[row][col]?.color !== currentTurn) {
+        return;
     }
 
     // Echte Klicks des Spielers blockieren, der nicht am Zug ist
@@ -255,23 +186,19 @@ function selectPiece(event) {
         return;
     }
 
-    // Schlagzwang prüfen
-    const mandatoryCaptureExists = Array.from(getPieces(currentTurn)).some((p) => canCapture(p));
-
-    // Bei Schlagzwang, aber der ausgewählte Stein keinen Gegner schlagen kann
-    if (mandatoryCaptureExists && !canCapture(piece)) {
-        return;
+    // Erlaubte Züge genau dieses Steins (Schlagzwang ist in rules.js bereits berücksichtigt)
+    const moves = getCurrentLegalMoves().filter((move) => move.fromRow === row && move.fromCol === col);
+    if (moves.length === 0) {
+        return; // Stein kann nicht ziehen oder ein anderer Stein muss schlagen
     }
 
     // b) Vorherige Auswahl aufheben (falls man doch einen anderen Stein ziehen will)
     clearSelection();
 
-    // c) Neuen Stein als "ausgewählt" markieren
-    selectedPiece = piece;
-    piece.classList.add('selected');
-
-    // Zeigt alle validen Züge an und teilt Schlagzwang mit
-    showValidMoves(piece, mandatoryCaptureExists);
+    // c) Neuen Stein als "ausgewählt" markieren und seine Zielfelder anzeigen
+    selectedPiece = pieceElement;
+    pieceElement.classList.add('selected');
+    showValidMoves(moves);
 }
 
 /**
@@ -286,25 +213,16 @@ function clearSelection() {
     // Entfernt die Hintergrundfarbe von allen eventuell markierten Zielfeldern
     document.querySelectorAll('.cell.highlighted, .cell.highlighted-capture').forEach((cell) => {
         cell.classList.remove('highlighted', 'highlighted-capture');
-        // Gespeicherte Sprung-Daten vom vorherigen Klick löschen
-        delete cell.dataset.jumpR;
-        delete cell.dataset.jumpC;
     });
 }
 
 /**
- * Berechnet die erlaubten Züge für den ausgewählten Stein
+ * Markiert die Zielfelder der übergebenen Züge (grün = ziehen, rot = schlagen)
  */
-function showValidMoves(piece, mandatoryCaptureExists) {
-    getMoves(piece).forEach((move) => {
-        if (move.victim) {
-            move.target.classList.add('highlighted-capture');
-            // Koordinaten des Opfers speichern
-            move.target.dataset.jumpR = move.victim.dataset.row;
-            move.target.dataset.jumpC = move.victim.dataset.col;
-        } else if (!mandatoryCaptureExists) {
-            move.target.classList.add('highlighted');
-        }
+function showValidMoves(moves) {
+    moves.forEach((move) => {
+        const cell = getCell(move.toRow, move.toCol);
+        cell.classList.add(move.captured ? 'highlighted-capture' : 'highlighted');
     });
 }
 
@@ -322,38 +240,36 @@ function handleBoardClick(event) {
     // Echte Klicks kommen nur vom Spieler, der am Zug ist (verhindert Eingriffe in Computer- / Gegnerzüge)
     if (event.isTrusted && !isMyTurn()) return;
 
+    // Passenden erlaubten Zug suchen. Gibt es ihn laut Regeln nicht, passiert nichts.
+    const from = getPosition(selectedPiece);
+    const to = getPosition(targetCell);
+    const move = findMove(getCurrentLegalMoves(), from.row, from.col, to.row, to.col);
+    if (!move) return;
+
     // Sende Zug an Gegner
     if (state.gameMode === 'online' && event.isTrusted) {
-        socket.emit('makeMove', {
-            fromR: Number(selectedPiece.parentElement.dataset.row),
-            fromC: Number(selectedPiece.parentElement.dataset.col),
-            toR: Number(targetCell.dataset.row),
-            toC: Number(targetCell.dataset.col),
-        });
+        socket.emit('makeMove', { fromR: move.fromRow, fromC: move.fromCol, toR: move.toRow, toC: move.toCol });
     }
 
-    // 1. Koordinaten VOR dem Wechsel speichern (für die Animation & Board-Log)
+    // 1. Werte VOR dem Zug merken (für Animation und Trophäe)
     const startRect = selectedPiece.getBoundingClientRect();
-    const isCapture = targetCell.dataset.jumpR !== undefined;
-    const startRow = parseInt(selectedPiece.parentElement.dataset.row);
-    const startCol = parseInt(selectedPiece.parentElement.dataset.col);
-    const endRow = parseInt(targetCell.dataset.row);
-    const endCol = parseInt(targetCell.dataset.col);
+    const isCapture = move.captured !== null;
+    const victimColor = isCapture ? board[move.captured.row][move.captured.col].color : null;
 
-    // Wurde ein Stein geschlagen?
+    // 2. Zug in den Brett-Daten ausführen (rules.js liefert auch Beförderung und Mehrfachsprung)
+    const result = applyMove(board, move);
+    board = result.board;
+    const getsPromoted = result.promoted;
+
+    // 3. HTML an die neuen Brett-Daten anpassen
     if (isCapture) {
-        // "Opfer" suchen
-        const victimCell = getCell(targetCell.dataset.jumpR, targetCell.dataset.jumpC);
-        if (victimCell) {
-            const victimIsWhite = victimCell.children[0].classList.contains('white-piece');
-            victimCell.innerHTML = ''; // Gegnerstein löschen
+        getCell(move.captured.row, move.captured.col).innerHTML = ''; // Gegnerstein entfernen
 
-            // Kleine Trophäe erzeugen und in Kopfzeile packen
-            const trophy = document.createElement('div');
-            trophy.className = 'captured-piece ' + (victimIsWhite ? 'white-piece' : 'black-piece');
-            const tCont = isMyTurn() ? 'p1Captured' : 'compCaptured';
-            document.getElementById(tCont).appendChild(trophy);
-        }
+        // Kleine Trophäe erzeugen und in Kopfzeile packen
+        const trophy = document.createElement('div');
+        trophy.className = `captured-piece ${victimColor}-piece`;
+        const tCont = isMyTurn() ? 'p1Captured' : 'compCaptured';
+        document.getElementById(tCont).appendChild(trophy);
     }
 
     // 'appendChild' verschiebt das HTML-Element automatisch in die neue Zelle
@@ -363,14 +279,6 @@ function handleBoardClick(event) {
 
     // Sound abspielen (Schlag oder normaler Zug)
     playSound(isCapture ? 'capture' : 'move');
-
-    // 2. Dame-Beförderung vorbereiten
-    let getsPromoted = false;
-
-    if (pieceToAnimate.classList.contains('white-piece') && endRow === 0 && !pieceToAnimate.classList.contains('dame'))
-        getsPromoted = true;
-    if (pieceToAnimate.classList.contains('black-piece') && endRow === 7 && !pieceToAnimate.classList.contains('dame'))
-        getsPromoted = true;
 
     // Hilfsfunktion: Dreht die Dame um 180 Grad und blendet die Krone ein
     const playPromoteAnim = () => {
@@ -426,23 +334,15 @@ function handleBoardClick(event) {
     }
 
     // Zug in Log eintragen (übergibt nun auch getsPromoted)
-    addToLog(startRow, startCol, endRow, endCol, isCapture, getsPromoted);
+    addToLog(move.fromRow, move.fromCol, move.toRow, move.toCol, isCapture, getsPromoted);
 
-    // Multischlag prüfen
-    let canMultiJump = false;
-    // Wenn geschlagen hat UND nicht zur Dame befördert wurde
-    if (isCapture && !getsPromoted) {
-        if (canCapture(pieceToAnimate)) {
-            canMultiJump = true;
-        }
-    }
-
-    if (canMultiJump) {
+    // Mehrfachsprung: Laut Regeln muss derselbe Stein weiterschlagen
+    if (result.mustContinue) {
         isMultiJumping = true; // Brett für andere Steine sperren
         clearSelection();
         selectedPiece = pieceToAnimate;
         selectedPiece.classList.add('selected');
-        showValidMoves(selectedPiece, true); // Zeigt zwangsweise nur die nächsten Schläge an
+        showValidMoves(getCurrentLegalMoves()); // Zeigt nur die nächsten Züge dieses Steins
 
         updatePieceCursors(); // Andere Steine sperren
 
@@ -483,25 +383,15 @@ function handleBoardClick(event) {
 }
 
 /**
- * HILFSFUNKTION: Prüft heimlich (ohne Markierungen), ob ein Stein einen Gegner schlagen kann.
- * Wird für die Schlagzwang-Prüfung genutzt.
- */
-function canCapture(piece) {
-    return getMoves(piece).some((move) => move.victim);
-}
-
-/**
- * Prüft das gesamte Brett und blendet rote Schlagfelder automatisch ein.
+ * Blendet bei Schlagzwang die roten Schlagfelder automatisch ein
  */
 function autoHighlightCaptures() {
-    const allMyPieces = getPieces(currentTurn);
+    const moves = getCurrentLegalMoves();
 
-    allMyPieces.forEach((piece) => {
-        if (canCapture(piece)) {
-            // Zeichnet rote Felder sofort ein
-            showValidMoves(piece, true);
-        }
-    });
+    // Bei Schlagzwang enthält die Liste nur noch Schläge: diese sofort rot markieren
+    if (moves.some((move) => move.captured)) {
+        showValidMoves(moves);
+    }
 }
 
 /**
@@ -534,22 +424,12 @@ function handleGlobalClick(event) {
  * Funktion, die am Zuganfang prüft, ob der aktuelle Spieler noch ziehen kann.
  */
 function checkWinCondition() {
-    const myPieces = getPieces(currentTurn);
-
-    // Siegbedingung 1: Keine Steine mehr übrig
-    if (myPieces.length === 0) {
-        endGame(currentTurn === 'white' ? 'black' : 'white');
+    // Keine Steine oder kein erlaubter Zug mehr: Der Gegner gewinnt
+    const winner = getWinner(board, currentTurn);
+    if (winner) {
+        endGame(winner);
         return true;
     }
-
-    // Siegbedingung 2: Kein Zug mehr möglich
-    const hasMove = Array.from(myPieces).some((p) => getMoves(p).length > 0);
-
-    if (!hasMove) {
-        endGame(currentTurn === 'white' ? 'black' : 'white');
-        return true;
-    }
-
     return false;
 }
 
@@ -850,28 +730,20 @@ function makeComputerMove() {
     // Nur agieren, wenn der Computer (der Gegner) dran ist
     if (state.gameMode !== 'computer' || isMyTurn()) return;
 
-    // Bei Mehrfachsprung darf nur der springende Stein weiterziehen
-    const compPieces = isMultiJumping && selectedPiece ? [selectedPiece] : Array.from(getPieces(currentTurn));
+    // 1. Alle erlaubten Züge holen (Schlagzwang und Mehrfachsprung regelt rules.js)
+    const moves = getCurrentLegalMoves();
+    if (moves.length === 0) return;
 
-    // 1. Alle möglichen Züge sammeln
-    const allMoves = [];
-    compPieces.forEach((piece) => {
-        getMoves(piece).forEach((move) => allMoves.push({ piece: piece, target: move.target, victim: move.victim }));
-    });
+    // 2. Zufälligen Zug auswählen
+    const randomMove = moves[Math.floor(Math.random() * moves.length)];
+    const pieceElement = getCell(randomMove.fromRow, randomMove.fromCol).children[0];
+    const targetCell = getCell(randomMove.toRow, randomMove.toCol);
 
-    // 2. Schlagzwang priorisieren
-    const captureMoves = allMoves.filter((move) => move.victim);
-    const movesToPlay = captureMoves.length > 0 ? captureMoves : allMoves;
-    if (movesToPlay.length === 0) return;
-
-    // 3. Zufälligen Zug auswählen
-    const randomMove = movesToPlay[Math.floor(Math.random() * movesToPlay.length)];
-
-    // 4. Zug mit leichter Verzögerung ausführen. Timeout merken, damit er unterbrochen werden kann
+    // 3. Zug mit leichter Verzögerung ausführen, Timeout merken, damit er unterbrochen werden kann
     computerMoveTimeout = setTimeout(() => {
-        randomMove.piece.click(); // Stein auswählen
+        pieceElement.click(); // Stein auswählen
         computerMoveTimeout = setTimeout(() => {
-            randomMove.target.click(); // Ziel klicken
+            targetCell.click(); // Ziel auswählen
         }, 300);
     }, 800);
 }
@@ -885,8 +757,9 @@ function updatePieceCursors() {
     allPieces.forEach((p) => {
         let isLocked = false;
 
-        // Option A: Nicht der eigene Stein
-        if (!p.classList.contains(currentTurn + '-piece')) isLocked = true;
+        // Option A: Stein gehört nicht dem Spieler am Zug
+        const { row, col } = getPosition(p);
+        if (board[row][col]?.color !== currentTurn) isLocked = true;
 
         // Option B: Gegner ist am Zug
         if (!isMyTurn()) isLocked = true;
@@ -918,7 +791,6 @@ document.getElementById('board').addEventListener('drop', handleDrop);
  * B) Werkzeuge
  *
  * C) Umbau der Struktur
- * Regel-Logik vom DOM trennen (#11)
  * Keine Inline-Handler/-Styles (auch style.* in ui.js), kein <br> -> CSP-tauglich (#13)
  * Semantisches HTML: h1, Überschriften, Labels, Felder als Buttons (#16, #3)
  * CSS modernisieren: @layer, Nesting, Custom Properties, rem, kein !important, aufteilen
