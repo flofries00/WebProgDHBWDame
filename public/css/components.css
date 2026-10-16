@@ -1,0 +1,130 @@
+/* Wiederverwendbare Bausteine: Buttons, Eingabefelder, Hinweise und die Bestätigungs-Box */
+@layer components {
+    /* Standard-Button (rot) */
+    button {
+        margin: 0.3125rem;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: var(--radius-medium);
+        background-color: var(--color-primary);
+        color: var(--color-on-primary);
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(226, 0, 26, 0.2);
+        transition:
+            background-color 0.2s,
+            transform 0.1s;
+
+        &:hover:not(:disabled) {
+            background-color: var(--color-primary-hover);
+            transform: translateY(-2px); /* Button hebt sich leicht an */
+        }
+
+        /* Deaktiviert (z.B. solange kein gültiger Name eingegeben ist) */
+        &:disabled {
+            background-color: var(--color-disabled);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+    }
+
+    /* Zweitrangiger Button (z.B. "Zurück"): dezenter als der rote Haupt-Button */
+    .secondary-btn {
+        background-color: transparent;
+        color: var(--color-text);
+        border: 2px solid var(--color-border-strong);
+        box-shadow: none;
+
+        &:hover:not(:disabled) {
+            background-color: var(--color-surface-alt);
+        }
+    }
+
+    /* Texteingabefelder (Spielername, Chat) */
+    input[type='text'] {
+        width: 80%;
+        margin-block: 0.9375rem 1.5625rem;
+        margin-inline: 0;
+        padding: 0.75rem;
+        border: 2px solid var(--color-border);
+        border-radius: var(--radius-medium);
+        font-size: 1rem;
+        transition: border-color 0.3s;
+
+        &:focus {
+            outline: none;
+            border-color: var(--color-primary);
+        }
+
+        /* Wird per JavaScript gesetzt, wenn die Eingabe ungültig ist */
+        &.invalid {
+            border-color: var(--color-primary);
+            background-color: var(--color-primary-soft);
+
+            &:focus {
+                outline: none;
+                border-color: var(--color-primary);
+                box-shadow: 0 0 5px rgba(226, 0, 26, 0.4);
+            }
+        }
+    }
+
+    /* Hinweis unter einem Label (eigene Zeile statt <br> im HTML) */
+    .input-hint {
+        display: block;
+        margin-block-end: 0.3125rem;
+        font-size: 0.75rem;
+        color: var(--color-text-muted);
+    }
+
+    .error-text {
+        min-height: 1.125rem; /* Hält Platz frei, damit das Layout nicht springt, wenn der Text erscheint */
+        margin-block: 0.3125rem 0;
+        font-size: 0.8125rem;
+        font-weight: bold;
+        color: var(--color-primary);
+    }
+
+    /* Bestätigungs-Box (dialog) */
+    .confirm-dialog {
+        width: 90%;
+        max-width: 25rem;
+        padding: 1.875rem;
+        border: none;
+        border-block-start: var(--border-accent);
+        border-radius: var(--radius-large);
+        text-align: center;
+        color: var(--color-text);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+
+        /* Sanftes Einblenden beim Öffnen */
+        &[open] {
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        /* Abgedunkelter Hintergrund hinter der Box */
+        &::backdrop {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        & h3 {
+            margin-block-start: 0;
+        }
+    }
+
+    /* Buttons nebeneinander und mittig */
+    .dialog-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 0.625rem;
+        margin-block-start: 1.25rem;
+    }
+
+    @media (max-width: 56.25rem) {
+        input[type='text'] {
+            width: 90%;
+        }
+    }
+}

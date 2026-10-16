@@ -791,7 +791,6 @@ document.getElementById('board').addEventListener('drop', handleDrop);
  * B) Werkzeuge
  *
  * C) Umbau der Struktur
- * CSS modernisieren: @layer, Nesting, Custom Properties, rem, kein !important, aufteilen
  *
  * D) Robustheit & Qualität
  * Server prüft Züge selbst (Anti-Cheating, gemeinsames Regel-Modul für Client + Server)
@@ -804,6 +803,7 @@ document.getElementById('board').addEventListener('drop', handleDrop);
  * Sounds auch bei Münzwurf und Sieg/Niederlage
  * Andere Farbschemata für Brett und Steine einbauen (Kontrast beachten!)
  * Keine Emojikrone, sondern anderes Icon für Dame
+ * Schlagzwang von Gegner nicht anzeigen
  *
  * F) Abschluss
  * UI abschließend kontrollieren
@@ -813,4 +813,5 @@ document.getElementById('board').addEventListener('drop', handleDrop);
  * G) Optional, nur wenn Zeit bleibt
  * Github CI, Dark-Mode, Tutorial, Performance
  * Variante "International" (#18), Private Räume
+ * Durchklickbares Game-Replay (Zug für Zug)
  */

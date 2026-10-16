@@ -1,0 +1,16 @@
+/*
+ * Einstiegspunkt für alle Styles.
+ *
+ * CSS-Layer legen fest, welche Regeln Vorrang haben: Ein späterer Layer gewinnt immer,
+ * unabhängig davon, wie spezifisch die Selektoren sind. Dadurch wird kein !important gebraucht.
+ *
+ * Einheiten: Schriftgrößen, Abstände und Größen in rem (1rem = 16px), Rahmen und Schatten in px.
+ */
+@layer base, components, layout, board, screens, utilities;
+
+@import url('base.css');
+@import url('components.css');
+@import url('layout.css');
+@import url('board.css');
+@import url('screens.css');
+@import url('utilities.css');

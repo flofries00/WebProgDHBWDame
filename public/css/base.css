@@ -1,0 +1,108 @@
+/* Grundlagen: Design-Variablen (Farben, Formen, Schriften), Seitenhintergrund und Überschriften */
+@layer base {
+    :root {
+        /* Markenfarben */
+        --color-primary: #e2001a; /* DHBW-Rot */
+        --color-primary-hover: color-mix(in srgb, var(--color-primary), black 12%); /* etwas dunkleres Rot */
+        --color-primary-soft: #fff0f0; /* sehr helles Rot für Hintergründe */
+        --color-on-primary: #ffffff; /* Schrift auf rotem Grund */
+
+        /* Text */
+        --color-text: #333333;
+        --color-text-soft: #555555;
+        --color-text-muted: #666666;
+        --color-text-faint: #888888;
+
+        /* Flächen und Rahmen */
+        --color-surface: #ffffff;
+        --color-surface-faint: #fafafa;
+        --color-surface-alt: #f0f0f0;
+        --color-surface-alt-hover: #e0e0e0;
+        --color-border-light: #eeeeee;
+        --color-border: #dddddd;
+        --color-border-strong: #cccccc;
+        --color-disabled: #cccccc;
+        --color-success: #28a745;
+
+        /* Spielbrett in Holzoptik */
+        --color-board-light: #deb887;
+        --color-board-dark: #8b4513;
+        --color-board-frame: #5c2e0e;
+
+        /* Spielsteine (auch für Logo und Münze) */
+        --gradient-piece-white: radial-gradient(circle at 30% 30%, #ffffff, #e0e0e0, #999999);
+        --gradient-piece-black: radial-gradient(circle at 30% 30%, #666666, #222222, #000000);
+        --color-piece-white-border: #aaaaaa;
+        --color-piece-black-border: #111111;
+
+        /* Seitenhintergrund */
+        --gradient-page: linear-gradient(135deg, #fdf7f1 0%, #e6d3c0 100%);
+        --color-page-pattern: rgba(139, 69, 19, 0.04);
+
+        /* Formen und Schatten */
+        --radius-large: 0.75rem;
+        --radius-medium: 0.5rem;
+        --radius-small: 0.25rem;
+        --shadow-box: 0 10px 25px rgba(0, 0, 0, 0.15);
+        --border-accent: 5px solid var(--color-primary); /* Roter Akzent oben an Boxen */
+
+        /* Schriften */
+        --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        --font-mono: monospace;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column; /* Kopfzeile oben, Bildschirm-Container darunter */
+        height: 100dvh; /* Volle Höhe des sichtbaren Browserfensters */
+        margin: 0;
+        font-family: var(--font-family);
+        color: var(--color-text);
+
+        /* Großes, sehr dezentes Schachbrettmuster über einem Farbverlauf */
+        background:
+            linear-gradient(
+                45deg,
+                var(--color-page-pattern) 25%,
+                transparent 25%,
+                transparent 75%,
+                var(--color-page-pattern) 75%,
+                var(--color-page-pattern)
+            ),
+            linear-gradient(
+                45deg,
+                var(--color-page-pattern) 25%,
+                transparent 25%,
+                transparent 75%,
+                var(--color-page-pattern) 75%,
+                var(--color-page-pattern)
+            ),
+            var(--gradient-page);
+        background-size:
+            60px 60px,
+            60px 60px,
+            100% 100%;
+        background-position:
+            0 0,
+            30px 30px,
+            0 0;
+    }
+
+    h2 {
+        margin-block-start: 0;
+        color: var(--color-text);
+    }
+
+    /* Weiches Einblenden (Bildschirmwechsel und Dialog) */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}

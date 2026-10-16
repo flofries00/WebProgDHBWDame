@@ -1,0 +1,145 @@
+/* Seitenaufbau: Kopfzeile, Container für die Bildschirme und die Boxen im Spiel */
+@layer layout {
+    /* Kopfzeile ganz oben (immer sichtbar) */
+    .global-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.625rem 1.875rem;
+        background: var(--color-surface);
+        border-block-end: 3px solid var(--color-primary);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+    }
+
+    .nav-logo {
+        margin: 0;
+        font-size: 1.5rem;
+        letter-spacing: 0.125rem;
+        color: var(--color-text);
+    }
+
+    .nav-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.9375rem;
+    }
+
+    /* Kleine Buttons in der Kopfzeile. Weil der Layer "layout" nach "components" kommt,
+       gewinnt diese Regel automatisch gegen die allgemeine Button-Regel. */
+    .nav-btn {
+        margin: 0;
+        padding: 0.5rem 0.9375rem;
+        font-size: 0.8125rem;
+        background: var(--color-surface-alt);
+
+        &:hover:not(:disabled) {
+            background: var(--color-surface-alt-hover);
+        }
+    }
+
+    .clock-display {
+        font-family: var(--font-mono);
+        font-size: 1.125rem;
+        font-weight: bold;
+    }
+
+    /* Container für die Bildschirme, scrollt bei zu wenig Platz */
+    .screen-container {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 1.25rem;
+        overflow-y: auto;
+    }
+
+    /* Ein Bildschirm (Modus-Auswahl, Anmeldung, Warten, Münzwurf, Spiel, Ende) */
+    .screen {
+        display: none; /* Standardmäßig unsichtbar */
+        width: 90%;
+        max-width: 40.625rem;
+        margin: auto; /* Im Container zentrieren */
+        padding-block: 3.125rem;
+        padding-inline: 5rem;
+        background: var(--color-surface);
+        border-block-start: var(--border-accent);
+        border-radius: var(--radius-large);
+        box-shadow: var(--shadow-box);
+        text-align: center;
+        transition: opacity 0.3s ease-in-out;
+
+        /* Wird per JavaScript gesetzt: Dieser Bildschirm ist gerade sichtbar */
+        &.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+    }
+
+    /* Spiel- und Endbildschirm: zwei Boxen nebeneinander */
+    .game-layout {
+        display: flex;
+        align-items: stretch;
+        gap: 1.875rem;
+    }
+
+    .game-left-box,
+    .game-right-box {
+        padding: 1.875rem;
+        background: var(--color-surface);
+        border-block-start: var(--border-accent);
+        border-radius: var(--radius-large);
+        box-shadow: var(--shadow-box);
+    }
+
+    .game-left-box {
+        flex: 2;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .game-right-box {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        contain: size; /* Inhalt (Log, Chat) beeinflusst die Höhe nicht, die Box übernimmt die Höhe der linken Box */
+    }
+
+    /* Tablet und Handy: Boxen untereinander, alles etwas kompakter */
+    @media (max-width: 56.25rem) {
+        .game-layout {
+            flex-direction: column;
+            align-items: center;
+            gap: 0.9375rem;
+        }
+
+        .game-left-box,
+        .game-right-box {
+            box-sizing: border-box; /* Verhindert, dass das Padding das Layout sprengt */
+            width: 100%;
+            max-width: 31.25rem;
+            padding: 0.9375rem;
+        }
+
+        .game-right-box {
+            height: auto;
+            min-height: 25rem;
+            contain: none; /* Untereinander darf die Box mit dem Inhalt wachsen */
+        }
+
+        .global-header {
+            padding: 0.625rem 0.9375rem;
+        }
+
+        .nav-logo {
+            font-size: 1.25rem;
+        }
+
+        .screen {
+            box-sizing: border-box;
+            width: 95%;
+            padding: 1.875rem 0.9375rem;
+        }
+    }
+}
