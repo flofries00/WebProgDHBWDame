@@ -9,14 +9,11 @@
     <!-- Hier wird die separate CSS-Datei geladen. Der Browser weiß nun, wie alles aussehen soll. -->
     <link rel="stylesheet" href="style.css" />
 
-    <!-- JavaScript-Dateien modular laden-->
-    <!-- defer ist wichtig: Sagt Browser, dass er zuerst die gesamte HTML Datei laden soll bevor das Script ausgeführt wird-->
-    <script src="ui.js" defer></script>
-    <script src="sound.js" defer></script>
-    <script src="game.js" defer></script>
-
-    <!-- Socket.io Client-Bibliothek laden -->
+    <!-- Socket.io Client Bibliothek laden (stellt io() bereit, muss vor den Modulen geladen werden) -->
     <script src="/socket.io/socket.io.js"></script>
+
+    <!-- Einstiegspunkt als ES-Modul (Module werden automatisch erst nach dem gesamten HTML ausgeführt) -->
+    <script type="module" src="js/main.js"></script>
   </head>
 
   <body>
@@ -25,7 +22,7 @@
       <h2 class="nav-logo">DAME</h2>
       <div class="nav-controls">
         <button id="tutorialBtn" class="nav-btn">?</button>
-        <button id="soundBtn" class="nav-btn" onclick="toggleSound()" title="Ton an/aus">🔊</button>
+        <button id="soundBtn" class="nav-btn" title="Ton an/aus">🔊</button>
         <span id="realTimeClock" class="clock-display">00:00</span>
       </div>
     </header>
@@ -42,8 +39,8 @@
         <p class="login-subtitle">Web-Engineering Projekt</p>
         <p class="login-subtitle">Wähle deinen Spielmodus:</p>
         <div class="mode-buttons">
-          <button onclick="selectMode('computer')">🤖 Gegen Computer</button>
-          <button onclick="selectMode('online')">👤 Gegen Mensch</button>
+          <button id="modeComputerBtn">🤖 Gegen Computer</button>
+          <button id="modeOnlineBtn">👤 Gegen Mensch</button>
         </div>
       </div>
 
@@ -58,19 +55,11 @@
         <div class="input-group">
           <label for="playerName">Wie lautet dein Spielername?</label><br />
           <span class="input-hint">Erlaubt: 2 bis 16 Zeichen</span><br />
-          <input
-            type="text"
-            id="playerName"
-            placeholder="z.B. Max..."
-            minlength="2"
-            maxlength="16"
-            oninput="checkInput()"
-            onkeydown="handleEnter(event)"
-          />
+          <input type="text" id="playerName" placeholder="z.B. Max..." minlength="2" maxlength="16" />
           <p id="nameError" class="error-text"></p>
         </div>
-        <button class="secondary-btn" onclick="showScreen('modeScreen')">← Zurück</button>
-        <button id="searchBtn" onclick="startSearch()" disabled>Gegner suchen</button>
+        <button id="loginBackBtn" class="secondary-btn">← Zurück</button>
+        <button id="searchBtn" disabled>Gegner suchen</button>
       </div>
 
       <!-- 2. Bildschirm: Wartebildschirm -->
@@ -83,7 +72,7 @@
           <div class="dot"></div>
           <div class="dot"></div>
         </div>
-        <button onclick="cancelWait()">Warten abbrechen</button>
+        <button id="cancelWaitBtn">Warten abbrechen</button>
       </div>
 
       <!-- 3. Bildschirm: Spielstart / Münzwurf -->
@@ -164,16 +153,9 @@
               <div class="chat-messages">
                 <p class="sys-msg">Chat bereit...</p>
               </div>
-              <input
-                type="text"
-                id="chatInput"
-                placeholder="Nachricht schreiben..."
-                maxlength="200"
-                disabled
-                onkeydown="handleChatEnter(event)"
-              />
+              <input type="text" id="chatInput" placeholder="Nachricht schreiben..." maxlength="200" disabled />
             </div>
-            <button class="secondary-btn" onclick="abortGame()">Spiel aufgeben</button>
+            <button id="abortBtn" class="secondary-btn">Spiel aufgeben</button>
           </div>
         </div>
       </div>
@@ -203,8 +185,8 @@
               style="margin-bottom: 15px; font-weight: bold; color: var(--dhbw-rot); min-height: 20px"
             ></div>
             <!-- Buttons für Revanche oder Lobby-Rückkehr -->
-            <button id="replayBtn" onclick="requestReplay()">Nochmal spielen</button>
-            <button onclick="leaveToLobby()">Zurück zur Lobby</button>
+            <button id="replayBtn">Nochmal spielen</button>
+            <button id="lobbyBtn">Zurück zur Lobby</button>
           </div>
         </div>
       </div>

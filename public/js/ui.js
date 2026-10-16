@@ -1,18 +1,18 @@
+import { state } from './state.js';
+import { socket } from './socket.js';
+import { startGame, endGame, stopGame } from './game.js';
+
 // Globale Variablen für den Spielablauf
-let currentPlayerName = ''; // Merkt sich Spielernamen
-let playerGetsWhite = true;
+
 let searchTimeout; // Timer für Gegnersuche
 let coinTossTimeout; // Timer bis zur Landung der Münze
 let countdownInterval; // Countdown bis Spielstart
-let gameMode = ''; // Merkt sich Spielmodus
-let opponentName = 'Computer'; // Platzhalter für Gegnername
-const socket = io(); // Baut Verbindung zum Server auf
 
 /**
  * Speichert den gewählten Spielmodus und wechselt zur Anmeldung.
  */
-function selectMode(mode) {
-  gameMode = mode;
+export function selectMode(mode) {
+  state.gameMode = mode;
   showScreen('loginScreen');
 }
 
@@ -20,7 +20,7 @@ function selectMode(mode) {
  * Versteckt alle Bildschirme und zeigt nur den übergebenen an.
  * @param {string} screenId - Die ID des divs (z.B. 'loginScreen')
  */
-function showScreen(screenId) {
+export function showScreen(screenId) {
   // Sucht alle Elemente mit der Klasse '.screen' und entfernt die Klasse '.active'
   document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
   // Fügt die Klasse '.active' nur dem gewünschten Bildschirm hinzu
@@ -31,7 +31,7 @@ function showScreen(screenId) {
  * Erlaubt das Starten der Gegnersuche durch Drücken der Enter-Taste im Eingabefeld
  */
 
-function handleEnter(event) {
+export function handleEnter(event) {
   // Prüfen, ob die Gedrückte Taste "Enter" ist.
   if (event.key === 'Enter') {
     const btn = document.getElementById('searchBtn');
@@ -46,7 +46,7 @@ function handleEnter(event) {
  * Prüft die Eingabe im Namensfeld auf Länge und erlaubte Zeichen.
  * Aktiviert/Deaktiviert den "Suchen"-Button entsprechend und zeigt spezifische Fehler an.
  */
-function checkInput() {
+export function checkInput() {
   const inputField = document.getElementById('playerName');
   const nameInput = inputField.value;
   const errorText = document.getElementById('nameError');
@@ -94,43 +94,43 @@ function checkInput() {
  * Wird aufgerufen, wenn man auf "Suchen" klickt.
  * Wechselt in den Wartebildschirm.
  */
-function startSearch() {
+export function startSearch() {
   //Schutz vor Doppelauslösung, nur dann suchen, wenn der Namensbildschirm wirklich angezeigt wird
   if (!document.getElementById('loginScreen').classList.contains('active')) return;
 
   // Ohne Serververbindung ist keine Online-Partie möglich
-  if (gameMode === 'online' && !socket.connected) {
+  if (state.gameMode === 'online' && !socket.connected) {
     showConfirm('Keine Verbindung', 'Der Server ist gerade nicht erreichbar.', 'OK');
     return;
   }
 
   // Namen auslesen und speichern
-  currentPlayerName = document.getElementById('playerName').value;
+  state.currentPlayerName = document.getElementById('playerName').value;
 
   // Namen in die HTML-Platzhalter der anderen Bildschirme eintragen
-  document.getElementById('waitName').textContent = currentPlayerName;
-  document.getElementById('p1Name').textContent = currentPlayerName;
+  document.getElementById('waitName').textContent = state.currentPlayerName;
+  document.getElementById('p1Name').textContent = state.currentPlayerName;
 
   // Wechsel zum Wartebildschirm
   showScreen('waitingScreen');
 
-  if (gameMode === 'online') {
+  if (state.gameMode === 'online') {
     // Echter Multiplayer: Server um Match bitten
-    socket.emit('findMatch', currentPlayerName);
+    socket.emit('findMatch', state.currentPlayerName);
   } else {
     // Computer: Wie bisher simuliert
-    opponentName = 'Computer';
+    state.opponentName = 'Computer';
     // Gegnernamen in HTML schreiben
-    document.getElementById('opponentNameDisplay').textContent = opponentName;
-    document.getElementById('legendOpponent').textContent = opponentName;
-    document.getElementById('opponentNameHeader').textContent = opponentName;
+    document.getElementById('opponentNameDisplay').textContent = state.opponentName;
+    document.getElementById('legendOpponent').textContent = state.opponentName;
+    document.getElementById('opponentNameHeader').textContent = state.opponentName;
 
     // Sicherheitshalber alten Timer stoppen, bevor ein neuer Startet
     clearTimeout(searchTimeout);
 
     // Simuliert eine Netzwerksuche: Nach 2000 Millisekunden (2 Sekunden) geht es weiter
     searchTimeout = setTimeout(() => {
-      playerGetsWhite = Math.random() < 0.5;
+      state.playerGetsWhite = Math.random() < 0.5;
       showScreen('coinTossScreen');
       simulateCoinToss();
     }, 2000);
@@ -140,12 +140,12 @@ function startSearch() {
 /**
  * Bricht die Suche ab und geht zurück zur Anmeldung.
  */
-function cancelWait() {
+export function cancelWait() {
   // Laufenden Timer abbrechen
   clearTimeout(searchTimeout);
 
   // Beim Server aus der Warteschlange austragen
-  if (gameMode === 'online') {
+  if (state.gameMode === 'online') {
     socket.emit('cancelSearch');
   }
 
@@ -155,7 +155,7 @@ function cancelWait() {
 /**
  * Simuliert den Münzwurf für den Startspieler.
  */
-function simulateCoinToss() {
+export function simulateCoinToss() {
   // Evtl. noch laufende Timer einer vorherigen Auslosung stoppen
   clearTimeout(coinTossTimeout);
   clearInterval(countdownInterval);
@@ -164,12 +164,12 @@ function simulateCoinToss() {
   document.getElementById('startPlayerText').textContent = 'Auslosung läuft...';
 
   // Eingegebenen Spielernamen dynamisch auf Münze anzeigen
-  document.getElementById('legendName').textContent = currentPlayerName;
+  document.getElementById('legendName').textContent = state.currentPlayerName;
 
   const coin = document.getElementById('coinElement');
   const container = document.querySelector('.coin-container'); // Container für den Bounce holen
 
-  coin.style.setProperty('--end-rotation', playerGetsWhite ? '1800deg' : '1980deg');
+  coin.style.setProperty('--end-rotation', state.playerGetsWhite ? '1800deg' : '1980deg');
 
   // Kleiner Trick um Animationen bei einer Revanche auch abspielen zu lassen
   coin.classList.remove('spin');
@@ -183,7 +183,7 @@ function simulateCoinToss() {
     container.classList.add('bounce');
 
     // Formuliert aus sicht des Spielers
-    const baseText = playerGetsWhite ? 'Du hast die weißen Steine' : 'Du hast die schwarzen Steine';
+    const baseText = state.playerGetsWhite ? 'Du hast die weißen Steine' : 'Du hast die schwarzen Steine';
 
     const textEl = document.getElementById('startPlayerText');
     let timeLeft = 5;
@@ -221,15 +221,15 @@ function simulateCoinToss() {
 /**
  * Beantragt eine Revanche beim Server
  */
-function requestReplay() {
-  if (gameMode === 'online') {
+export function requestReplay() {
+  if (state.gameMode === 'online') {
     const btn = document.getElementById('replayBtn');
     btn.disabled = true;
     btn.textContent = 'Warte auf Gegner...';
     socket.emit('requestReplay');
   } else {
     // Gegen Computer startet das Spiel sofort wieder, Farbe wird neu ausgelost
-    playerGetsWhite = Math.random() < 0.5;
+    state.playerGetsWhite = Math.random() < 0.5;
     showScreen('coinTossScreen');
     simulateCoinToss();
   }
@@ -238,8 +238,8 @@ function requestReplay() {
 /**
  * Verlässt das Match und kehrt zur Anmeldung zurück
  */
-function leaveToLobby() {
-  if (gameMode === 'online') {
+export function leaveToLobby() {
+  if (state.gameMode === 'online') {
     socket.emit('leaveMatch');
   }
 
@@ -261,17 +261,17 @@ function leaveToLobby() {
 
 // Antwort von Server empfangen
 socket.on('matchFound', (data) => {
-  opponentName = data.oppName;
-  playerGetsWhite = data.isWhite;
+  state.opponentName = data.oppName;
+  state.playerGetsWhite = data.isWhite;
 
   // Namen in HTML eintragen
   const oppDisp = document.getElementById('opponentNameDisplay');
   const legOpp = document.getElementById('legendOpponent');
   const oppHead = document.getElementById('opponentNameHeader');
 
-  oppDisp.textContent = opponentName;
-  legOpp.textContent = opponentName;
-  oppHead.textContent = opponentName;
+  oppDisp.textContent = state.opponentName;
+  legOpp.textContent = state.opponentName;
+  oppHead.textContent = state.opponentName;
 
   // Replay-UI für nächste Runde zurücksetzen
   const replayBtn = document.getElementById('replayBtn');
@@ -312,7 +312,7 @@ updateRealTimeClock();
 /**
  * Verarbeitet Chat-Eingaben
  */
-function handleChatEnter(event) {
+export function handleChatEnter(event) {
   if (event.key === 'Enter') {
     const input = document.getElementById('chatInput');
     const msg = input.value.trim();
@@ -322,7 +322,7 @@ function handleChatEnter(event) {
       addChatMessage('Du', msg, true);
 
       // b) Nachricht an Server senden
-      if (gameMode === 'online') {
+      if (state.gameMode === 'online') {
         socket.emit('chatMessage', msg);
       }
 
@@ -356,14 +356,14 @@ function addChatMessage(sender, msg, isSelf) {
 
 // Lauscht permanent auf eingehende Nachrichten vom Server
 socket.on('chatMessage', (msg) => {
-  addChatMessage(opponentName, msg, false);
+  addChatMessage(state.opponentName, msg, false);
 });
 
 // Socket Events für die Revanche
 socket.on('opponentWantsReplay', () => {
   const status = document.getElementById('replayStatus');
   if (status) {
-    status.textContent = `${opponentName} möchte noch eine Runde spielen!`;
+    status.textContent = `${state.opponentName} möchte noch eine Runde spielen!`;
   }
 });
 
@@ -375,18 +375,18 @@ socket.on('opponentLeft', () => {
   if (document.getElementById('coinTossScreen').classList.contains('active')) {
     clearTimeout(coinTossTimeout);
     clearInterval(countdownInterval);
-    document.getElementById('startPlayerText').textContent = `${opponentName} hat das Spiel verlassen.`;
+    document.getElementById('startPlayerText').textContent = `${state.opponentName} hat das Spiel verlassen.`;
     setTimeout(leaveToLobby, 3000);
     return;
   }
 
   // Gegner verlässt laufendes Spiel -> man gewinnt automatisch
   if (document.getElementById('gameScreen').classList.contains('active')) {
-    endGame(playerGetsWhite ? 'white' : 'black', 'opponentLeft');
+    endGame(state.playerGetsWhite ? 'white' : 'black', 'opponentLeft');
   }
 
   if (status) {
-    status.textContent = `${opponentName} hat das Spiel verlassen.`;
+    status.textContent = `${state.opponentName} hat das Spiel verlassen.`;
   }
 
   if (btn) {
@@ -398,7 +398,7 @@ socket.on('opponentLeft', () => {
 /**
  * Feuert eine CSS-basierte Konfetti-Animation ab.
  */
-function fireConfetti() {
+export function fireConfetti() {
   // Kleine Farbmischung
   const colors = ['#e2001a', '#28a745', '#007bff', '#ffc107', '#ffd700'];
 
@@ -428,7 +428,7 @@ function fireConfetti() {
  * Zeigt eine Bestätigungs-Box im Spielfenster (anstatt des Browser Popups)
  * Returned ein Promise: true = bestätigt, false = abgelehnt
  */
-function showConfirm(title, text, confirmLabel, cancelLabel) {
+export function showConfirm(title, text, confirmLabel, cancelLabel) {
   const dialog = document.getElementById('confirmDialog');
 
   // Inhalte der Box setzen
@@ -454,7 +454,7 @@ function showConfirm(title, text, confirmLabel, cancelLabel) {
  * EIne Online-Partie lässt sich danach nicht fortsetzen: Spiel beenden und zurück zur Lobby
  */
 socket.on('disconnect', () => {
-  if (gameMode !== 'online') return; // Partien gegen den Computer brauchen keinen Server
+  if (state.gameMode !== 'online') return; // Partien gegen den Computer brauchen keinen Server
 
   // Auf Modus- und Namensbildschirm läuft nichts, was beendet werden müsste
   const activeScreen = document.querySelector('.screen-active').id;

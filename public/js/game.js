@@ -1,3 +1,8 @@
+import { state } from './state.js';
+import { socket } from './socket.js';
+import { showScreen, leaveToLobby, fireConfetti, showConfirm } from './ui.js';
+import { playSound } from './sound.js';
+
 // Globale Variablen für das Spielfeld
 let currentTurn = 'white'; // Weiß hat nach den bekannten Dame-Regeln immer den ersten Zug
 let selectedPiece = null; // Speichert das HTML-Element des aktuell angeklickten Steins.
@@ -43,7 +48,7 @@ function isOnBoard(r, c) {
  * Ist der lokale Spieler gerade am Zug
  */
 function isMyTurn() {
-  return (currentTurn === 'white') === playerGetsWhite;
+  return (currentTurn === 'white') === state.playerGetsWhite;
 }
 
 /**
@@ -106,7 +111,7 @@ function getMoves(piece) {
 /**
  * Startet das eigentliche Brettspiel.
  */
-function startGame() {
+export function startGame() {
   // Spielstatus und Trophäen resetten
   currentTurn = 'white';
   moveCount = 0;
@@ -124,8 +129,8 @@ function startGame() {
   startTurnTimer();
 
   // Kopfzeile dynamisch anpassen, basierend auf Farbwahl-Zufallsevent
-  document.getElementById('p1Color').textContent = playerGetsWhite ? '(Weiß)' : '(Schwarz)';
-  document.getElementById('compColor').textContent = playerGetsWhite ? '(Schwarz)' : '(Weiß)';
+  document.getElementById('p1Color').textContent = state.playerGetsWhite ? '(Weiß)' : '(Schwarz)';
+  document.getElementById('compColor').textContent = state.playerGetsWhite ? '(Schwarz)' : '(Weiß)';
 
   // Dynamische Textanzeige
   updateTurnIndicator();
@@ -136,6 +141,9 @@ function startGame() {
 
   showScreen('gameScreen');
   generateBoard(); // Baut das HTML für das Spielbrett auf
+
+  // Klicks ins Leere abfangen (nur während des Spiels)
+  document.addEventListener('click', handleGlobalClick);
 
   // Direkt bei Start prüfen, ob Felder hervorgehoben werden müssen
   autoHighlightCaptures();
@@ -148,7 +156,7 @@ function startGame() {
   const chatBox = document.querySelector('.chat-messages');
 
   if (chatInput && chatBox) {
-    if (gameMode === 'online') {
+    if (state.gameMode === 'online') {
       chatInput.disabled = false;
       chatInput.placeholder = 'Nachricht schreiben...';
       chatBox.innerHTML = '<p class="sys-msg">Chat bereit. Sag Hallo!</p>';
@@ -160,7 +168,7 @@ function startGame() {
   }
 
   // Wenn Computer weiß ist, fängt er an
-  if (gameMode === 'computer') {
+  if (state.gameMode === 'computer') {
     makeComputerMove();
   }
 }
@@ -217,7 +225,7 @@ function generateBoard() {
 
   // Brett visuell um 180° drehen, wenn man Schwarz hat
   const wrapper = document.getElementById('boardWrapper');
-  if (!playerGetsWhite) {
+  if (!state.playerGetsWhite) {
     wrapper.classList.add('flipped');
   } else {
     wrapper.classList.remove('flipped');
@@ -315,7 +323,7 @@ function handleBoardClick(event) {
   if (event.isTrusted && !isMyTurn()) return;
 
   // Sende Zug an Gegner
-  if (gameMode === 'online' && event.isTrusted) {
+  if (state.gameMode === 'online' && event.isTrusted) {
     socket.emit('makeMove', {
       fromR: Number(selectedPiece.parentElement.dataset.row),
       fromC: Number(selectedPiece.parentElement.dataset.col),
@@ -436,7 +444,7 @@ function handleBoardClick(event) {
     updatePieceCursors(); // Andere Steine sperren
 
     // Falls Computer am Zug ist, darf auch er direkt nochmal springen
-    if (gameMode === 'computer' && !isMyTurn()) makeComputerMove();
+    if (state.gameMode === 'computer' && !isMyTurn()) makeComputerMove();
     return; // Funktion hier beenden - Kein Spielerwechsel
   }
 
@@ -468,7 +476,7 @@ function handleBoardClick(event) {
   updatePieceCursors();
 
   // Falls Computer dran ist, nächsten regulären Zug auslösen
-  if (gameMode === 'computer' && !isMyTurn()) makeComputerMove();
+  if (state.gameMode === 'computer' && !isMyTurn()) makeComputerMove();
 }
 
 /**
@@ -545,21 +553,24 @@ function checkWinCondition() {
 /**
  * Funktion, die das Spiel beendet und den Gewinner anzeigt.
  */
-function endGame(winnerColor, reason = '') {
+export function endGame(winnerColor, reason = '') {
   // Uhr anhalten
   clearInterval(timerInterval);
 
   // Ausstehenden Computerzug abbrechen
   clearTimeout(computerMoveTimeout);
 
+  // Listener für Klicks ins Leere wird außerhalb des Spiels nicht mehr gebraucht
+  document.removeEventListener('click', handleGlobalClick);
+
   // Gewinner ist der Spieler, dessen Farbe der Siegerfarbe entspricht
-  const winner = (winnerColor === 'white') === playerGetsWhite ? currentPlayerName : opponentName;
+  const winner = (winnerColor === 'white') === state.playerGetsWhite ? state.currentPlayerName : state.opponentName;
 
   const textEl = document.getElementById('winnerText');
   if (reason === 'timeout') {
     textEl.textContent = `Zeit abgelaufen! ${winner} gewinnt!`;
   } else if (reason === 'opponentLeft') {
-    textEl.textContent = `${opponentName} hat das Spiel verlassen. ${winner} gewinnt!`;
+    textEl.textContent = `${state.opponentName} hat das Spiel verlassen. ${winner} gewinnt!`;
   } else {
     textEl.textContent = `${winner} hat gewonnen in ${moveCount} Zügen!`;
   }
@@ -591,8 +602,8 @@ function endGame(winnerColor, reason = '') {
   showScreen('endScreen');
 
   // Konfetti zünden nur bei Gewinner
-  if ((winnerColor === 'white' && playerGetsWhite) || (winnerColor === 'black' && !playerGetsWhite)) {
-    if (typeof fireConfetti === 'function') fireConfetti();
+  if ((winnerColor === 'white' && state.playerGetsWhite) || (winnerColor === 'black' && !state.playerGetsWhite)) {
+    fireConfetti();
   }
 
   // Erst nach dem Einblenden nach unten scrollen, sonst berechnet der Browser die Höhe falsch
@@ -606,9 +617,9 @@ function endGame(winnerColor, reason = '') {
  * Bricht das laufende Spiel nach Rückfrage ab und kehrt zur Lobby zurück
  * Online gewinnt dadurch automatisch der Gegner
  */
-async function abortGame() {
+export async function abortGame() {
   const text =
-    gameMode === 'online' ? 'Dein Gegner gewinnt dann automatisch.' : 'Die aktuelle Partie ist damit beendet.';
+    state.gameMode === 'online' ? 'Dein Gegner gewinnt dann automatisch.' : 'Die aktuelle Partie ist damit beendet.';
 
   // Auf die Antwort in der Bestätigungs-Box warten
   const confirmed = await showConfirm('Spiel wirklich aufgeben?', text, 'Aufgeben', 'Weiterspielen');
@@ -625,9 +636,10 @@ async function abortGame() {
  * Stoppt alles, was im Hintergrund weiterhin laufen könnte
  * Wird beim Aufgeben und bei Verbindungsabbruch benutzt
  */
-function stopGame() {
+export function stopGame() {
   clearInterval(timerInterval);
   clearTimeout(computerMoveTimeout);
+  document.removeEventListener('click', handleGlobalClick);
   clearSelection();
   isMultiJumping = false;
 }
@@ -678,8 +690,8 @@ function updateTimerDisplays() {
   const p1Bar = document.getElementById('p1TimerBar');
   const compBar = document.getElementById('compTimerBar');
 
-  const p1Time = playerGetsWhite ? whiteTime : blackTime;
-  const compTime = playerGetsWhite ? blackTime : whiteTime;
+  const p1Time = state.playerGetsWhite ? whiteTime : blackTime;
+  const compTime = state.playerGetsWhite ? blackTime : whiteTime;
 
   // a) Digitaluhren aktualisieren
   p1El.textContent = format(p1Time);
@@ -794,7 +806,7 @@ function handleDrop(event) {
  * Aktualisiert Kopfzeile
  */
 function updateTurnIndicator() {
-  const text = isMyTurn() ? 'Du bist am Zug' : `${opponentName} ist am Zug`;
+  const text = isMyTurn() ? 'Du bist am Zug' : `${state.opponentName} ist am Zug`;
   document.getElementById('turnIndicator').textContent = text;
 }
 
@@ -807,7 +819,7 @@ function addToLog(sRow, sCol, eRow, eCol, isCapture, getsPromoted = false) {
   const startStr = letters[sCol] + (8 - sRow);
   const endStr = letters[eCol] + (8 - eRow);
 
-  const name = isMyTurn() ? 'Du' : opponentName;
+  const name = isMyTurn() ? 'Du' : state.opponentName;
   const verb = isCapture ? 'schlägt' : 'zieht';
   const promoText = getsPromoted ? ' und wird zur Dame' : '';
 
@@ -829,7 +841,7 @@ function addToLog(sRow, sCol, eRow, eCol, isCapture, getsPromoted = false) {
  */
 function makeComputerMove() {
   // Nur agieren, wenn der Computer (der Gegner) dran ist
-  if (gameMode !== 'computer' || isMyTurn()) return;
+  if (state.gameMode !== 'computer' || isMyTurn()) return;
 
   // Bei Mehrfachsprung darf nur der springende Stein weiterziehen
   const compPieces = isMultiJumping && selectedPiece ? [selectedPiece] : Array.from(getPieces(currentTurn));
@@ -889,8 +901,6 @@ function updatePieceCursors() {
 document.getElementById('board').addEventListener('click', handleBoardClick);
 document.getElementById('board').addEventListener('dragover', handleDragOver);
 document.getElementById('board').addEventListener('drop', handleDrop);
-// Dokument überwachen, um Klicks ins Leere abzufangen
-document.addEventListener('click', handleGlobalClick);
 
 /**
  * TODOs (sortiert nach Bewertungskriterien, Abgabe 27.10. 8:00 Uhr):
@@ -901,7 +911,7 @@ document.addEventListener('click', handleGlobalClick);
  * B) Werkzeuge
  *
  * C) Umbau der Struktur
- * ES-Module + Klassen, Regel-Logik vom DOM trennen, Listener entfernen (#11, #12)
+ * Regel-Logik vom DOM trennen (#11)
  * Keine Inline-Handler/-Styles (auch style.* in ui.js), kein <br> -> CSP-tauglich (#13)
  * Semantisches HTML: h1, Überschriften, Labels, Felder als Buttons (#16, #3)
  * CSS modernisieren: @layer, Nesting, Custom Properties, rem, kein !important, aufteilen

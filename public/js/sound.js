@@ -49,7 +49,7 @@ function playTone(freqStart, freqEnd, duration, type = 'sine', volume = 0.3, del
 /**
  * Spielt den passenden Effekt: 'move', 'capture' oder 'promote'
  */
-function playSound(name) {
+export function playSound(name) {
   if (!soundEnabled) return;
   switch (name) {
     case 'move': // Kurzes "Klack", wie Holz auf Holz
@@ -68,7 +68,7 @@ function playSound(name) {
 /**
  * Schaltet die Sounds an/aus und passt das Symbol im Button an
  */
-function toggleSound() {
+export function toggleSound() {
   soundEnabled = !soundEnabled;
   document.getElementById('soundBtn').textContent = soundEnabled ? '🔊' : '🔇';
 }
