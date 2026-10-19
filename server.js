@@ -5,15 +5,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 // Dieselben Spielregeln wie im Browser: So kann der Server jeden Zug selbst prüfen (Schutz gegen Cheating)
-import {
-    BOARD_SIZE,
-    createInitialBoard,
-    getLegalMoves,
-    findMove,
-    applyMove,
-    getWinner,
-    opponentOf,
-} from './public/js/rules.js';
+import { BOARD_SIZE, createInitialBoard, getLegalMoves, findMove, applyMove, opponentOf } from './public/js/rules.js';
 
 // In ES-Modulen gibt es __dirname nicht automatisch, daher aus der Adresse dieser Datei berechnen
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -65,7 +57,6 @@ function startMatch(p1, p2) {
         board: createInitialBoard(),
         turn: 'white', // Weiß beginnt
         multiJumpFrom: null, // Während eines Mehrfachsprungs: Position des springenden Steins
-        over: false, // Nach Spielende werden keine Züge mehr angenommen
     };
     p1.game = game;
     p2.game = game;
@@ -135,8 +126,9 @@ io.on('connection', (socket) => {
         // Nur gültige Koordinaten akzeptieren, sonst Nachricht verwerfen
         if (![fromR, fromC, toR, toC].every(isValidCoord)) return;
 
-        // Ist die Partie schon vorbei oder ist dieser Spieler gar nicht am Zug?
-        if (game.over || game.turn !== socket.color) {
+        // Ist dieser Spieler gar nicht am Zug? (Nach Spielende hat der Spieler am Zug keine erlaubten Züge mehr
+        // Deshalb wird dann automatisch jeder Zug abgelehnt
+        if (game.turn !== socket.color) {
             console.warn(`Zug abgelehnt (nicht am Zug): ${socket.id}`);
             return;
         }
@@ -158,7 +150,6 @@ io.on('connection', (socket) => {
         } else {
             game.multiJumpFrom = null;
             game.turn = opponentOf(game.turn);
-            if (getWinner(game.board, game.turn)) game.over = true;
         }
 
         // Nur die vier geprüften Werte weiterleiten

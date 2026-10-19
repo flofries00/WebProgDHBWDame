@@ -6,9 +6,9 @@ export default [
     // Empfohlene ESLint Standardregeln
     js.configs.recommended,
 
-    // Server (Node.js), ebenfalls als ES-Modul
+    // Server und Tests (Node.js), ebenfalls als ES-Module
     {
-        files: ['server.js', 'eslint.config.js'],
+        files: ['server.js', 'eslint.config.js', 'tests/**/*.js'],
         languageOptions: {
             sourceType: 'module',
             globals: globals.node,

@@ -80,6 +80,12 @@ Der Port kann auf drei Arten gesetzt werden (in dieser Priorität):
 
 Hinweis: `npm build` (ohne `run`) existiert in aktuellen npm-Versionen nicht, richtig ist `npm run build`.
 
+### Tests ausführen
+
+```bash
+npm test
+```
+
 ## Betrieb auf dem Ubuntu-Server
 
 ```bash
