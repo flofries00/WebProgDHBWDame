@@ -148,17 +148,23 @@
             transform: scale(1.15);
         }
 
-        /* Dame: Krone als Emoji in der Mitte */
+        /* Dame: Krone als Grafik in der Mitte */
         &.dame {
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: clamp(1rem, 4vw, 1.875rem);
-            line-height: 1; /* Verhindert, dass das Emoji den Stein verzieht */
 
             &::after {
-                content: '👑';
-                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+                content: '';
+                width: 70%;
+                aspect-ratio: 1 / 1;
+                /* Die SVG-Form dient als Maske: Sichtbar ist nur die Krone, gefärbt mit background-color */
+                background-color: var(--color-crown-on-white);
+                mask: var(--icon-crown) center / contain no-repeat;
+            }
+
+            &.black-piece::after {
+                background-color: var(--color-crown-on-black);
             }
         }
 

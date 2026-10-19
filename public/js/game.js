@@ -887,10 +887,10 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * D) Robustheit & Qualität
  *
  * E) Oberfläche
- * Endbildschirm überarbeiten
+ * Endbildschirm überarbeiten (Boxen größer)
  * Sounds auch bei Münzwurf und Sieg/Niederlage
  * Andere Farbschemata für Brett und Steine einbauen (Kontrast beachten!)
- * Keine Emojikrone, sondern anderes Icon für Dame
+ * Boardbeschriftung in Board "einbauen" (Boardrand größer machen)
  *
  * F) Abschluss
  * UI abschließend kontrollieren
