@@ -342,7 +342,8 @@ function handleBoardClick(event) {
         clearSelection();
         selectedPiece = pieceToAnimate;
         selectedPiece.classList.add('selected');
-        showValidMoves(getCurrentLegalMoves()); // Zeigt nur die nächsten Züge dieses Steins
+        // Nächste Schläge nur anzeigen, wenn man selbst springt
+        if (isMyTurn()) showValidMoves(getCurrentLegalMoves());
 
         updatePieceCursors(); // Andere Steine sperren
 
@@ -386,6 +387,8 @@ function handleBoardClick(event) {
  * Blendet bei Schlagzwang die roten Schlagfelder automatisch ein
  */
 function autoHighlightCaptures() {
+    // Nur für den eigenen Zug anzeigen, Pflichtschläge des Gegners bleiben verborgen
+    if (!isMyTurn()) return;
     const moves = getCurrentLegalMoves();
 
     // Bei Schlagzwang enthält die Liste nur noch Schläge: diese sofort rot markieren
@@ -800,7 +803,6 @@ document.getElementById('board').addEventListener('drop', handleDrop);
  * Sounds auch bei Münzwurf und Sieg/Niederlage
  * Andere Farbschemata für Brett und Steine einbauen (Kontrast beachten!)
  * Keine Emojikrone, sondern anderes Icon für Dame
- * Schlagzwang von Gegner nicht anzeigen
  *
  * F) Abschluss
  * UI abschließend kontrollieren
