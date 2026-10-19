@@ -61,7 +61,8 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
 │       ├── rules.js     Spielregeln ohne HTML (wird auch vom Server genutzt)
 │       ├── state.js     Gemeinsamer Zustand (Spielmodus, Namen, Farbe)
 │       ├── socket.js    Gemeinsame Verbindung zum Server
-│       └── sound.js     Töne über die Web Audio API
+│       ├── sound.js     Töne über die Web Audio API
+│       └── theme.js     Farbschemata fürs Brett (Auswahl in der Kopfzeile, wird im Browser gespeichert)
 └── tests/
     ├── rules.test.js    Unit-Tests der Spielregeln
     └── server.test.js   Integrationstests gegen den echten Server
@@ -79,15 +80,18 @@ flowchart TB
         Game["game.js<br/>Brett, Uhr, Computergegner"]
         RulesC["rules.js<br/>Spielregeln"]
         Sound["sound.js<br/>Töne"]
+        Theme["theme.js<br/>Farbschemata"]
         State["state.js<br/>gemeinsamer Zustand"]
         SocketC["socket.js<br/>Serververbindung"]
         HTML --> Main
         Main --> UI
         Main --> Game
         Main --> Sound
+        Main --> Theme
         UI <--> Game
         Game --> RulesC
         Game --> Sound
+        UI --> Sound
         UI --> State
         Game --> State
         UI --> SocketC

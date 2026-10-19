@@ -886,13 +886,20 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  *
  * B) Werkzeuge
  *
+ * Drag & Drop bei Mobilesteuerung?
+ *
  * C) Umbau der Struktur
  *
  * D) Robustheit & Qualität
  *
  * E) Oberfläche
- * Andere Farbschemata für Brett und Steine einbauen (Kontrast beachten!)
  * Top-Bar überarbeiten (Überschrift in die Mitte - vllt. was anderes als nur "DAME", Logo nach links außen)
+ * Wird der Bildschirm zu schmal, springen die Timerbalken raus. (Wir brauchen eine andere Idee für die Uhr und Timer)
+ * Farbauswahl soll:
+ *  a) Mehr Brettfarben bekommen
+ *  b) Auch die Steine in eine andere Farbe packen können
+ *  c) Ein eigenes Fenster öffnen, wo bei der Auswahl auch eine Vorschau des Bretts zu sehen ist
+ *  d) Eigene Konstellationen von Brett- und Steinfarben sollen möglich sein (Mit Hinweis auf mögliche Kontrastprobleme bei problematischen Kombinationen)
  *
  * F) Abschluss
  * UI abschließend kontrollieren

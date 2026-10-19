@@ -11,6 +11,7 @@ import {
 } from './ui.js';
 import { abortGame } from './game.js';
 import { toggleSound } from './sound.js';
+import { loadBoardTheme, setBoardTheme } from './theme.js';
 
 /**
  * Kurzform: Klick-Handler für das Element mit der angegebenen ID registieren
@@ -21,6 +22,8 @@ function onClick(id, handler) {
 
 // Kopfzeile
 onClick('soundBtn', toggleSound);
+document.getElementById('themeSelect').addEventListener('change', (event) => setBoardTheme(event.target.value));
+loadBoardTheme();
 
 // Modus-Auswahl
 onClick('modeComputerBtn', () => selectMode('computer'));

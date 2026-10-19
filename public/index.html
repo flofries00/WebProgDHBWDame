@@ -25,6 +25,14 @@
         <header class="global-header">
             <h1 class="nav-logo">DAME</h1>
             <div class="nav-controls">
+                <!-- Farbschema für Brett und Steine (Label nur für Screenreader) -->
+                <label for="themeSelect" class="visually-hidden">Farbschema des Bretts</label>
+                <select id="themeSelect" class="nav-select">
+                    <option value="holz">Holzoptik</option>
+                    <option value="gruen">Turnieroptik</option>
+                    <option value="blau">Eisoptik</option>
+                    <option value="kontrast">Hoher Kontrast</option>
+                </select>
                 <button id="tutorialBtn" class="nav-btn">?</button>
                 <button id="soundBtn" class="nav-btn" title="Ton an/aus">🔊</button>
                 <span id="realTimeClock" class="clock-display">00:00</span>

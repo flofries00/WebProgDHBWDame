@@ -38,6 +38,17 @@
         }
     }
 
+    /* Auswahl des Farbschemas, im selben Stil wie die Buttons daneben */
+    .nav-select {
+        padding: 0.5rem;
+        font: inherit;
+        color: var(--color-text);
+        background: var(--color-surface-alt);
+        border: none;
+        border-radius: var(--radius-medium);
+        cursor: pointer;
+    }
+
     .clock-display {
         font-family: var(--font-mono);
         font-size: 1.125rem;
@@ -140,6 +151,17 @@
             box-sizing: border-box;
             width: 95%;
             padding: 1.875rem 0.9375rem;
+        }
+    }
+
+    /* Sehr schmale Handys: Uhrzeit ausblenden, damit Kopfzeile in eine Zeile passt */
+    @media (max-width: 28.125rem) {
+        .clock-display {
+            display: none;
+        }
+
+        .nav-controls {
+            gap: 0.5rem;
         }
     }
 }

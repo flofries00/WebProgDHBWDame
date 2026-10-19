@@ -23,7 +23,8 @@
         --color-border-strong: #cccccc;
         --color-disabled: #cccccc;
         --color-success: #28a745;
-        --color-focus: #0066ff;
+        --color-focus: #ffffff;
+        --color-focus-contrast: #000000;
 
         /* Spielbrett in Holzoptik */
         --color-board-light: #deb887;
@@ -61,6 +62,29 @@
         /* Schriften */
         --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         --font-mono: monospace;
+    }
+
+    /* Weitere Farbschemata fürs Brett (Auswahl in Kopfzeile; Holz ist der Standard) */
+
+    :root[data-board-theme='gruen'] {
+        --color-board-light: #eeeed2;
+        --color-board-dark: #4e7837;
+        --color-board-frame: #2f4a21;
+        --color-piece-black-outline: #dddddd;
+    }
+
+    :root[data-board-theme='blau'] {
+        --color-board-light: #dee3e6;
+        --color-board-dark: #4b6a7d;
+        --color-board-frame: #2c3e4a;
+        --color-piece-black-outline: #dddddd;
+    }
+
+    :root[data-board-theme='kontrast'] {
+        --color-board-light: #ffffff;
+        --color-board-dark: #3a3a3a;
+        --color-board-frame: #000000;
+        --color-piece-black-outline: #dddddd;
     }
 
     body {
