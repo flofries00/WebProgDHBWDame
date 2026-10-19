@@ -539,9 +539,12 @@ export function endGame(winnerColor, reason = '') {
     // Bildschrim wechseln
     showScreen('endScreen');
 
-    // Konfetti zünden nur bei Gewinner
+    // Konfetti und Fanfare zünden nur bei Gewinner, sonst Verlierermelodie
     if ((winnerColor === 'white' && state.playerGetsWhite) || (winnerColor === 'black' && !state.playerGetsWhite)) {
         fireConfetti();
+        playSound('win');
+    } else {
+        playSound('lose');
     }
 
     // Erst nach dem Einblenden nach unten scrollen, sonst berechnet der Browser die Höhe falsch
@@ -887,9 +890,11 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * D) Robustheit & Qualität
  *
  * E) Oberfläche
- * Sounds auch bei Münzwurf und Sieg/Niederlage
  * Andere Farbschemata für Brett und Steine einbauen (Kontrast beachten!)
  * Boardbeschriftung in Board "einbauen" (Boardrand größer machen)
+ * Für Verlierer der Partie neben Melodie auch Regentropfen o.Ä. (gilt nur wenn im Spiel verloren, Abbrechen führt immer noch zu Startbildschirm)
+ * Coin-Flip sound eher ein "Whoosh" wenn möglich
+ * Top-Bar überarbeiten (Überschrift in die Mitte - vllt. was anderes als nur "DAME", Logo nach links außen)
  *
  * F) Abschluss
  * UI abschließend kontrollieren

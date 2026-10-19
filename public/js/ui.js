@@ -1,6 +1,7 @@
 import { state } from './state.js';
 import { socket } from './socket.js';
 import { startGame, endGame, stopGame } from './game.js';
+import { playSound } from './sound.js';
 
 // Globale Variablen für den Spielablauf
 
@@ -163,10 +164,12 @@ export function simulateCoinToss() {
 
     void coin.offsetWidth;
     coin.classList.add('spin');
+    playSound('coinFlip');
 
     coinTossTimeout = setTimeout(() => {
         // Münz-Container hüpfen lassen
         container.classList.add('bounce');
+        playSound('coinLand');
 
         // Formuliert aus sicht des Spielers
         const baseText = state.playerGetsWhite ? 'Du hast die weißen Steine' : 'Du hast die schwarzen Steine';
