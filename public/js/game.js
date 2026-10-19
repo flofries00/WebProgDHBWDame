@@ -891,8 +891,9 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * D) Robustheit & Qualität
  *
  * E) Oberfläche
+ * Kontrast für Schlagen ist nun schlechter geworden (BUG)
+ * Boardbeschriftung auf allen Seiten (Richtig herum soll es immer links und unten stehen)
  * Andere Farbschemata für Brett und Steine einbauen (Kontrast beachten!)
- * Boardbeschriftung in Board "einbauen" (Boardrand größer machen)
  * Top-Bar überarbeiten (Überschrift in die Mitte - vllt. was anderes als nur "DAME", Logo nach links außen)
  *
  * F) Abschluss

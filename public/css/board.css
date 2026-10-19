@@ -1,40 +1,50 @@
 /* Spielbrett: Brett, Felder, Steine, Koordinaten, Trophäen und Uhren */
 @layer board {
-    /* Brett mit Koordinaten (Spalte links für 8-1, Zeile unten für A-H) */
+    /* Brett mit Holzrahmen, in dem die Koordinaten stehen (links 8-1, unten A-H) */
     .board-wrapper {
+        --frame-width: 1.5rem; /* Breite des Rahmens = Platz für die Beschriftung */
         display: grid;
-        grid-template-columns: 1.25rem 1fr;
-        grid-template-rows: 1fr 1.25rem;
-        gap: 0.3125rem;
-        justify-content: center;
+        grid-template-columns: var(--frame-width) 1fr var(--frame-width);
+        grid-template-rows: var(--frame-width) 1fr var(--frame-width);
+        box-sizing: border-box;
         width: 100%;
         /* Höchstens 37.25rem, aber nie höher als das Fenster minus Kopfzeile, Spielerinfos und Abstände
            (sonst ragt das Brett bei breiten, aber niedrigen Fenstern wie 1024x768 unten heraus) */
         max-width: min(37.25rem, 100dvh - 19.5rem);
         margin-inline: auto;
+        color: var(--color-board-light); /* Beschriftung in hellem Holz, 6,1:1 auf dem Rahmen */
+        background-color: var(--color-board-frame);
+        border-radius: var(--radius-small);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
         transition: transform 0.5s ease;
     }
 
+    /* Zahlen 8-1 im linken Rahmen */
     .coords-y {
+        grid-column: 1;
+        grid-row: 2;
         display: grid;
         grid-template-rows: repeat(8, 1fr);
         align-items: center;
         justify-items: center;
-        margin-block-start: 8px; /* Ausgleich für den oberen Brettrahmen */
         font-weight: bold;
     }
 
+    /* Buchstaben A-H im unteren Rahmen */
     .coords-x {
+        grid-column: 2;
+        grid-row: 3;
         display: grid;
         grid-template-columns: repeat(8, 1fr);
         align-items: center;
         justify-items: center;
-        margin-inline-start: 8px; /* Ausgleich für den linken Brettrahmen */
         font-weight: bold;
     }
 
     /* Das eigentliche Brett: 8x8 Felder, bleibt quadratisch */
     .board {
+        grid-column: 2;
+        grid-row: 2;
         display: grid;
         grid-template-columns: repeat(8, 1fr);
         grid-template-rows: repeat(8, 1fr);
@@ -43,8 +53,7 @@
         max-width: 35rem;
         aspect-ratio: 1 / 1;
         margin-inline: auto;
-        border: 8px solid var(--color-board-frame);
-        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
     }
 
     /* Ein Feld (Button), zentriert seinen Stein */
