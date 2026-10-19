@@ -893,7 +893,6 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * Andere Farbschemata für Brett und Steine einbauen (Kontrast beachten!)
  * Boardbeschriftung in Board "einbauen" (Boardrand größer machen)
  * Für Verlierer der Partie neben Melodie auch Regentropfen o.Ä. (gilt nur wenn im Spiel verloren, Abbrechen führt immer noch zu Startbildschirm)
- * Coin-Flip sound eher ein "Whoosh" wenn möglich
  * Top-Bar überarbeiten (Überschrift in die Mitte - vllt. was anderes als nur "DAME", Logo nach links außen)
  *
  * F) Abschluss

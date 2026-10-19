@@ -48,6 +48,44 @@ function playTone(freqStart, freqEnd, duration, type = 'sine', volume = 0.3, del
 }
 
 /**
+ * Spielt ein Rauschen, dessen Klangfarbe von freqStart zu freqEnd gleitet
+ * Lautstärke schwillt bis zur Mitte an und klingt dann aus
+ */
+function playNoise(freqStart, freqEnd, duration, volume = 1, delay = 0) {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const start = ctx.currentTime + delay;
+
+    // Puffer voller Zufallswerte = weißes Rauschen
+    const buffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * duration), ctx.sampleRate);
+    const samples = buffer.getChannelData(0);
+    for (let i = 0; i < samples.length; i++) samples[i] = Math.random() * 2 - 1;
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    // Bandpass lässt nur einen Frequenzbereich durch, das Gleiten klingt wie ein Luftzug
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.Q.value = 1.5;
+    filter.frequency.setValueAtTime(freqStart, start);
+    filter.frequency.exponentialRampToValueAtTime(freqEnd, start + duration);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.001, start);
+    gain.gain.exponentialRampToValueAtTime(volume, start + duration / 2); // Anschwellen
+    gain.gain.exponentialRampToValueAtTime(0.001, start + duration); // Ausklingen
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    noise.start(start);
+    noise.stop(start + duration);
+}
+
+/**
  * Spielt den passenden Effekt: 'move', 'capture', 'promote', 'coinFlip', 'coinLand', 'win' oder 'lose'
  */
 export function playSound(name) {
@@ -63,10 +101,8 @@ export function playSound(name) {
         case 'promote': // Aufsteigender Dreiklang
             [523, 659, 784, 1047].forEach((freq, i) => playTone(freq, freq, 0.15, 'sine', 0.25, i * 0.09));
             break;
-        case 'coinFlip': // Schnelles Klimpern der drehenden Münze, wird zum Ende hin langsamer
-            [0, 0.12, 0.25, 0.39, 0.55, 0.73, 0.94, 1.18, 1.46, 1.78].forEach((delay) =>
-                playTone(2400, 2200, 0.04, 'triangle', 0.12, delay)
-            );
+        case 'coinFlip': // Die Münze saust durch die Luft: vier Luftzüge, die immer langsamer werden
+            [0, 0.4, 0.85, 1.35].forEach((delay, i) => playNoise(700, 2200, 0.35 + i * 0.1, 1, delay));
             break;
         case 'coinLand': // Metallisches "Pling" beim Aufprall
             playTone(1760, 1700, 0.5, 'sine', 0.25);
