@@ -158,6 +158,13 @@
             cursor: grabbing;
         }
 
+        /* Wird gerade gezogen (Position setzt JS): liegt über allem und folgt ohne Verzögerung */
+        &.dragging {
+            z-index: 10;
+            cursor: grabbing;
+            transition: none;
+        }
+
         &:hover {
             transform: scale(1.1);
         }
@@ -205,6 +212,11 @@
         &.locked {
             cursor: not-allowed;
             transform: none;
+        }
+
+        /* Eigene Steine: Wischen auf dem Stein zieht ihn, statt die Seite zu scrollen (Handy) */
+        &:not(.locked) {
+            touch-action: none;
         }
 
         /* Krone kurz verstecken (für die Beförderungs-Animation) */

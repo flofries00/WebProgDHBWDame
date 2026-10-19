@@ -13,8 +13,8 @@ let whiteTime = 300; // Startzeit Weiß (5min / 300s)
 let blackTime = 300; // Startzeit Schwarz (5min / 300s)
 let timerInterval = null;
 let isMultiJumping = false; // Sperrt andere Steine während eines Multisprungs
-
 let computerMoveTimeout = null; // Ausstehender Computerzug (damit er abgebrochen werden kann)
+let drag = null; // Laufendes Ziehen eines Steins: { piece, pointerId, startX, startY, bounds, moved }
 
 /**
  * Liefert ein Feld des ECHTEN Spielbretts (nicht der Kopie im Endbildschirm)
@@ -162,9 +162,7 @@ function generateBoard() {
 function createPieceElement(piece) {
     const element = document.createElement('span');
     element.className = `piece ${piece.color}-piece` + (piece.king ? ' dame' : '');
-    element.draggable = true;
-    element.addEventListener('dragstart', handleDragStart);
-    element.addEventListener('dragend', handleDragEnd);
+    element.addEventListener('pointerdown', handlePointerDown); // Drag & Drop mit Maus, Finger und Stift
     return element;
 }
 
@@ -322,7 +320,6 @@ function handleBoardClick(event) {
     // 'appendChild' verschiebt das HTML-Element automatisch in die neue Zelle
     const pieceToAnimate = selectedPiece;
     targetCell.appendChild(pieceToAnimate);
-    pieceToAnimate.style.opacity = '1'; // Bugfix: Verhindert unsichtbare Steine bei Drag&Drop
 
     // Sound abspielen (Schlag oder normaler Zug)
     playSound(isCapture ? 'capture' : 'move');
@@ -698,51 +695,82 @@ socket.on('receiveMove', (m) => {
 });
 
 /**
- * Startet Ziehen eines Steins
+ * Drag & Drop mit Pointer Events (funktioniert gleich für Maus, Finger und Stift):
+ * Stein drücken, ziehen und auf einem Zielfeld loslassen
  */
-function handleDragStart(event) {
-    // Stein auswählen, um Felder zu färben
-    selectPiece(event.target, event.isTrusted);
+function handlePointerDown(event) {
+    if (event.button !== 0) return; // Nur linke Maustaste bzw. Finger
+    const piece = event.currentTarget;
 
-    // Wurde der Stein nicht ausgewählt (wegen bspw. Schlagzwang), Drag abbrechen
-    if (selectedPiece !== event.target) {
-        event.preventDefault();
-        return;
+    // Stein auswählen, um die Zielfelder zu färben. Klappt das nicht (z.B. Schlagzwang), wird nicht gezogen
+    selectPiece(piece, event.isTrusted);
+    if (selectedPiece !== piece) return;
+
+    drag = {
+        piece,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        bounds: document.getElementById('board').getBoundingClientRect(),
+        moved: false,
+    };
+    piece.setPointerCapture(event.pointerId); // Bewegungen kommen beim Stein an, auch wenn der Finger das Brett verlässt
+    piece.addEventListener('pointermove', handlePointerMove);
+    piece.addEventListener('pointerup', handlePointerUp);
+    piece.addEventListener('pointercancel', handlePointerUp);
+}
+
+/**
+ * Lässt den Stein dem Mauszeiger bzw. Finger folgen
+ */
+function handlePointerMove(event) {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+
+    // Zeigerposition auf die Fläche des Bretts begrenzen, damit der Stein nicht aus dem Bild gezogen werden kann
+    const { bounds } = drag;
+    const x = Math.min(Math.max(event.clientX, bounds.left), bounds.right);
+    const y = Math.min(Math.max(event.clientY, bounds.top), bounds.bottom);
+
+    let dx = x - drag.startX;
+    let dy = y - drag.startY;
+
+    // Erst ab 5 Pixeln gilt es als Ziehen, kleine Wackler bleiben ein normaler Klick
+    if (!drag.moved && Math.hypot(dx, dy) < 5) return;
+    drag.moved = true;
+    drag.piece.classList.add('dragging');
+
+    // Auf dem gedrehten Brett (Schwarz) läuft die Bewegung umgekehrt und der Stein ist selbst um 180° gedreht
+    const isFlipped = document.getElementById('boardWrapper').classList.contains('flipped');
+    if (isFlipped) {
+        dx = -dx;
+        dy = -dy;
     }
-
-    // Firefox startet das Ziehen nur, wenn Daten gesetzt werden (Chrome und Safari brauchen das nicht)
-    event.dataTransfer.setData('text/plain', '');
-
-    // Stein halbtransparent machen, während er am Mauszeiger hängt
-    setTimeout(() => {
-        if (selectedPiece === event.target) event.target.style.opacity = '0.3';
-    }, 0);
+    drag.piece.style.transform = `translate(${dx}px, ${dy}px) rotate(${isFlipped ? 180 : 0}deg) scale(1.15)`;
 }
 
 /**
- * Setzt Optik des Steins nach Loslassen wieder zurück
+ * Loslassen: Liegt darunter ein Zielfeld, wird gezogen, sonst springt der Stein zurück
  */
-function handleDragEnd(event) {
-    event.target.style.opacity = '1';
-}
+function handlePointerUp(event) {
+    if (!drag || event.pointerId !== drag.pointerId) return;
+    const { piece, moved } = drag;
+    drag = null;
 
-/**
- * Erlaubt Fallenlassen NUR auf gültigen Zielfeldern
- */
-function handleDragOver(event) {
-    const validCell = event.target.closest('.cell.highlighted, .cell.highlighted-capture');
-    if (validCell) {
-        event.preventDefault(); // Notwendig um Bereich als Drop-Zone freizugeben
-    }
-}
+    piece.removeEventListener('pointermove', handlePointerMove);
+    piece.removeEventListener('pointerup', handlePointerUp);
+    piece.removeEventListener('pointercancel', handlePointerUp);
+    piece.classList.remove('dragging');
+    piece.style.transform = ''; // Zurück an die eigene Position (oder gleich ins Zielfeld verschoben)
 
-/**
- * Führt Zug bei Loslassen auf dem Ziel aus
- */
-function handleDrop(event) {
-    event.preventDefault();
-    // Loslassen an bestehende Klick-Funktion übergeben
-    handleBoardClick(event);
+    if (!moved || event.type === 'pointercancel') return; // Nur geklickt oder abgebrochen: Auswahl bleibt bestehen
+
+    // Unter dem Finger liegen der Stein selbst und darunter das Feld: das erste gültige Zielfeld suchen
+    const targetCell = document
+        .elementsFromPoint(event.clientX, event.clientY)
+        .find((element) => element.matches('#board .cell.highlighted, #board .cell.highlighted-capture'));
+
+    // Zug wie bei einem Klick ausführen, 'drop' verhindert die Flug-Animation (der Stein ist ja schon dort)
+    if (targetCell) handleBoardClick({ type: 'drop', target: targetCell, isTrusted: event.isTrusted });
 }
 
 /**
@@ -804,7 +832,7 @@ function makeComputerMove() {
 }
 
 /**
- * Setzt den Mauszeiger für gesperrte Steine auf "Verbot" und deaktiviert Drag & Drop
+ * Setzt den Mauszeiger für gesperrte Steine auf "Verbot"
  */
 function updatePieceCursors() {
     const allPieces = document.getElementById('board').querySelectorAll('.piece');
@@ -822,13 +850,7 @@ function updatePieceCursors() {
         // Option C: Multischlag läuft, aber falscher Stein
         if (isMultiJumping && p !== selectedPiece) isLocked = true;
 
-        if (isLocked) {
-            p.classList.add('locked');
-            p.draggable = false; // Verhindert Geister-Drags
-        } else {
-            p.classList.remove('locked');
-            p.draggable = true;
-        }
+        p.classList.toggle('locked', isLocked);
     });
     updateCellLabels();
 }
@@ -873,8 +895,6 @@ function handleBoardFocus(event) {
 
 // Listener sollen nur einmalig registriert werden (nicht bei jedem Spielstart)
 document.getElementById('board').addEventListener('click', handleBoardClick);
-document.getElementById('board').addEventListener('dragover', handleDragOver);
-document.getElementById('board').addEventListener('drop', handleDrop);
 document.getElementById('board').addEventListener('keydown', handleBoardKeydown);
 document.getElementById('board').addEventListener('focusin', handleBoardFocus);
 
@@ -887,7 +907,6 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * B) Werkzeuge
  *
  * Game-Setup Screen (nach Namenseingabe (oder vor?)) für Spielmodi und Timerlänge (verschiedene Längen zwischen 1min und 10min (1 Partymodus mit Random Zufallszeit - extra Auslosscreen))
- * Drag & Drop bei Mobilesteuerung?
  *
  * C) Umbau der Struktur
  *
