@@ -913,7 +913,6 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * D) Robustheit & Qualität
  *
  * E) Oberfläche
- * Top-Bar überarbeiten (Überschrift in die Mitte - vllt. was anderes als nur "DAME", Logo nach links außen)
  * Farbauswahl soll:
  *  a) Mehr Brettfarben bekommen
  *  b) Auch die Steine in eine andere Farbe packen können

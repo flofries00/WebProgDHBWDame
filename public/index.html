@@ -8,7 +8,7 @@
             name="description"
             content="Dame im Browser: gegen den Computer oder online gegen einen anderen Menschen spielen."
         />
-        <title>Dame - Browser Multiplayer</title>
+        <title>Dame Online - Browser Multiplayer</title>
 
         <!-- Einstiegspunkt der Styles, lädt alle Dateien aus css/ in der richtigen Layer-Reihenfolge. -->
         <link rel="stylesheet" href="css/main.css" />
@@ -23,7 +23,12 @@
     <body>
         <!-- 1.: Globale Kopfzeile (immer sichtbar) -->
         <header class="global-header">
-            <h1 class="nav-logo">DAME</h1>
+            <!-- Logo links außen (nur Deko, der Name steht im Titel daneben) -->
+            <div class="nav-brand" aria-hidden="true">
+                <span class="nav-piece black"></span>
+                <span class="nav-piece white"></span>
+            </div>
+            <h1 class="nav-title">Dame Online</h1>
             <div class="nav-controls">
                 <!-- Farbschema für Brett und Steine (Label nur für Screenreader) -->
                 <label for="themeSelect" class="visually-hidden">Farbschema des Bretts</label>
