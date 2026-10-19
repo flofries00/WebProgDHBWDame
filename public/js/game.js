@@ -327,12 +327,14 @@ function handleBoardClick(event) {
     // Sound abspielen (Schlag oder normaler Zug)
     playSound(isCapture ? 'capture' : 'move');
 
+    // Auf dem gedrehten Brett (Schwarz) sind alle Steine per CSS um 180° gedreht, damit sie aufrecht stehen
+    // Animationen ersetzen transform komplett, deshalb muss jeder Schritt diese Drehung selbst enthalten.
+    const isFlipped = document.getElementById('boardWrapper').classList.contains('flipped');
+    const baseRot = isFlipped ? 180 : 0;
     // Hilfsfunktion: Dreht die Dame um 180 Grad und blendet die Krone ein
     const playPromoteAnim = () => {
         playSound('promote');
         pieceToAnimate.classList.add('hide-crown', 'dame');
-        const wrapper = document.getElementById('boardWrapper');
-        const baseRot = wrapper.classList.contains('flipped') ? 180 : 0;
         const spinAnim = pieceToAnimate.animate(
             [
                 { transform: `rotate(${baseRot}deg) rotateY(0deg)` },
@@ -352,8 +354,7 @@ function handleBoardClick(event) {
 
         // DER NEUE TRICK: Wenn das Brett um 180 Grad gedreht ist, fliegen die Steine
         // lokal in die falsche Richtung. Wir drehen die Richtung mathematisch einfach um!
-        const wrapper = document.getElementById('boardWrapper');
-        if (wrapper.classList.contains('flipped')) {
+        if (isFlipped) {
             dx = -dx;
             dy = -dy;
         }
@@ -361,14 +362,14 @@ function handleBoardClick(event) {
         const moveKeyframes = isCapture
             ? [
                   // Sprung über gegnerischen Stein
-                  { transform: `translate(${dx}px, ${dy}px) scale(1)`, zIndex: 10 },
-                  { transform: `translate(${dx / 2}px, ${dy / 2}px) scale(1.3)`, zIndex: 10 },
-                  { transform: `translate(0px, 0px) scale(1)`, zIndex: 10 },
+                  { transform: `translate(${dx}px, ${dy}px) rotate(${baseRot}deg) scale(1)`, zIndex: 10 },
+                  { transform: `translate(${dx / 2}px, ${dy / 2}px) rotate(${baseRot}deg) scale(1.3)`, zIndex: 10 },
+                  { transform: `translate(0px, 0px) rotate(${baseRot}deg) scale(1)`, zIndex: 10 },
               ]
             : [
                   // Normales, flaches Schweben
-                  { transform: `translate(${dx}px, ${dy}px)`, zIndex: 10 },
-                  { transform: `translate(0px, 0px)`, zIndex: 10 },
+                  { transform: `translate(${dx}px, ${dy}px) rotate(${baseRot}deg)`, zIndex: 10 },
+                  { transform: `translate(0px, 0px) rotate(${baseRot}deg)`, zIndex: 10 },
               ];
 
         const moveAnim = pieceToAnimate.animate(moveKeyframes, { duration: 350, easing: 'ease-in-out' });
@@ -889,7 +890,6 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * Sounds auch bei Münzwurf und Sieg/Niederlage
  * Andere Farbschemata für Brett und Steine einbauen (Kontrast beachten!)
  * Boardbeschriftung in Board "einbauen" (Boardrand größer machen)
- * Krone dreht sich während Animation als Schwarz (BUG)
  *
  * F) Abschluss
  * UI abschließend kontrollieren
