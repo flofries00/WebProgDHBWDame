@@ -365,6 +365,7 @@
         width: 0.75rem;
         height: 1.5rem;
         opacity: 0.9;
+        pointer-events: none; /* Schnipsel dürfen keine Klicks auf die Buttons abfangen */
         animation: fall linear forwards;
     }
 
@@ -377,6 +378,25 @@
         100% {
             transform: translateY(110vh) rotate(720deg);
             opacity: 0;
+        }
+    }
+
+    /* Regentropfen beim Verlierer */
+    .rain-drop {
+        position: fixed;
+        inset-block-start: -1.5rem; /* Startet knapp über dem Bildschirm */
+        z-index: 9999;
+        width: 2px;
+        height: 1.5rem;
+        border-radius: 1px;
+        background: linear-gradient(transparent, var(--color-rain)); /* Oben durchsichtig, unten blau */
+        pointer-events: none;
+        animation: rainFall linear forwards;
+    }
+
+    @keyframes rainFall {
+        to {
+            transform: translateY(110vh);
         }
     }
 

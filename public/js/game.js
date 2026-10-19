@@ -1,6 +1,6 @@
 import { state } from './state.js';
 import { socket } from './socket.js';
-import { showScreen, leaveToLobby, fireConfetti, showConfirm } from './ui.js';
+import { showScreen, leaveToLobby, fireConfetti, fireRain, showConfirm } from './ui.js';
 import { playSound } from './sound.js';
 import { BOARD_SIZE, createInitialBoard, getLegalMoves, findMove, applyMove, getWinner } from './rules.js';
 
@@ -539,11 +539,12 @@ export function endGame(winnerColor, reason = '') {
     // Bildschrim wechseln
     showScreen('endScreen');
 
-    // Konfetti und Fanfare zünden nur bei Gewinner, sonst Verlierermelodie
+    // Konfetti und Fanfare zünden nur bei Gewinner, sonst Regen und Verlierermelodie
     if ((winnerColor === 'white' && state.playerGetsWhite) || (winnerColor === 'black' && !state.playerGetsWhite)) {
         fireConfetti();
         playSound('win');
     } else {
+        fireRain();
         playSound('lose');
     }
 
@@ -892,7 +893,6 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * E) Oberfläche
  * Andere Farbschemata für Brett und Steine einbauen (Kontrast beachten!)
  * Boardbeschriftung in Board "einbauen" (Boardrand größer machen)
- * Für Verlierer der Partie neben Melodie auch Regentropfen o.Ä. (gilt nur wenn im Spiel verloren, Abbrechen führt immer noch zu Startbildschirm)
  * Top-Bar überarbeiten (Überschrift in die Mitte - vllt. was anderes als nur "DAME", Logo nach links außen)
  *
  * F) Abschluss
