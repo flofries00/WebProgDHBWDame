@@ -907,7 +907,6 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * Firefox + Safari von Hand testen
  *
  * B) Werkzeuge
- * Anzeige der Anzahl in Warteschlange (falls noch nicht passiert)
  *
  * C) Umbau der Struktur
  *

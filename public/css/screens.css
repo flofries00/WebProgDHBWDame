@@ -92,6 +92,21 @@
         }
     }
 
+    /* Hinweis: "1 wartet" neben einer Bedenkzeit (nur online, leer = unsichtbar) */
+    .queue-badge {
+        margin-inline-start: 0.5rem;
+        padding: 0.125rem 0.5rem;
+        font-size: 1rem;
+        font-weight: bold;
+        color: var(--color-waiting-text);
+        background: var(--color-waiting-bg);
+        border-radius: 1rem;
+
+        &:empty {
+            display: none;
+        }
+    }
+
     /* ---------- Partymodus: ausgeloste Bedenkzeit groß in der Mitte ---------- */
     .party-time {
         margin-block: 1.25rem;

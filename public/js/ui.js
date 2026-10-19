@@ -9,6 +9,7 @@ let searchTimeout; // Timer für Gegnersuche
 let coinTossTimeout; // Timer bis zur Landung der Münze
 let countdownInterval; // Countdown bis Spielstart
 let partyTimeout; // Nächster Schritt der Zeit-Auslosung im Partymodus
+let queueStatus = null; // Letzter Stand der Warteschlangen vom Server: { waiting: { '1': 0, ... }, online }
 
 /**
  * Speichert den gewählten Spielmodus und wechselt zur Anmeldung.
@@ -88,8 +89,30 @@ export function showSetup() {
     // Gegen den Computer gibt es nichts zu suchen
     document.getElementById('setupStartBtn').textContent =
         state.gameMode === 'online' ? 'Gegner suchen' : 'Spiel starten';
+    renderQueueStatus();
     showScreen('setupScreen');
 }
+
+/**
+ * Zeigt im Setup-Bildschirm, bei welcher Bedenkzeit schon jemand wartet und wie viele Spieler online sind.
+ * Gegen den Computer bleibt alles leer.
+ */
+function renderQueueStatus() {
+    const isOnline = state.gameMode === 'online' && queueStatus;
+
+    document.querySelectorAll('input[name="timeSetting"]').forEach((input) => {
+        const badge = input.parentElement.querySelector('.queue-badge');
+        badge.textContent = isOnline && queueStatus.waiting[input.value] > 0 ? '1 wartet' : '';
+    });
+
+    document.getElementById('onlineCount').textContent = isOnline ? `Gerade online: ${queueStatus.online} Spieler` : '';
+}
+
+// Der Server meldet jede Änderung an den Warteschlangen, die Anzeige aktualisiert sich sofort
+socket.on('queueStatus', (status) => {
+    queueStatus = status;
+    renderQueueStatus();
+});
 
 /**
  * Wird aufgerufen, wenn man auf "Gegner suchen" bzw. "Spiel starten" klickt.

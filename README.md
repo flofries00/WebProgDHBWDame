@@ -164,18 +164,19 @@ sequenceDiagram
 
 ## Socket.io-Ereignisse
 
-| Ereignis              | Richtung         | Daten                               | Prüfung auf dem Server                                                                                |
-| --------------------- | ---------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `findMatch`           | Browser → Server | Spielername, Bedenkzeit             | Name: 2–16 Zeichen, nur Buchstaben und Ziffern; Zeit: `1`, `3`, `5`, `10` oder `party` (Standard `5`) |
-| `cancelSearch`        | Browser → Server | –                                   | –                                                                                                     |
-| `matchFound`          | Server → Browser | `oppName`, `isWhite`, `timeMinutes` | –                                                                                                     |
-| `makeMove`            | Browser → Server | `fromR`, `fromC`, `toR`, `toC`      | ganze Zahlen 0–7, Spieler ist am Zug, Zug laut `rules.js` erlaubt                                     |
-| `receiveMove`         | Server → Browser | `fromR`, `fromC`, `toR`, `toC`      | nur geprüfte Züge werden weitergeleitet                                                               |
-| `chatMessage`         | beide Richtungen | Text                                | muss Text sein, wird gekürzt (max. 200 Zeichen), leere werden verworfen                               |
-| `requestReplay`       | Browser → Server | –                                   | –                                                                                                     |
-| `opponentWantsReplay` | Server → Browser | –                                   | –                                                                                                     |
-| `leaveMatch`          | Browser → Server | –                                   | –                                                                                                     |
-| `opponentLeft`        | Server → Browser | –                                   | –                                                                                                     |
+| Ereignis              | Richtung         | Daten                                         | Prüfung auf dem Server                                                                                |
+| --------------------- | ---------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `findMatch`           | Browser → Server | Spielername, Bedenkzeit                       | Name: 2–16 Zeichen, nur Buchstaben und Ziffern; Zeit: `1`, `3`, `5`, `10` oder `party` (Standard `5`) |
+| `cancelSearch`        | Browser → Server | –                                             | –                                                                                                     |
+| `matchFound`          | Server → Browser | `oppName`, `isWhite`, `timeMinutes`           | –                                                                                                     |
+| `queueStatus`         | Server → Browser | `waiting` (pro Bedenkzeit 0 oder 1), `online` | – (wird bei jeder Änderung an alle geschickt)                                                         |
+| `makeMove`            | Browser → Server | `fromR`, `fromC`, `toR`, `toC`                | ganze Zahlen 0–7, Spieler ist am Zug, Zug laut `rules.js` erlaubt                                     |
+| `receiveMove`         | Server → Browser | `fromR`, `fromC`, `toR`, `toC`                | nur geprüfte Züge werden weitergeleitet                                                               |
+| `chatMessage`         | beide Richtungen | Text                                          | muss Text sein, wird gekürzt (max. 200 Zeichen), leere werden verworfen                               |
+| `requestReplay`       | Browser → Server | –                                             | –                                                                                                     |
+| `opponentWantsReplay` | Server → Browser | –                                             | –                                                                                                     |
+| `leaveMatch`          | Browser → Server | –                                             | –                                                                                                     |
+| `opponentLeft`        | Server → Browser | –                                             | –                                                                                                     |
 
 Zusätzlich gilt: Nachrichten über 10 KB lehnt Socket.io ab, und jeder Handler läuft in `try/catch` (`onSafe`). Ein fehlerhaftes Ereignis bringt den Server also nicht zum Absturz.
 

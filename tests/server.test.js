@@ -55,6 +55,25 @@ function expectNoEvent(socket, eventName, wait = 300) {
 }
 
 /**
+ * Wartet auf einen Warteschlangen-Status, der die Bedingung erfüllt (ältere Meldungen werden übersprungen)
+ */
+function waitForStatus(socket, check, timeout = 2000) {
+    return new Promise((resolve, reject) => {
+        const handler = (status) => {
+            if (!check(status)) return;
+            clearTimeout(timer);
+            socket.off('queueStatus', handler);
+            resolve(status);
+        };
+        const timer = setTimeout(() => {
+            socket.off('queueStatus', handler);
+            reject(new Error('Passender Warteschlangen-Status kam nicht an.'));
+        }, timeout);
+        socket.on('queueStatus', handler);
+    });
+}
+
+/**
  * Verbindet einen neuen Test-Client mit dem Server
  */
 async function connectClient() {
@@ -150,6 +169,20 @@ describe('Matchmaking', () => {
 
         assert.equal(infoA.timeMinutes, infoB.timeMinutes);
         assert.ok(Number.isInteger(infoA.timeMinutes) && infoA.timeMinutes >= 1 && infoA.timeMinutes <= 10);
+    });
+
+    it('meldet allen, in welcher Warteschlange gerade jemand wartet', async () => {
+        const watcher = await connectClient();
+        const player = await connectClient();
+
+        const nowWaiting = waitForStatus(watcher, (status) => status.waiting['3'] === 1);
+        player.emit('findMatch', 'Anna', '3');
+        const status = await nowWaiting;
+        assert.ok(status.online >= 2); // Mindestens die beiden Test-Clients sind verbunden
+
+        const notWaiting = waitForStatus(watcher, (status) => status.waiting['3'] === 0);
+        player.emit('cancelSearch');
+        await notWaiting;
     });
 
     it('ignoriert ungültige Bedenkzeiten', async () => {

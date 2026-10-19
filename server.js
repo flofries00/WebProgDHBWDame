@@ -102,9 +102,21 @@ function endMatch(socket) {
     socket.oppId = null;
 }
 
+/**
+ * Schickt allen Browsern, wo gerade jemand wartet und wie viele Spieler verbunden sind
+ * (so sieht man vor der Suche, mit welcher Bedenkzeit man sofort einen Gegner findet)
+ */
+function broadcastQueueStatus() {
+    const waitingPerSetting = Object.fromEntries(
+        TIME_SETTINGS.map((setting) => [setting, waiting.has(setting) ? 1 : 0])
+    );
+    io.emit('queueStatus', { waiting: waitingPerSetting, online: io.of('/').sockets.size });
+}
+
 // Wartet auf Browser-Verbindungen
 io.on('connection', (socket) => {
     console.log('Verbunden: ', socket.id);
+    broadcastQueueStatus(); // Neuer Spieler: Anzahl online hat sich geändert, er selbst bekommt den aktuellen Stand
 
     onSafe(socket, 'findMatch', (name, timeSetting = '5') => {
         // Namen und Bedenkzeit auch serverseitig prüfen (Client-Prüfung lässt sich umgehen)
@@ -125,11 +137,13 @@ io.on('connection', (socket) => {
             // Erster Spieler mit dieser Bedenkzeit wartet
             waiting.set(timeSetting, socket);
         }
+        broadcastQueueStatus();
     });
 
     // Spieler bricht die Suche ab
     onSafe(socket, 'cancelSearch', () => {
         leaveQueue(socket);
+        broadcastQueueStatus();
     });
 
     // Wartet auf Züge, prüft sie mit den Spielregeln und schickt nur erlaubte Züge an den Gegner
@@ -210,6 +224,7 @@ io.on('connection', (socket) => {
     onSafe(socket, 'disconnect', () => {
         leaveQueue(socket);
         endMatch(socket);
+        broadcastQueueStatus();
     });
 });
 

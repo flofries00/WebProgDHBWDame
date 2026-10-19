@@ -93,16 +93,31 @@
                 <form id="setupForm">
                     <fieldset class="time-options">
                         <legend>Bedenkzeit pro Spieler</legend>
-                        <label><input type="radio" name="timeSetting" value="1" /> 1 Minute</label>
-                        <label><input type="radio" name="timeSetting" value="3" /> 3 Minuten</label>
-                        <label><input type="radio" name="timeSetting" value="5" checked /> 5 Minuten</label>
-                        <label><input type="radio" name="timeSetting" value="10" /> 10 Minuten</label>
+                        <!-- Die leeren .queue-badge füllt ui.js im Online-Modus mit "1 wartet" -->
+                        <label>
+                            <input type="radio" name="timeSetting" value="1" /> 1 Minute
+                            <span class="queue-badge"></span>
+                        </label>
+                        <label>
+                            <input type="radio" name="timeSetting" value="3" /> 3 Minuten
+                            <span class="queue-badge"></span>
+                        </label>
+                        <label>
+                            <input type="radio" name="timeSetting" value="5" checked /> 5 Minuten
+                            <span class="queue-badge"></span>
+                        </label>
+                        <label>
+                            <input type="radio" name="timeSetting" value="10" /> 10 Minuten
+                            <span class="queue-badge"></span>
+                        </label>
                         <label>
                             <input type="radio" name="timeSetting" value="party" aria-describedby="partyHint" />
                             Partymodus
+                            <span class="queue-badge"></span>
                             <span id="partyHint" class="input-hint">1 bis 10 Minuten per Zufall, für beide gleich</span>
                         </label>
                     </fieldset>
+                    <p id="onlineCount" class="input-hint"></p>
                     <button type="button" id="setupBackBtn" class="secondary-btn">← Zurück</button>
                     <button type="submit" id="setupStartBtn">Gegner suchen</button>
                 </form>
