@@ -153,7 +153,7 @@ io.on('connection', (socket) => {
         }
 
         // Nur die vier geprüften Werte weiterleiten
-        socket.to(socket.oppId).emit('recieveMove', { fromR, fromC, toR, toC });
+        socket.to(socket.oppId).emit('receiveMove', { fromR, fromC, toR, toC });
     });
 
     // Wartet auf Chat-Nachrichten, bereinigt sie und schickt sie an den Gegner

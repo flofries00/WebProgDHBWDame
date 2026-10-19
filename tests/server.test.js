@@ -133,7 +133,7 @@ describe('Matchmaking', () => {
 describe('Zugprüfung', () => {
     it('leitet einen erlaubten Zug an den Gegner weiter', async () => {
         const { white, black } = await startGame();
-        const received = waitFor(black, 'recieveMove');
+        const received = waitFor(black, 'receiveMove');
         white.emit('makeMove', { fromR: 5, fromC: 0, toR: 4, toC: 1 });
         assert.deepEqual(await received, { fromR: 5, fromC: 0, toR: 4, toC: 1 });
     });
@@ -141,25 +141,25 @@ describe('Zugprüfung', () => {
     it('lehnt einen Zug ab, wenn der Spieler nicht am Zug ist', async () => {
         const { white, black } = await startGame();
         black.emit('makeMove', { fromR: 2, fromC: 1, toR: 3, toC: 0 });
-        await expectNoEvent(white, 'recieveMove');
+        await expectNoEvent(white, 'receiveMove');
     });
 
     it('lehnt ab, wenn ein Spieler für den Gegner zieht (auch wenn der Zug für diesen erlaubt wäre)', async () => {
         const { white, black } = await startGame();
         black.emit('makeMove', { fromR: 5, fromC: 0, toR: 4, toC: 1 }); // erlaubter Zug von Weiß, aber von Schwarz gesendet
-        await expectNoEvent(white, 'recieveMove');
+        await expectNoEvent(white, 'receiveMove');
     });
 
     it('lehnt einen Zug ab, der gegen die Regeln verstößt', async () => {
         const { white, black } = await startGame();
         white.emit('makeMove', { fromR: 5, fromC: 0, toR: 3, toC: 0 }); // zwei Felder geradeaus
-        await expectNoEvent(black, 'recieveMove');
+        await expectNoEvent(black, 'receiveMove');
     });
 
     it('lehnt das Ziehen eines gegnerischen Steins ab', async () => {
         const { white, black } = await startGame();
         white.emit('makeMove', { fromR: 2, fromC: 1, toR: 3, toC: 0 }); // schwarzer Stein
-        await expectNoEvent(black, 'recieveMove');
+        await expectNoEvent(black, 'receiveMove');
     });
 
     it('ignoriert kaputte Daten und läuft danach normal weiter', async () => {
@@ -174,10 +174,10 @@ describe('Zugprüfung', () => {
         ]) {
             white.emit('makeMove', garbage);
         }
-        await expectNoEvent(black, 'recieveMove');
+        await expectNoEvent(black, 'receiveMove');
 
         // Der Server ist nicht abgestürzt: Ein gültiger Zug kommt weiterhin an
-        const received = waitFor(black, 'recieveMove');
+        const received = waitFor(black, 'receiveMove');
         white.emit('makeMove', { fromR: 5, fromC: 0, toR: 4, toC: 1 });
         await received;
     });
@@ -196,7 +196,7 @@ describe('Zugprüfung', () => {
             const move = turn === 'white' ? moves[0] : moves[moves.length - 1];
             const opponent = players[opponentOf(turn)];
 
-            const received = waitFor(opponent, 'recieveMove');
+            const received = waitFor(opponent, 'receiveMove');
             players[turn].emit('makeMove', toMessage(move));
             assert.deepEqual(await received, toMessage(move));
 
@@ -215,7 +215,7 @@ describe('Zugprüfung', () => {
         const lastMoves = getLegalMoves(board, winner);
         if (lastMoves.length > 0) {
             players[winner].emit('makeMove', toMessage(lastMoves[0]));
-            await expectNoEvent(players[opponentOf(winner)], 'recieveMove');
+            await expectNoEvent(players[opponentOf(winner)], 'receiveMove');
         }
     });
 });
@@ -254,7 +254,7 @@ describe('Partie verlassen', () => {
     it('startet bei einer Revanche eine neue Partie mit frischem Brett', async () => {
         const { white, black } = await startGame();
         white.emit('makeMove', { fromR: 5, fromC: 0, toR: 4, toC: 1 });
-        await waitFor(black, 'recieveMove');
+        await waitFor(black, 'receiveMove');
 
         const replayWhite = waitFor(white, 'matchFound');
         const replayBlack = waitFor(black, 'matchFound');
@@ -265,7 +265,7 @@ describe('Partie verlassen', () => {
         // Der neue weiße Spieler kann wieder den ersten Zug aus der Startaufstellung machen
         const newWhite = infoWhite.isWhite ? white : black;
         const newBlack = infoWhite.isWhite ? black : white;
-        const received = waitFor(newBlack, 'recieveMove');
+        const received = waitFor(newBlack, 'receiveMove');
         newWhite.emit('makeMove', { fromR: 5, fromC: 0, toR: 4, toC: 1 });
         await received;
     });

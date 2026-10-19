@@ -627,7 +627,7 @@ function updateActiveTimerStyle() {
 /**
  * Züge von Server empfangen und auf dem Brett simulieren
  */
-socket.on('recieveMove', (m) => {
+socket.on('receiveMove', (m) => {
     // Number() verhindert, dass manipulierte Daten den Selektor sprengen
     const fCell = getCell(Number(m.fromR), Number(m.fromC));
     const tCell = getCell(Number(m.toR), Number(m.toC));
@@ -793,7 +793,6 @@ document.getElementById('board').addEventListener('drop', handleDrop);
  * C) Umbau der Struktur
  *
  * D) Robustheit & Qualität
- * Architektur + Kommunikationsablauf als Mermaid-Diagramme in die README
  *
  * E) Oberfläche
  * Endbildschirm überarbeiten
