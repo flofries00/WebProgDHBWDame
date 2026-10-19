@@ -30,7 +30,7 @@
     .nav-btn {
         margin: 0;
         padding: 0.5rem 0.9375rem;
-        font-size: 0.8125rem;
+        font-size: 1rem;
         background: var(--color-surface-alt);
 
         &:hover:not(:disabled) {

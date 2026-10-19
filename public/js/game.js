@@ -888,7 +888,6 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  *
  * E) Oberfläche
  * Endbildschirm überarbeiten
- * Barrierefreiheit: Felder als Buttons + Tastaturbedienung (#3), nicht nur Farbe + Kontrast (#10), Schriftgrößen (#14)
  * Sounds auch bei Münzwurf und Sieg/Niederlage
  * Andere Farbschemata für Brett und Steine einbauen (Kontrast beachten!)
  * Keine Emojikrone, sondern anderes Icon für Dame

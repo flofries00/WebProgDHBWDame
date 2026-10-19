@@ -61,6 +61,7 @@
         height: 100dvh; /* Volle Höhe des sichtbaren Browserfensters */
         margin: 0;
         font-family: var(--font-family);
+        line-height: 1.5; /* Zeilenabstand für bessere Lesbarkeit */
         color: var(--color-text);
 
         /* Großes, sehr dezentes Schachbrettmuster über einem Farbverlauf */

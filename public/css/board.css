@@ -10,7 +10,7 @@
         width: 100%;
         /* Höchstens 37.25rem, aber nie höher als das Fenster minus Kopfzeile, Spielerinfos und Abstände
            (sonst ragt das Brett bei breiten, aber niedrigen Fenstern wie 1024x768 unten heraus) */
-        max-width: min(37.25rem, 100dvh - 19.0625rem);
+        max-width: min(37.25rem, 100dvh - 19.5rem);
         margin-inline: auto;
         transition: transform 0.5s ease;
     }

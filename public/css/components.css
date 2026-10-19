@@ -75,14 +75,14 @@
     .input-hint {
         display: block;
         margin-block-end: 0.3125rem;
-        font-size: 0.75rem;
+        font-size: 1rem;
         color: var(--color-text-muted);
     }
 
     .error-text {
-        min-height: 1.125rem; /* Hält Platz frei, damit das Layout nicht springt, wenn der Text erscheint */
+        min-height: 1.5rem; /* Hält Platz frei, damit das Layout nicht springt, wenn der Text erscheint */
         margin-block: 0.3125rem 0;
-        font-size: 0.8125rem;
+        font-size: 1rem;
         font-weight: bold;
         color: var(--color-primary);
     }
