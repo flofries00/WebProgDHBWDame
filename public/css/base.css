@@ -29,12 +29,15 @@
         --color-board-light: #deb887;
         --color-board-dark: #8b4513;
         --color-board-frame: #5c2e0e;
+        --color-move-marker: #14532d;
+        --color-capture-marker: #7f1d1d;
 
         /* Spielsteine (auch für Logo und Münze) */
         --gradient-piece-white: radial-gradient(circle at 30% 30%, #ffffff, #e0e0e0, #999999);
         --gradient-piece-black: radial-gradient(circle at 30% 30%, #666666, #222222, #000000);
         --color-piece-white-border: #aaaaaa;
         --color-piece-black-border: #111111;
+        --color-piece-black-outline: #bbbbbb;
 
         /* Seitenhintergrund */
         --gradient-page: linear-gradient(135deg, #fdf7f1 0%, #e6d3c0 100%);

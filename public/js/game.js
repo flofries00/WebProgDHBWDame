@@ -221,7 +221,7 @@ function clearSelection() {
 }
 
 /**
- * Markiert die Zielfelder der übergebenen Züge (grün = ziehen, rot = schlagen)
+ * Markiert die Zielfelder der übergebenen Züge (grün mit Punkt = ziehen, rot mit Ring = schlagen)
  */
 function showValidMoves(moves) {
     moves.forEach((move) => {
@@ -897,6 +897,7 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * UI abschließend kontrollieren
  * Code-Kommentare verbessern
  * Github-Repo aufräumen (README, Lizenz), Präsentation vorbereiten
+ * Auto-Klick bei Schlägen (also nicht erst Klick auf Stein sondern direkt auf Feld)
  *
  * G) Optional, nur wenn Zeit bleibt
  * Github CI, Dark-Mode, Tutorial, Performance
