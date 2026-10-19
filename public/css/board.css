@@ -326,11 +326,12 @@
         border-radius: 0.375rem;
     }
 
+    /* Füllstand kommt als Anteil 0 bis 1 aus JavaScript (--time-left), senkrecht wird er zur Höhe */
     .v-timer-fill {
         position: absolute;
         inset-block-end: 0;
         width: 100%;
-        height: 100%;
+        height: calc(var(--time-left, 1) * 100%);
         background-color: var(--color-success);
         transition:
             height 1s linear,
@@ -346,16 +347,50 @@
         .board-wrapper {
             max-width: 37.25rem;
         }
-    }
 
-    @media (max-width: 28.125rem) {
-        /* Sehr schmale Handys: Uhren neben dem Brett ausblenden, damit das Brett die volle Breite bekommt */
-        .vertical-timer-container {
-            display: none;
+        /* Untereinander braucht das Brett keine Mindestbreite mehr (sonst ragt es auf sehr schmalen Handys heraus) */
+        .board {
+            min-width: 0;
         }
 
+        /* Neben dem Brett ist kein Platz mehr: Uhren als waagerechte Leisten darüber (Gegner) und darunter (du) */
         .board-area-flex {
-            gap: 0;
+            flex-direction: column;
+            gap: 0.625rem;
+        }
+
+        .vertical-timer-container {
+            flex-direction: row;
+            gap: 0.625rem;
+            width: 100%;
+
+            /* Reihenfolge ändern: Uhr des Gegners über das Brett, eigene Uhr darunter */
+            &:has(#compTimer) {
+                order: -1;
+            }
+
+            &:has(#p1Timer) {
+                order: 1;
+            }
+        }
+
+        .timer-display {
+            margin-block-start: 0;
+        }
+
+        .v-timer-bg {
+            width: auto;
+            height: 0.75rem;
+            margin-block-start: 0;
+        }
+
+        /* Waagerecht wird der Füllstand zur Breite */
+        .v-timer-fill {
+            width: calc(var(--time-left, 1) * 100%);
+            height: 100%;
+            transition:
+                width 1s linear,
+                background-color 0.3s;
         }
     }
 }

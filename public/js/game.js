@@ -640,9 +640,9 @@ function updateTimerDisplays() {
     p1El.textContent = format(p1Time);
     compEl.textContent = format(compTime);
 
-    // b) Balkenbreite in Prozent berechnen (Basis: 300s)
-    p1Bar.style.height = `${(p1Time / 300) * 100}%`;
-    compBar.style.height = `${(compTime / 300) * 100}%`;
+    // b) Füllstand der Zeitbalken als Anteil von 0 bis 1 (Basis: 300s), die Richtung regelt das CSS
+    p1Bar.style.setProperty('--time-left', p1Time / 300);
+    compBar.style.setProperty('--time-left', compTime / 300);
 
     // Warn-Blinken ab 30s aktivieren und für neues Spiel wieder entfernen
     if (p1Time <= 30) {
@@ -886,6 +886,7 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  *
  * B) Werkzeuge
  *
+ * Game-Setup Screen (nach Namenseingabe (oder vor?)) für Spielmodi und Timerlänge (verschiedene Längen zwischen 1min und 10min (1 Partymodus mit Random Zufallszeit - extra Auslosscreen))
  * Drag & Drop bei Mobilesteuerung?
  *
  * C) Umbau der Struktur
@@ -894,7 +895,6 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  *
  * E) Oberfläche
  * Top-Bar überarbeiten (Überschrift in die Mitte - vllt. was anderes als nur "DAME", Logo nach links außen)
- * Wird der Bildschirm zu schmal, springen die Timerbalken raus. (Wir brauchen eine andere Idee für die Uhr und Timer)
  * Farbauswahl soll:
  *  a) Mehr Brettfarben bekommen
  *  b) Auch die Steine in eine andere Farbe packen können

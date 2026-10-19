@@ -23,6 +23,7 @@
         display: flex;
         align-items: center;
         gap: 0.9375rem;
+        min-width: 0; /* Darf schmaler werden als sein Inhalt, dann schrumpft die Farbauswahl */
     }
 
     /* Kleine Buttons in der Kopfzeile. Weil der Layer "layout" nach "components" kommt,
@@ -40,6 +41,7 @@
 
     /* Auswahl des Farbschemas, im selben Stil wie die Buttons daneben */
     .nav-select {
+        min-width: 0; /* Kürzt auf sehr schmalen Handys den Text, statt die Kopfzeile zu sprengen */
         padding: 0.5rem;
         font: inherit;
         color: var(--color-text);
