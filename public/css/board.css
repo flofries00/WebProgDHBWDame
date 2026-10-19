@@ -88,7 +88,7 @@
 
         /* Mögliches Zielfeld: grün mit Punkt in der Mitte */
         &.highlighted {
-            background-color: rgba(0, 255, 0, 0.4);
+            background-color: var(--color-move-target);
             cursor: pointer;
             box-shadow: inset 0 0 12px rgba(0, 255, 0, 0.9);
             &::after {
@@ -102,7 +102,7 @@
 
         /* Mögliches Schlagfeld: rot mit Ring */
         &.highlighted-capture {
-            background-color: rgba(255, 0, 0, 0.4);
+            background-color: var(--color-capture-target);
             cursor: pointer;
             box-shadow: 0 0 12px rgba(255, 0, 0, 0.9);
 
