@@ -1,16 +1,16 @@
 // ESLint-Konfiguration: Prüft den Code auf typische Fehler (z.B. Tippfehler oder unbekannte Variablen)
-const js = require('@eslint/js');
-const globals = require('globals');
+import js from '@eslint/js';
+import globals from 'globals';
 
-module.exports = [
+export default [
     // Empfohlene ESLint Standardregeln
     js.configs.recommended,
 
-    // Server (Node.js)
+    // Server (Node.js), ebenfalls als ES-Modul
     {
         files: ['server.js', 'eslint.config.js'],
         languageOptions: {
-            sourceType: 'commonjs',
+            sourceType: 'module',
             globals: globals.node,
         },
     },

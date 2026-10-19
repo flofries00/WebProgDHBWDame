@@ -793,7 +793,6 @@ document.getElementById('board').addEventListener('drop', handleDrop);
  * C) Umbau der Struktur
  *
  * D) Robustheit & Qualität
- * Server prüft Züge selbst (Anti-Cheating, gemeinsames Regel-Modul für Client + Server)
  * Tests: Regel-Modul + Server (Jest oder node:test)
  * Architektur + Kommunikationsablauf als Mermaid-Diagramme in die README
  *
