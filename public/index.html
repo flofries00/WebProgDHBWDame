@@ -123,7 +123,9 @@
                                 <span id="p1Color">(Weiß)</span>
                                 <div id="p1Captured" class="captured-container"></div>
                             </div>
-                            <div id="turnIndicator" class="turn-indicator-large">Weiß ist am Zug</div>
+                            <div id="turnIndicator" class="turn-indicator-large" aria-live="polite">
+                                Weiß ist am Zug
+                            </div>
                             <div class="player-info right-align">
                                 <span id="opponentNameHeader">Computer</span>
                                 <span id="compColor">(Schwarz)</span>
@@ -139,14 +141,25 @@
                                 </div>
                             </div>
 
+                            <!-- Bedienhinweis für Screenreader (Felder sind Buttons, siehe game.js) -->
+                            <p id="boardHelp" class="visually-hidden">
+                                Mit den Pfeiltasten über das Brett bewegen, mit Enter oder Leertaste einen Stein
+                                auswählen und auf ein Zielfeld ziehen, mit Escape die Auswahl aufheben.
+                            </p>
                             <div id="boardWrapper" class="board-wrapper">
-                                <div class="coords-y">
+                                <div class="coords-y" aria-hidden="true">
                                     <span>8</span><span>7</span><span>6</span><span>5</span> <span>4</span><span>3</span
                                     ><span>2</span><span>1</span>
                                 </div>
-                                <div id="board" class="board"></div>
+                                <div
+                                    id="board"
+                                    class="board"
+                                    role="group"
+                                    aria-label="Spielbrett"
+                                    aria-describedby="boardHelp"
+                                ></div>
                                 <div></div>
-                                <div class="coords-x">
+                                <div class="coords-x" aria-hidden="true">
                                     <span>A</span><span>B</span><span>C</span><span>D</span> <span>E</span><span>F</span
                                     ><span>G</span><span>H</span>
                                 </div>
@@ -165,7 +178,7 @@
                     <div class="game-right-box">
                         <div id="moveLog" class="move-log large-log">
                             <h3>Spielverlauf</h3>
-                            <ol id="logList"></ol>
+                            <ol id="logList" aria-live="polite"></ol>
                         </div>
 
                         <div id="chatBox" class="chat-container">

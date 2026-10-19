@@ -123,7 +123,10 @@ function generateBoard() {
 
     for (let row = 0; row < BOARD_SIZE; row++) {
         for (let col = 0; col < BOARD_SIZE; col++) {
-            const cell = document.createElement('div');
+            // Jedes Feld ist ein Button: So ist es per Tastatur fokussierbar und reagiert auf Enter und Leertaste
+            const cell = document.createElement('button');
+            cell.type = 'button';
+            cell.tabIndex = -1; // Per Tab ist nur ein Feld erreichbar, der Rest geht über die Pfeiltasten
 
             // Schachbrettmuster: Ist Zeile + Spalte ungerade, ist das Feld dunkel
             const isBlackCell = (row + col) % 2 !== 0;
@@ -141,6 +144,9 @@ function generateBoard() {
         }
     }
 
+    // Startfeld für die Tastatur: das eigene Eckfeld unten links (aus Sicht des Spielers)
+    const startCell = state.playerGetsWhite ? getCell(BOARD_SIZE - 1, 0) : getCell(0, BOARD_SIZE - 1);
+    startCell.tabIndex = 0;
     // Brett visuell um 180° drehen, wenn man Schwarz hat
     const wrapper = document.getElementById('boardWrapper');
     if (!state.playerGetsWhite) {
@@ -154,21 +160,19 @@ function generateBoard() {
  * Erstellt das HTML-Element für einen Stein aus den Brett-Daten ({ color, king })
  */
 function createPieceElement(piece) {
-    const element = document.createElement('div');
+    const element = document.createElement('span');
     element.className = `piece ${piece.color}-piece` + (piece.king ? ' dame' : '');
     element.draggable = true;
-    element.addEventListener('click', selectPiece);
     element.addEventListener('dragstart', handleDragStart);
     element.addEventListener('dragend', handleDragEnd);
     return element;
 }
 
 /**
- * Wird ausgelöst, wenn ein Spieler auf einen Spielstein klickt.
+ * Wählt einen Stein aus (per Klick, Tastatur oder beim Start von Drag & Drop)
+ * isTrusted: true bei echten Eingaben des Spielers, false bei simulierten Klicks
  */
-function selectPiece(event) {
-    const pieceElement = event.target;
-
+function selectPiece(pieceElement, isTrusted) {
     // Während eines Mehrfachsprungs ist nur der springende Stein anklickbar
     if (isMultiJumping && pieceElement !== selectedPiece) {
         return;
@@ -181,8 +185,7 @@ function selectPiece(event) {
     }
 
     // Echte Klicks des Spielers blockieren, der nicht am Zug ist
-    // event.isTrusted ist 'true' bei echten Mausklicks, 'false' bei simulierten
-    if (!isMyTurn() && event.isTrusted) {
+    if (!isMyTurn() && isTrusted) {
         return;
     }
 
@@ -214,6 +217,7 @@ function clearSelection() {
     document.querySelectorAll('.cell.highlighted, .cell.highlighted-capture').forEach((cell) => {
         cell.classList.remove('highlighted', 'highlighted-capture');
     });
+    updateCellLabels();
 }
 
 /**
@@ -224,6 +228,43 @@ function showValidMoves(moves) {
         const cell = getCell(move.toRow, move.toCol);
         cell.classList.add(move.captured ? 'highlighted-capture' : 'highlighted');
     });
+    updateCellLabels();
+}
+
+/**
+ * Wandelt Zeile und Spalte in die Brettschreibweise um (z.B. 7, 0 -> "A1")
+ */
+function toSquareName(row, col) {
+    return 'ABCDEFGH'[col] + (BOARD_SIZE - row);
+}
+
+/**
+ * Beschriftet jedes Feld für Screenreader, z.B. "C3, weißer Stein, ausgewählt" oder "B4, leer, hierhin ziehen"
+ */
+function updateCellLabels() {
+    document
+        .getElementById('board')
+        .querySelectorAll('.cell')
+        .forEach((cell) => {
+            const { row, col } = getPosition(cell);
+            const piece = board[row][col];
+            const parts = [toSquareName(row, col)];
+
+            if (cell.classList.contains('white-bg')) {
+                parts.push('helles Feld');
+            } else if (piece) {
+                const colorName = piece.color === 'white' ? 'weiß' : 'schwarz';
+                parts.push(piece.king ? `${colorName}e Dame` : `${colorName}er Stein`);
+            } else {
+                parts.push('leer');
+            }
+
+            if (cell.querySelector('.selected')) parts.push('ausgewählt');
+            if (cell.classList.contains('highlighted')) parts.push('hierhin ziehen');
+            if (cell.classList.contains('highlighted-capture')) parts.push('hierhin schlagen');
+
+            cell.setAttribute('aria-label', parts.join(', '));
+        });
 }
 
 /**
@@ -231,6 +272,12 @@ function showValidMoves(moves) {
  * gültiges Feld angeklickt wurde
  */
 function handleBoardClick(event) {
+    // Klick auf ein Feld mit Stein: Stein auswählen
+    const pieceElement = event.target.closest('.cell')?.querySelector('.piece');
+    if (pieceElement) {
+        selectPiece(pieceElement, event.isTrusted);
+        return;
+    }
     // Überprüfen, ob Klick auf oder in einer der markierten Zellen landete
     const targetCell = event.target.closest('.cell.highlighted, .cell.highlighted-capture');
 
@@ -407,8 +454,8 @@ function handleGlobalClick(event) {
     // Wenn kein Stein ausgewählt ist, passiert nix
     if (!selectedPiece) return;
 
-    // Geht Klick auf eigenen Stein, greift selectPiece()
-    if (event.target.classList.contains(currentTurn + '-piece')) return;
+    // Geht Klick auf ein Feld mit eigenem Stein, greift selectPiece()
+    if (event.target.closest('.cell')?.querySelector('.' + currentTurn + '-piece')) return;
 
     // Geht Klick auf ein gültiges Zielfeld greift handleBoardClick()
     if (event.target.closest('.cell.highlighted, .cell.highlighted-capture')) return;
@@ -483,6 +530,8 @@ export function endGame(winnerColor, reason = '') {
             .querySelectorAll('.highlighted-capture')
             .forEach((el) => el.classList.remove('highlighted-capture'));
         clonedBoard.querySelectorAll('.selected').forEach((el) => el.classList.remove('selected'));
+        // Die Kopie ist nur ein Bild: inert nimmt ihre Felder aus der Tab-Reihenfolge und vor dem Screenreader
+        clonedBoard.inert = true;
         endBoardCont.appendChild(clonedBoard);
     }
 
@@ -648,8 +697,8 @@ socket.on('receiveMove', (m) => {
  * Startet Ziehen eines Steins
  */
 function handleDragStart(event) {
-    // Klick simulieren, um Felder zu färben
-    selectPiece(event);
+    // Stein auswählen, um Felder zu färben
+    selectPiece(event.target, event.isTrusted);
 
     // Wurde der Stein nicht ausgewählt (wegen bspw. Schlagzwang), Drag abbrechen
     if (selectedPiece !== event.target) {
@@ -704,10 +753,9 @@ function updateTurnIndicator() {
  * Schreibt einen Zug in den Spielverlauf und scrollt mit
  */
 function addToLog(sRow, sCol, eRow, eCol, isCapture, getsPromoted = false) {
-    const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
     // Array-Indexe in Schach-Koordinaten umwandeln
-    const startStr = letters[sCol] + (8 - sRow);
-    const endStr = letters[eCol] + (8 - eRow);
+    const startStr = toSquareName(sRow, sCol);
+    const endStr = toSquareName(eRow, eCol);
 
     const name = isMyTurn() ? 'Du' : state.opponentName;
     const verb = isCapture ? 'schlägt' : 'zieht';
@@ -778,12 +826,53 @@ function updatePieceCursors() {
             p.draggable = true;
         }
     });
+    updateCellLabels();
+}
+
+/**
+ * Tastatursteuerung des Bretts: Pfeiltasten bewegen den Fokus, Escape hebt die Auswahl auf
+ * (Enter und Leertaste lösen bei Buttons automatisch einen Klick aus)
+ */
+function handleBoardKeydown(event) {
+    const cell = event.target.closest('.cell');
+    if (!cell) return;
+
+    if (event.key === 'Escape') {
+        // Wie ein Klick ins Leere: Auswahl aufheben, außer der Gegner ist dran oder ein Mehrfachsprung läuft
+        if (!isMyTurn() || isMultiJumping) return;
+        clearSelection();
+        autoHighlightCaptures();
+        return;
+    }
+
+    const directions = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+    const direction = directions[event.key];
+    if (!direction) return;
+    event.preventDefault(); // Sonst scrollt Seite mit
+
+    // Ist das Brett für Schwarz gedreht, zeigen die Pfeile auf dem Bildschirm in die Gegenrichtung
+    const flip = state.playerGetsWhite ? 1 : -1;
+    const { row, col } = getPosition(cell);
+    const nextCell = getCell(row + direction[0] * flip, col + direction[1] * flip);
+    nextCell?.focus(); // Am Brettrand gibt es kein nächstes Feld
+}
+
+/**
+ * Merkt sich das zuletzt fokussierte Feld: Nur dieses ist per Tab erreichbar (Roving Tabindex)
+ */
+function handleBoardFocus(event) {
+    const cell = event.target.closest('.cell');
+    if (!cell) return;
+    document.getElementById('board').querySelector('.cell[tabindex="0"]').tabIndex = -1;
+    cell.tabIndex = 0;
 }
 
 // Listener sollen nur einmalig registriert werden (nicht bei jedem Spielstart)
 document.getElementById('board').addEventListener('click', handleBoardClick);
 document.getElementById('board').addEventListener('dragover', handleDragOver);
 document.getElementById('board').addEventListener('drop', handleDrop);
+document.getElementById('board').addEventListener('keydown', handleBoardKeydown);
+document.getElementById('board').addEventListener('focusin', handleBoardFocus);
 
 /**
  * TODOs (sortiert nach Bewertungskriterien, Abgabe 27.10. 8:00 Uhr):

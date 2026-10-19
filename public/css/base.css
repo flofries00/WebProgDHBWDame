@@ -23,6 +23,7 @@
         --color-border-strong: #cccccc;
         --color-disabled: #cccccc;
         --color-success: #28a745;
+        --color-focus: #0066ff;
 
         /* Spielbrett in Holzoptik */
         --color-board-light: #deb887;
