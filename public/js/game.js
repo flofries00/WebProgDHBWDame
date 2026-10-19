@@ -891,7 +891,6 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * D) Robustheit & Qualität
  *
  * E) Oberfläche
- * Boardbeschriftung auf allen Seiten (Richtig herum soll es immer links und unten stehen)
  * Andere Farbschemata für Brett und Steine einbauen (Kontrast beachten!)
  * Top-Bar überarbeiten (Überschrift in die Mitte - vllt. was anderes als nur "DAME", Logo nach links außen)
  *

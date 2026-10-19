@@ -147,9 +147,18 @@
                                 auswählen und auf ein Zielfeld ziehen, mit Escape die Auswahl aufheben.
                             </p>
                             <div id="boardWrapper" class="board-wrapper">
-                                <div class="coords-y" aria-hidden="true">
+                                <!-- Beschriftung auf allen vier Seiten, so steht sie auch auf dem gedrehten Brett links und unten -->
+                                <div class="coords-y coords-left" aria-hidden="true">
                                     <span>8</span><span>7</span><span>6</span><span>5</span> <span>4</span><span>3</span
                                     ><span>2</span><span>1</span>
+                                </div>
+                                <div class="coords-y coords-right" aria-hidden="true">
+                                    <span>8</span><span>7</span><span>6</span><span>5</span> <span>4</span><span>3</span
+                                    ><span>2</span><span>1</span>
+                                </div>
+                                <div class="coords-x coords-top" aria-hidden="true">
+                                    <span>A</span><span>B</span><span>C</span><span>D</span> <span>E</span><span>F</span
+                                    ><span>G</span><span>H</span>
                                 </div>
                                 <div
                                     id="board"
@@ -158,7 +167,7 @@
                                     aria-label="Spielbrett"
                                     aria-describedby="boardHelp"
                                 ></div>
-                                <div class="coords-x" aria-hidden="true">
+                                <div class="coords-x coords-bottom" aria-hidden="true">
                                     <span>A</span><span>B</span><span>C</span><span>D</span> <span>E</span><span>F</span
                                     ><span>G</span><span>H</span>
                                 </div>

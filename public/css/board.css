@@ -1,6 +1,6 @@
 /* Spielbrett: Brett, Felder, Steine, Koordinaten, Trophäen und Uhren */
 @layer board {
-    /* Brett mit Holzrahmen, in dem die Koordinaten stehen (links 8-1, unten A-H) */
+    /* Brett mit Holzrahmen, in dem die Koordinaten stehen (Zahlen links und rechts, Buchstaben oben und unten) */
     .board-wrapper {
         --frame-width: 1.5rem; /* Breite des Rahmens = Platz für die Beschriftung */
         display: grid;
@@ -19,10 +19,8 @@
         transition: transform 0.5s ease;
     }
 
-    /* Zahlen 8-1 im linken Rahmen */
+    /* Zahlen 8-1 */
     .coords-y {
-        grid-column: 1;
-        grid-row: 2;
         display: grid;
         grid-template-rows: repeat(8, 1fr);
         align-items: center;
@@ -30,15 +28,40 @@
         font-weight: bold;
     }
 
-    /* Buchstaben A-H im unteren Rahmen */
+    /* Buchstaben A-H */
     .coords-x {
-        grid-column: 2;
-        grid-row: 3;
         display: grid;
         grid-template-columns: repeat(8, 1fr);
         align-items: center;
         justify-items: center;
         font-weight: bold;
+    }
+
+    /* Position der Beschriftung im Rahmen (3x3-Grid, das Brett liegt in der Mitte) */
+    .coords-left {
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .coords-right {
+        grid-column: 3;
+        grid-row: 2;
+    }
+
+    .coords-top {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .coords-bottom {
+        grid-column: 2;
+        grid-row: 3;
+    }
+
+    /* Oben und Rechts steht die Beschriftung auf dem Kopf, wie bei einem echten Brett */
+    .coords-top span,
+    .coords-right span {
+        transform: rotate(180deg);
     }
 
     /* Das eigentliche Brett: 8x8 Felder, bleibt quadratisch */
@@ -207,11 +230,6 @@
             &.locked:hover {
                 transform: rotate(180deg);
             }
-        }
-
-        & .coords-x span,
-        & .coords-y span {
-            transform: rotate(180deg);
         }
     }
 
