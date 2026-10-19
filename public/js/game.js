@@ -545,8 +545,7 @@ export function endGame(winnerColor, reason = '') {
 
     // Erst nach dem Einblenden nach unten scrollen, sonst berechnet der Browser die Höhe falsch
     if (endLogList) {
-        const endLogBox = endLogList.parentElement;
-        endLogBox.scrollTop = endLogBox.scrollHeight;
+        endLogList.scrollTop = endLogList.scrollHeight;
     }
 }
 
@@ -887,10 +886,10 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * D) Robustheit & Qualität
  *
  * E) Oberfläche
- * Endbildschirm überarbeiten (Boxen größer)
  * Sounds auch bei Münzwurf und Sieg/Niederlage
  * Andere Farbschemata für Brett und Steine einbauen (Kontrast beachten!)
  * Boardbeschriftung in Board "einbauen" (Boardrand größer machen)
+ * Krone dreht sich während Animation als Schwarz (BUG)
  *
  * F) Abschluss
  * UI abschließend kontrollieren

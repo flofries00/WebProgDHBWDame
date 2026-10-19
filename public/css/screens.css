@@ -248,7 +248,8 @@
         }
     }
 
-    #logList {
+    #logList,
+    #endLogList {
         flex: 1;
         min-height: 0;
         margin: 0;
@@ -342,17 +343,10 @@
         }
     }
 
-    /* Verkleinerte Kopie des Bretts (nicht klickbar) */
+    /* Kopie des Bretts (nicht klickbar) */
     .end-board-scale {
-        width: 80%;
-        max-width: 21.875rem;
-        aspect-ratio: 1 / 1;
-        margin-inline: auto;
+        width: 100%;
         pointer-events: none;
-
-        & .board-wrapper {
-            max-width: 100%;
-        }
     }
 
     /* Statuszeile für die Revanche (z.B. "Gegner möchte noch eine Runde spielen") */
