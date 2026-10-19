@@ -116,6 +116,48 @@ describe('Matchmaking', () => {
         assert.equal(infoA.oppName, 'Bernd');
         assert.equal(infoB.oppName, 'Anna');
         assert.notEqual(infoA.isWhite, infoB.isWhite);
+        assert.equal(infoA.timeMinutes, 5); // Ohne Angabe gelten 5 Minuten
+        assert.equal(infoB.timeMinutes, 5);
+    });
+
+    it('bringt nur Spieler mit derselben Bedenkzeit zusammen', async () => {
+        const oneMinute = await connectClient();
+        const threeMinutes = await connectClient();
+        const alsoOneMinute = await connectClient();
+        oneMinute.emit('findMatch', 'Anna', '1');
+        threeMinutes.emit('findMatch', 'Bernd', '3');
+        await expectNoEvent(oneMinute, 'matchFound'); // 1 und 3 Minuten passen nicht zusammen
+
+        const matchA = waitFor(oneMinute, 'matchFound');
+        const matchC = waitFor(alsoOneMinute, 'matchFound');
+        alsoOneMinute.emit('findMatch', 'Clara', '1');
+        const [infoA, infoC] = await Promise.all([matchA, matchC]);
+
+        assert.equal(infoA.oppName, 'Clara');
+        assert.equal(infoA.timeMinutes, 1);
+        assert.equal(infoC.timeMinutes, 1);
+        threeMinutes.emit('cancelSearch');
+    });
+
+    it('lost im Partymodus für beide dieselbe Zeit von 1 bis 10 Minuten aus', async () => {
+        const a = await connectClient();
+        const b = await connectClient();
+        const matchA = waitFor(a, 'matchFound');
+        const matchB = waitFor(b, 'matchFound');
+        a.emit('findMatch', 'Anna', 'party');
+        b.emit('findMatch', 'Bernd', 'party');
+        const [infoA, infoB] = await Promise.all([matchA, matchB]);
+
+        assert.equal(infoA.timeMinutes, infoB.timeMinutes);
+        assert.ok(Number.isInteger(infoA.timeMinutes) && infoA.timeMinutes >= 1 && infoA.timeMinutes <= 10);
+    });
+
+    it('ignoriert ungültige Bedenkzeiten', async () => {
+        const invalid = await connectClient();
+        const valid = await connectClient();
+        invalid.emit('findMatch', 'Hacker', '999');
+        valid.emit('findMatch', 'Clara', '999'); // Auch der zweite Spieler darf damit nicht in eine Warteschlange
+        await expectNoEvent(valid, 'matchFound');
     });
 
     it('ignoriert ungültige Namen', async () => {

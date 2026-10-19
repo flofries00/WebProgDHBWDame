@@ -3,6 +3,7 @@ import {
     selectMode,
     showScreen,
     checkInput,
+    showSetup,
     startSearch,
     cancelWait,
     requestReplay,
@@ -33,9 +34,16 @@ onClick('modeOnlineBtn', () => selectMode('online'));
 document.getElementById('playerName').addEventListener('input', checkInput);
 document.getElementById('loginForm').addEventListener('submit', (event) => {
     event.preventDefault();
-    startSearch();
+    showSetup();
 });
 onClick('loginBackBtn', () => showScreen('modeScreen'));
+
+// Spiel einrichten (Bedenkzeit)
+document.getElementById('setupForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+    startSearch();
+});
+onClick('setupBackBtn', () => showScreen('loginScreen'));
 
 // Wartebildschirm
 onClick('cancelWaitBtn', cancelWait);

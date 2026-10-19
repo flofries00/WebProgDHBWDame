@@ -5,6 +5,7 @@ Ein modernes, browserbasiertes Dame-Spiel, entwickelt als Projekt für den Kurs 
 ## Aktueller Funktionsumfang (Frontend)
 
 - **Lobby & Validierung:** Namenseingabe mit Regex-Prüfung und Fail-Safes.
+- **Bedenkzeit wählbar:** 1, 3, 5 oder 10 Minuten pro Spieler oder Partymodus (für beide dieselbe Zufallszeit von 1 bis 10 Minuten, mit eigener Auslosung). Online spielen nur Spieler mit derselben Einstellung gegeneinander.
 - **Münzwurf-Animation:** 3D-CSS-Animation zur zufälligen Bestimmung des Startspielers inkl. Bounce-Effekt.
 - **Vollständige Regel-Engine** für die Variante „Klassisch“ (siehe [Spielregeln](#spielregeln)), inkl. automatischer Erkennung und roter Hervorhebung der Pflichtschläge.
 - **UX-Features:** Optische Trophäen-Anzeige geschlagener Steine in der Kopfzeile, globale Deselektion ("Klick-ins-Leere") und Anzeige der Zugberechtigung.
@@ -126,13 +127,13 @@ sequenceDiagram
     participant S as Server
     actor B as Spieler B
 
-    A->>S: findMatch(name)
-    Note over S: A wartet in der Warteschlange
-    B->>S: findMatch(name)
-    Note over S: Farben auslosen,<br/>eigenes Brett anlegen
-    S-->>A: matchFound(oppName, isWhite)
-    S-->>B: matchFound(oppName, isWhite)
-    Note over A,B: Münzwurf-Animation und Countdown, dann beginnt Weiß
+    A->>S: findMatch(name, timeSetting)
+    Note over S: A wartet in der Warteschlange<br/>für seine Bedenkzeit
+    B->>S: findMatch(name, timeSetting)
+    Note over S: gleiche Bedenkzeit: Farben (und im Partymodus<br/>die Zeit) auslosen, eigenes Brett anlegen
+    S-->>A: matchFound(oppName, isWhite, timeMinutes)
+    S-->>B: matchFound(oppName, isWhite, timeMinutes)
+    Note over A,B: Im Partymodus Auslosungs-Animation, dann Münzwurf und Countdown, dann beginnt Weiß
 
     loop bis ein Spieler gewinnt
         A->>S: makeMove(fromR, fromC, toR, toC)
@@ -163,18 +164,18 @@ sequenceDiagram
 
 ## Socket.io-Ereignisse
 
-| Ereignis              | Richtung         | Daten                          | Prüfung auf dem Server                                                  |
-| --------------------- | ---------------- | ------------------------------ | ----------------------------------------------------------------------- |
-| `findMatch`           | Browser → Server | Spielername                    | 2–16 Zeichen, nur Buchstaben und Ziffern                                |
-| `cancelSearch`        | Browser → Server | –                              | –                                                                       |
-| `matchFound`          | Server → Browser | `oppName`, `isWhite`           | –                                                                       |
-| `makeMove`            | Browser → Server | `fromR`, `fromC`, `toR`, `toC` | ganze Zahlen 0–7, Spieler ist am Zug, Zug laut `rules.js` erlaubt       |
-| `receiveMove`         | Server → Browser | `fromR`, `fromC`, `toR`, `toC` | nur geprüfte Züge werden weitergeleitet                                 |
-| `chatMessage`         | beide Richtungen | Text                           | muss Text sein, wird gekürzt (max. 200 Zeichen), leere werden verworfen |
-| `requestReplay`       | Browser → Server | –                              | –                                                                       |
-| `opponentWantsReplay` | Server → Browser | –                              | –                                                                       |
-| `leaveMatch`          | Browser → Server | –                              | –                                                                       |
-| `opponentLeft`        | Server → Browser | –                              | –                                                                       |
+| Ereignis              | Richtung         | Daten                               | Prüfung auf dem Server                                                                                |
+| --------------------- | ---------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `findMatch`           | Browser → Server | Spielername, Bedenkzeit             | Name: 2–16 Zeichen, nur Buchstaben und Ziffern; Zeit: `1`, `3`, `5`, `10` oder `party` (Standard `5`) |
+| `cancelSearch`        | Browser → Server | –                                   | –                                                                                                     |
+| `matchFound`          | Server → Browser | `oppName`, `isWhite`, `timeMinutes` | –                                                                                                     |
+| `makeMove`            | Browser → Server | `fromR`, `fromC`, `toR`, `toC`      | ganze Zahlen 0–7, Spieler ist am Zug, Zug laut `rules.js` erlaubt                                     |
+| `receiveMove`         | Server → Browser | `fromR`, `fromC`, `toR`, `toC`      | nur geprüfte Züge werden weitergeleitet                                                               |
+| `chatMessage`         | beide Richtungen | Text                                | muss Text sein, wird gekürzt (max. 200 Zeichen), leere werden verworfen                               |
+| `requestReplay`       | Browser → Server | –                                   | –                                                                                                     |
+| `opponentWantsReplay` | Server → Browser | –                                   | –                                                                                                     |
+| `leaveMatch`          | Browser → Server | –                                   | –                                                                                                     |
+| `opponentLeft`        | Server → Browser | –                                   | –                                                                                                     |
 
 Zusätzlich gilt: Nachrichten über 10 KB lehnt Socket.io ab, und jeder Handler läuft in `try/catch` (`onSafe`). Ein fehlerhaftes Ereignis bringt den Server also nicht zum Absturz.
 

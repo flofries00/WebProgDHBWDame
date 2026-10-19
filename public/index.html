@@ -83,7 +83,28 @@
                     </div>
                     <!-- type="button": dieser Button schickt das Formular nicht ab -->
                     <button type="button" id="loginBackBtn" class="secondary-btn">← Zurück</button>
-                    <button type="submit" id="searchBtn" disabled>Gegner suchen</button>
+                    <button type="submit" id="searchBtn" disabled>Weiter</button>
+                </form>
+            </section>
+
+            <!-- 1b. Bildschirm: Spiel einrichten (Bedenkzeit) -->
+            <section id="setupScreen" class="screen">
+                <h2>Spiel einrichten</h2>
+                <form id="setupForm">
+                    <fieldset class="time-options">
+                        <legend>Bedenkzeit pro Spieler</legend>
+                        <label><input type="radio" name="timeSetting" value="1" /> 1 Minute</label>
+                        <label><input type="radio" name="timeSetting" value="3" /> 3 Minuten</label>
+                        <label><input type="radio" name="timeSetting" value="5" checked /> 5 Minuten</label>
+                        <label><input type="radio" name="timeSetting" value="10" /> 10 Minuten</label>
+                        <label>
+                            <input type="radio" name="timeSetting" value="party" aria-describedby="partyHint" />
+                            Partymodus
+                            <span id="partyHint" class="input-hint">1 bis 10 Minuten per Zufall, für beide gleich</span>
+                        </label>
+                    </fieldset>
+                    <button type="button" id="setupBackBtn" class="secondary-btn">← Zurück</button>
+                    <button type="submit" id="setupStartBtn">Gegner suchen</button>
                 </form>
             </section>
 
@@ -91,6 +112,7 @@
             <section id="waitingScreen" class="screen">
                 <h2>Hallo, <span id="waitName"></span>!</h2>
                 <p>Warte auf Gegner...</p>
+                <p id="waitTimeText" class="login-subtitle"></p>
                 <div class="waiting-animation">
                     <div class="dot"></div>
                     <div class="dot"></div>
@@ -98,6 +120,14 @@
                     <div class="dot"></div>
                 </div>
                 <button id="cancelWaitBtn">Warten abbrechen</button>
+            </section>
+
+            <!-- 2b. Bildschirm: Auslosung der Bedenkzeit (nur im Partymodus) -->
+            <section id="partyScreen" class="screen">
+                <h2>Partymodus</h2>
+                <p>Die Bedenkzeit wird ausgelost:</p>
+                <p class="party-time"><span id="partyTimeNumber">?</span> min</p>
+                <p id="partyTimeText" aria-live="polite"></p>
             </section>
 
             <!-- 3. Bildschirm: Spielstart / Münzwurf -->

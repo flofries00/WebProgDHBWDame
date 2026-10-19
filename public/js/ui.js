@@ -8,6 +8,7 @@ import { playSound } from './sound.js';
 let searchTimeout; // Timer für Gegnersuche
 let coinTossTimeout; // Timer bis zur Landung der Münze
 let countdownInterval; // Countdown bis Spielstart
+let partyTimeout; // Nächster Schritt der Zeit-Auslosung im Partymodus
 
 /**
  * Speichert den gewählten Spielmodus und wechselt zur Anmeldung.
@@ -77,12 +78,26 @@ export function checkInput() {
 }
 
 /**
- * Wird aufgerufen, wenn man auf "Suchen" klickt.
+ * Nach gültigem Namen: Namen merken und zum Bildschirm "Spiel einrichten" wechseln
+ */
+export function showSetup() {
+    // Schutz vor Doppelauslösung
+    if (!document.getElementById('loginScreen').classList.contains('active')) return;
+
+    state.currentPlayerName = document.getElementById('playerName').value;
+    // Gegen den Computer gibt es nichts zu suchen
+    document.getElementById('setupStartBtn').textContent =
+        state.gameMode === 'online' ? 'Gegner suchen' : 'Spiel starten';
+    showScreen('setupScreen');
+}
+
+/**
+ * Wird aufgerufen, wenn man auf "Gegner suchen" bzw. "Spiel starten" klickt.
  * Wechselt in den Wartebildschirm.
  */
 export function startSearch() {
-    //Schutz vor Doppelauslösung, nur dann suchen, wenn der Namensbildschirm wirklich angezeigt wird
-    if (!document.getElementById('loginScreen').classList.contains('active')) return;
+    //Schutz vor Doppelauslösung, nur dann suchen, wenn der Setupbildschirm wirklich angezeigt wird
+    if (!document.getElementById('setupScreen').classList.contains('active')) return;
 
     // Ohne Serververbindung ist keine Online-Partie möglich
     if (state.gameMode === 'online' && !socket.connected) {
@@ -90,8 +105,10 @@ export function startSearch() {
         return;
     }
 
-    // Namen auslesen und speichern
-    state.currentPlayerName = document.getElementById('playerName').value;
+    // Gewählte Bedenkzeit merken und im Wartebildschirm anzeigen
+    state.timeSetting = document.querySelector('input[name="timeSetting"]:checked').value;
+    document.getElementById('waitTimeText').textContent =
+        state.timeSetting === 'party' ? 'Partymodus (Zufallszeit)' : `Bedenkzeit: ${state.timeSetting} min`;
 
     // Namen in die HTML-Platzhalter der anderen Bildschirme eintragen
     document.getElementById('waitName').textContent = state.currentPlayerName;
@@ -101,8 +118,8 @@ export function startSearch() {
     showScreen('waitingScreen');
 
     if (state.gameMode === 'online') {
-        // Echter Multiplayer: Server um Match bitten
-        socket.emit('findMatch', state.currentPlayerName);
+        // Echter Multiplayer: Server um Match mit gleicher Bedenkzeit bitten
+        socket.emit('findMatch', state.currentPlayerName, state.timeSetting);
     } else {
         // Computer: Wie bisher simuliert
         state.opponentName = 'Computer';
@@ -115,11 +132,7 @@ export function startSearch() {
         clearTimeout(searchTimeout);
 
         // Simuliert eine Netzwerksuche: Nach 2000 Millisekunden (2 Sekunden) geht es weiter
-        searchTimeout = setTimeout(() => {
-            state.playerGetsWhite = Math.random() < 0.5;
-            showScreen('coinTossScreen');
-            simulateCoinToss();
-        }, 2000);
+        searchTimeout = setTimeout(startComputerMatch, 2000);
     }
 }
 
@@ -135,7 +148,65 @@ export function cancelWait() {
         socket.emit('cancelSearch');
     }
 
-    showScreen('loginScreen');
+    showScreen('setupScreen'); // Zurück zur Auswahl, Name und Bedenkzeit bleiben erhalten
+}
+
+/**
+ * Gegen den Computer: Farbe und (im Partymodus) Bedenkzeit selbst auslosen, dann geht es los
+ */
+function startComputerMatch() {
+    state.playerGetsWhite = Math.random() < 0.5;
+    state.timeMinutes = state.timeSetting === 'party' ? Math.floor(Math.random() * 10) + 1 : Number(state.timeSetting);
+    beginMatchIntro();
+}
+
+/**
+ * Vor dem Spiel: im Partymodus zuerst die Auslosung der Bedenkzeit, danach immer der Münzwurf
+ */
+function beginMatchIntro() {
+    if (state.timeSetting === 'party') {
+        showPartyDraw();
+    } else {
+        showScreen('coinTossScreen');
+        simulateCoinToss();
+    }
+}
+
+/**
+ * Partymodus: Zahlen laufen wie bei einem Glücksrad durch, werden langsamer und bleiben bei der Bedenkzeit stehen
+ */
+function showPartyDraw() {
+    clearTimeout(partyTimeout);
+    showScreen('partyScreen');
+
+    const numberEl = document.getElementById('partyTimeNumber');
+    const textEl = document.getElementById('partyTimeText');
+    textEl.textContent = '';
+
+    const steps = 15;
+    let step = 0;
+
+    const spin = () => {
+        if (step < steps) {
+            numberEl.textContent = Math.floor(Math.random() * 10) + 1;
+            playSound('move');
+            step++;
+            partyTimeout = setTimeout(spin, 50 + step * step * 1.5); // Jeder Schritt dauert etwas länger
+            return;
+        }
+
+        // Ergebnis anzeigen (die Zeit steht schon fest: vom Server bzw. in startComputerMatch ausgelost)
+        const minutes = state.timeMinutes;
+        numberEl.textContent = minutes;
+        textEl.textContent = `Ihr habt beide ${minutes} ${minutes === 1 ? 'Minute' : 'Minuten'} Bedenkzeit.`;
+        playSound('coinLand');
+
+        partyTimeout = setTimeout(() => {
+            showScreen('coinTossScreen');
+            simulateCoinToss();
+        }, 2000);
+    };
+    spin();
 }
 
 /**
@@ -210,10 +281,8 @@ export function requestReplay() {
         btn.textContent = 'Warte auf Gegner...';
         socket.emit('requestReplay');
     } else {
-        // Gegen Computer startet das Spiel sofort wieder, Farbe wird neu ausgelost
-        state.playerGetsWhite = Math.random() < 0.5;
-        showScreen('coinTossScreen');
-        simulateCoinToss();
+        // Gegen Computer startet das Spiel sofort wieder, Farbe (und im Partymodus die Zeit) wird neu ausgelost
+        startComputerMatch();
     }
 }
 
@@ -245,6 +314,7 @@ export function leaveToLobby() {
 socket.on('matchFound', (data) => {
     state.opponentName = data.oppName;
     state.playerGetsWhite = data.isWhite;
+    state.timeMinutes = data.timeMinutes;
 
     // Namen in HTML eintragen
     const oppDisp = document.getElementById('opponentNameDisplay');
@@ -264,9 +334,8 @@ socket.on('matchFound', (data) => {
     }
     if (replayStatus) replayStatus.textContent = '';
 
-    // Animation starten
-    showScreen('coinTossScreen');
-    simulateCoinToss();
+    // Animation starten (im Partymodus zuerst die Auslosung der Zeit)
+    beginMatchIntro();
 });
 
 /**
@@ -352,7 +421,13 @@ socket.on('opponentLeft', () => {
     const status = document.getElementById('replayStatus');
     const btn = document.getElementById('replayBtn');
 
-    // Gegner verlässt während des Münzwurfs -> Start abbrechen, zurück zur Lobby
+    // Gegner verlässt während der Auslosung oder des Münzwurfs -> Start abbrechen, zurück zur Lobby
+    if (document.getElementById('partyScreen').classList.contains('active')) {
+        clearTimeout(partyTimeout);
+        document.getElementById('partyTimeText').textContent = `${state.opponentName} hat das Spiel verlassen.`;
+        setTimeout(leaveToLobby, 3000);
+        return;
+    }
     if (document.getElementById('coinTossScreen').classList.contains('active')) {
         clearTimeout(coinTossTimeout);
         clearInterval(countdownInterval);
@@ -470,12 +545,13 @@ export function showConfirm(title, text, confirmLabel, cancelLabel) {
 socket.on('disconnect', () => {
     if (state.gameMode !== 'online') return; // Partien gegen den Computer brauchen keinen Server
 
-    // Auf Modus- und Namensbildschirm läuft nichts, was beendet werden müsste
-    const activeScreen = document.querySelector('.screen-active').id;
-    if (activeScreen === 'modeScreen' || activeScreen === 'loginScreen') return;
+    // Auf Modus-, Namens-, und Setupbildschirm läuft nichts, was beendet werden müsste
+    const activeScreen = document.querySelector('.screen.active').id;
+    if (['modeScreen', 'loginScreen', 'setupScreen'].includes(activeScreen)) return;
 
     // Alles stoppen, was im Hintergrund weiterläuft
     stopGame();
+    clearTimeout(partyTimeout);
     clearTimeout(coinTossTimeout);
     clearInterval(countdownInterval);
 

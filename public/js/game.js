@@ -9,8 +9,9 @@ let board = []; // Spielbrett als Daten
 let currentTurn = 'white'; // Weiß hat nach den bekannten Dame-Regeln immer den ersten Zug
 let selectedPiece = null; // Speichert das HTML-Element des aktuell angeklickten Steins.
 let moveCount = 0; // Zählt Züge mit
-let whiteTime = 300; // Startzeit Weiß (5min / 300s)
-let blackTime = 300; // Startzeit Schwarz (5min / 300s)
+let startTime = 300; // Bedenkzeit pro Spieler in Sekunden (wird bei Spielstart aus der Einstellung gesetzt)
+let whiteTime = startTime; // Startzeit Weiß
+let blackTime = startTime; // Startzeit Schwarz
 let timerInterval = null;
 let isMultiJumping = false; // Sperrt andere Steine während eines Multisprungs
 let computerMoveTimeout = null; // Ausstehender Computerzug (damit er abgebrochen werden kann)
@@ -62,8 +63,9 @@ export function startGame() {
     document.getElementById('compCaptured').innerHTML = '';
 
     // Startzeiten zurücksetzen und Anzeige aktualisieren
-    whiteTime = 300;
-    blackTime = 300;
+    startTime = state.timeMinutes * 60;
+    whiteTime = startTime;
+    blackTime = startTime;
     updateTimerDisplays();
     startTurnTimer();
 
@@ -637,9 +639,9 @@ function updateTimerDisplays() {
     p1El.textContent = format(p1Time);
     compEl.textContent = format(compTime);
 
-    // b) Füllstand der Zeitbalken als Anteil von 0 bis 1 (Basis: 300s), die Richtung regelt das CSS
-    p1Bar.style.setProperty('--time-left', p1Time / 300);
-    compBar.style.setProperty('--time-left', compTime / 300);
+    // b) Füllstand der Zeitbalken als Anteil von 0 bis 1 (Basis: Startzeit), die Richtung regelt das CSS
+    p1Bar.style.setProperty('--time-left', p1Time / startTime);
+    compBar.style.setProperty('--time-left', compTime / startTime);
 
     // Warn-Blinken ab 30s aktivieren und für neues Spiel wieder entfernen
     if (p1Time <= 30) {
@@ -905,8 +907,7 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * Firefox + Safari von Hand testen
  *
  * B) Werkzeuge
- *
- * Game-Setup Screen (nach Namenseingabe (oder vor?)) für Spielmodi und Timerlänge (verschiedene Längen zwischen 1min und 10min (1 Partymodus mit Random Zufallszeit - extra Auslosscreen))
+ * Anzeige der Anzahl in Warteschlange (falls noch nicht passiert)
  *
  * C) Umbau der Struktur
  *
