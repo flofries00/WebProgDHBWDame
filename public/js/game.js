@@ -280,12 +280,24 @@ function handleBoardClick(event) {
     }
     // Überprüfen, ob Klick auf oder in einer der markierten Zellen landete
     const targetCell = event.target.closest('.cell.highlighted, .cell.highlighted-capture');
+    if (!targetCell) return;
 
-    // Abbruchbedingung, wenn keine markierte Zelle oder kein Stein ausgewählt wurde
-    if (!targetCell || !selectedPiece) return;
-
-    // Echte Klicks kommen nur vom Spieler, der am Zug ist (verhindert Eingriffe in Computer- / Gegnerzüge)
+    // Echte Klicks kommen nur vom Spieler, der am Zug ist (verhindert Eingriffe in Gegnerzüge)
     if (event.isTrusted && !isMyTurn()) return;
+
+    // Auto-Klick bei Schlagzwang: Direkt auf ein rotes Feld geklickt, ohne vorher einen Stein zu wählen
+    // Kann genau ein Stein dorthin schlagen, wird er automatisch ausgewählt
+    if (!selectedPiece) {
+        const to = getPosition(targetCell);
+        const captures = getCurrentLegalMoves().filter(
+            (move) => move.captured && move.toRow === to.row && move.toCol === to.col
+        );
+        if (captures.length !== 1) return; // Mehrere Steine können dorthin schlagen -> Erst den Stein wählen
+        selectPiece(getCell(captures[0].fromRow, captures[0].fromCol).querySelector('.piece'), event.isTrusted);
+    }
+
+    // Abbruch, wenn kein Stein ausgewählt ist (z.B. weil die automatische Auswahl nicht erlaubt war)
+    if (!selectedPiece) return;
 
     // Passenden erlaubten Zug suchen. Gibt es ihn laut Regeln nicht, passiert nichts.
     const from = getPosition(selectedPiece);
@@ -914,13 +926,10 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  *
  * E) Oberfläche
  *
- * evtl. eigenes Farbrad? (Farbe "individuell" für Brett und Steine? Kontrast trotzdem beachten!)
- *
  * F) Abschluss
  * UI abschließend kontrollieren
  * Code-Kommentare verbessern
  * Github-Repo aufräumen (README, Lizenz), Präsentation vorbereiten
- * Auto-Klick bei Schlägen (also nicht erst Klick auf Stein sondern direkt auf Feld)
  * Auf Server hochladen (http und https Zertifikate)
  *
  * G) Optional, nur wenn Zeit bleibt
