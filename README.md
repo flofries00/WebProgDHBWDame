@@ -1,16 +1,35 @@
-# Dame – Browser Multiplayer
+# Dame Online – Browser Multiplayer
 
-Ein modernes, browserbasiertes Dame-Spiel, entwickelt als Projekt für den Kurs Web-Engineering an der DHBW. Der Fokus liegt aktuell auf einer sauberen Trennung von Benutzeroberfläche und Spiellogik im Frontend sowie einer intuitiven User Experience durch visuelles Feedback.
+Dame im Browser: gegen den Computer oder online gegen einen anderen Menschen. Entstanden als Projekt im Kurs
+Web-Programmierung an der DHBW Mannheim. Das Frontend kommt ohne Frameworks aus (HTML, CSS und JavaScript als
+ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jeden Online-Zug selbst.
 
-## Aktueller Funktionsumfang (Frontend)
+## Funktionsumfang
 
-- **Lobby & Validierung:** Namenseingabe mit Regex-Prüfung und Fail-Safes.
-- **Bedenkzeit wählbar:** 1, 3, 5 oder 10 Minuten pro Spieler oder Partymodus (für beide dieselbe Zufallszeit von 1 bis 10 Minuten, mit eigener Auslosung). Online spielen nur Spieler mit derselben Einstellung gegeneinander.
-- **Farbauswahl:** 8 Brett- und 4 Steinvorlagen oder eigene Farben, mit Live-Vorschau und Kontrastprüfung nach WCAG (Hinweis bei schwer erkennbaren Kombinationen). Die Wahl wird im Browser gespeichert.
-- **Hilfe-Fenster** (?) mit Bedienung, Markierungen und Spielregeln.
-- **Münzwurf-Animation:** 3D-CSS-Animation zur zufälligen Bestimmung des Startspielers inkl. Bounce-Effekt.
-- **Vollständige Regel-Engine** für die Variante „Klassisch“ (siehe [Spielregeln](#spielregeln)), inkl. automatischer Erkennung und roter Hervorhebung der Pflichtschläge.
-- **UX-Features:** Optische Trophäen-Anzeige geschlagener Steine in der Kopfzeile, globale Deselektion ("Klick-ins-Leere") und Anzeige der Zugberechtigung.
+**Spielen**
+
+- **Zwei Modi:** gegen den Computer oder online gegen einen anderen Menschen, mit Chat und Revanche.
+- **Vollständige Spielregeln** der Variante „Klassisch“ (siehe [Spielregeln](#spielregeln)): Schlagzwang, Mehrfachsprung,
+  fliegende Dame. Pflichtschläge werden automatisch rot markiert und lassen sich direkt anklicken.
+- **Bedenkzeit wählbar:** 1, 3, 5 oder 10 Minuten pro Spieler oder Partymodus (für beide dieselbe Zufallszeit von 1 bis
+  10 Minuten, mit eigener Auslosung). Online spielen nur Spieler mit derselben Einstellung gegeneinander, der
+  Setup-Bildschirm zeigt, wo gerade jemand wartet.
+- **Münzwurf** um die Farbe, Countdown bis zum Start, Konfetti oder Regen am Ende, Spielverlauf und Endstand.
+
+**Bedienung und Oberfläche**
+
+- Ziehen per **Klick, Drag & Drop** (Maus, Finger und Stift über Pointer Events) oder **Tastatur**.
+- **Farbauswahl:** 8 Brett- und 4 Steinvorlagen oder eigene Farben, mit Live-Vorschau und Kontrastprüfung. Die Wahl
+  wird im Browser gespeichert.
+- **Hilfe-Fenster** (?) mit Bedienung, Markierungen und Regeln.
+- **Responsive** von 320px (Handy) bis zum großen Monitor, das Brett passt sich der Fensterhöhe an.
+- Töne für Züge, Münzwurf und Spielende, erzeugt per Web Audio API (abschaltbar).
+
+**Sicherheit**
+
+- Der Server führt für jede Partie ein eigenes Brett und **prüft jeden Zug** mit denselben Regeln wie der Browser
+  (`rules.js`). Unerlaubte oder gefälschte Züge werden verworfen.
+- Namen, Bedenkzeit und Chatnachrichten werden auch serverseitig geprüft, Nachrichten werden nur als Text angezeigt.
 
 ## Spielregeln
 
@@ -48,21 +67,41 @@ Aktuell wird die Variante **„Klassisch“** gespielt. Eine zweite Variante „
 - Jede Seite hat dieselbe Bedenkzeit (1, 3, 5 oder 10 Minuten, im Partymodus ausgelost), es gilt das Schachuhr-Prinzip. Wer die Zeit überschreitet, verliert.
 - Wer aufgibt oder eine Online-Partie verlässt, verliert.
 
+## Barrierefreiheit
+
+- **Tastatur:** Das Brett besteht aus Buttons. Mit Tab gelangt man aufs Brett, mit den Pfeiltasten bewegt man sich, mit
+  Enter oder Leertaste wird ausgewählt und gezogen, Escape hebt die Auswahl auf. Der Fokusrahmen ist zweifarbig und auf
+  jedem Feld sichtbar.
+- **Screenreader:** Jedes Feld hat eine Beschriftung (z.B. „D4, leer, hierhin ziehen“), neue Züge im Spielverlauf und
+  Hinweise werden angesagt.
+- **Nicht nur Farbe:** Zugfelder haben einen Punkt, Schlagfelder einen Ring.
+- **Kontrast** nach WCAG 2.1 (Text mindestens 4,5:1, Grafiken mindestens 3:1), auch für alle Farbvorlagen. Bei eigenen
+  Farben warnt die Farbauswahl vor schwer erkennbaren Kombinationen.
+- **Schrift** überall mindestens 16px mit Zeilenabstand 1,5. Wer im Betriebssystem „Bewegung reduzieren“ eingestellt
+  hat, bekommt kein Konfetti und keinen Regen.
+
+## Qualitätssicherung
+
+- **Automatische Tests** mit `node:test` (`npm test`): Spielregeln, Farblogik und Kontrast sowie Integrationstests gegen
+  den echten Server (Matchmaking, Zugprüfung, Chat, Revanche, Warteschlangen).
+- **ESLint** (`npm run lint`) und **Prettier** (`npm run format:check`) für einheitlichen, fehlerarmen Code.
+
 ## Dateistruktur
 
 Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit Node.js, Express und Socket.io:
 
 ```text
 ├── server.js            Node.js-Server: liefert public/ aus, Matchmaking, Zugprüfung, Chat
+├── LICENSE              MIT-Lizenz
 ├── public/
-│   ├── index.html       Alle Bildschirme (Modus, Anmeldung, Warten, Münzwurf, Spiel, Ende)
+│   ├── index.html       Alle Bildschirme (Modus, Name, Setup, Warten, Münzwurf, Spiel, Ende) und Dialoge
 │   ├── css/             Styles, aufgeteilt in CSS-Layer (main.css legt die Reihenfolge fest)
 │   └── js/
 │       ├── main.js      Einstiegspunkt: verbindet Buttons und Formulare mit den Funktionen
 │       ├── ui.js        Bildschirmwechsel, Suche, Münzwurf, Chat, Dialoge
 │       ├── game.js      Brett anzeigen, Züge ausführen, Uhr, Computergegner
 │       ├── rules.js     Spielregeln ohne HTML (wird auch vom Server genutzt)
-│       ├── state.js     Gemeinsamer Zustand (Spielmodus, Namen, Farbe)
+│       ├── state.js     Gemeinsamer Zustand (Spielmodus, Namen, Farbe, Bedenkzeit)
 │       ├── socket.js    Gemeinsame Verbindung zum Server
 │       ├── sound.js     Töne über die Web Audio API
 │       ├── theme.js     Farben-Fenster: Vorlagen, eigene Farben, Vorschau, Speichern im Browser
@@ -230,8 +269,17 @@ nohup npm start -- 8080 > server.log 2>&1 &
 Der Server läuft dann im Hintergrund weiter, auch nach dem Abmelden. Ausgaben stehen in `server.log`.
 Beenden mit: `pkill -f "node server.js"`
 
-## Nächste Entwicklungsschritte
+## Mögliche Erweiterungen
 
-- Barrierefreiheit: Tastaturbedienung des Bretts, Kontraste, Schriftgrößen
-- Endbildschirm überarbeiten
-- Optional: Zweite Variante "International" (10x10), Dark-Mode-Toggle, Tutorial
+- Zweite Variante „International“ (10×10, Steine schlagen auch rückwärts)
+- Private Räume für Partien mit Freunden
+- Dark Mode und ein interaktives Tutorial
+- Durchklickbares Replay einer Partie (Zug für Zug)
+
+## Autor
+
+Florian Fries – Wirtschaftsinformatik, DHBW Mannheim
+
+## Lizenz
+
+[MIT](LICENSE)

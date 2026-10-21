@@ -1,7 +1,7 @@
 {
     "name": "webprogdhbwdame",
     "version": "1.0.0",
-    "description": "Ein modernes, browserbasiertes Dame-Spiel, entwickelt als Projekt für den Kurs Web-Engineering an der DHBW. Der Fokus liegt aktuell auf einer sauberen Trennung von Benutzeroberfläche und Spiellogik im Frontend sowie einer intuitiven User Experience durch visuelles Feedback.",
+    "description": "Dame im Browser: gegen den Computer oder online gegen einen anderen Menschen (Projekt Web-Programmierung, DHBW Mannheim)",
     "main": "server.js",
     "scripts": {
         "build": "echo \"Kein Build-Schritt nötig: Das Frontend wird direkt aus public/ ausgeliefert.\"",
@@ -17,8 +17,8 @@
         "url": "git+https://github.com/flofries00/WebProgDHBWDame.git"
     },
     "keywords": [],
-    "author": "",
-    "license": "ISC",
+    "author": "Florian Fries",
+    "license": "MIT",
     "type": "module",
     "engines": {
         "node": ">=18"
