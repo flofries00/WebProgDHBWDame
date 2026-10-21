@@ -246,6 +246,40 @@
         }
     }
 
+    /* Vorschau im Farben-Fenster: Kleines Brett mit Rahmen, nicht anklickbar */
+    .theme-preview {
+        grid-area: preview;
+        align-self: start;
+        justify-self: center;
+        width: 12rem;
+        padding: 0.625rem;
+        background-color: var(--color-board-frame);
+        border-radius: var(--radius-small);
+        pointer-events: none;
+
+        & .preview-board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            aspect-ratio: 1 / 1;
+        }
+
+        /* Rand in die Größe einrechnen, sonst füllen die Steine die kleinen Felder fast ganz aus */
+        & .piece {
+            box-sizing: border-box;
+        }
+
+        /* Gleiche 8 Spalten wie das Brett: Jeder Buchstabe steht unter seiner Spalte */
+        & .preview-label {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            margin-block-start: 0.25rem;
+            font-weight: bold;
+            text-align: center;
+            color: var(--color-board-light);
+        }
+    }
+
     /* Geschlagene Steine (Trophäen) in der Kopfzeile */
     .captured-container {
         display: flex;

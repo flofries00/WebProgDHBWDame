@@ -913,11 +913,6 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * D) Robustheit & Qualität
  *
  * E) Oberfläche
- * Farbauswahl soll:
- *  a) Mehr Brettfarben bekommen
- *  b) Auch die Steine in eine andere Farbe packen können
- *  c) Ein eigenes Fenster öffnen, wo bei der Auswahl auch eine Vorschau des Bretts zu sehen ist
- *  d) Eigene Konstellationen von Brett- und Steinfarben sollen möglich sein (Mit Hinweis auf mögliche Kontrastprobleme bei problematischen Kombinationen)
  *
  * evtl. eigenes Farbrad? (Farbe "individuell" für Brett und Steine? Kontrast trotzdem beachten!)
  *

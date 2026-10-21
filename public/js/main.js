@@ -12,7 +12,7 @@ import {
 } from './ui.js';
 import { abortGame } from './game.js';
 import { toggleSound } from './sound.js';
-import { loadTheme, openThemeDialog, handleThemeChange, handleThemeDialogClose } from './theme.js';
+import { loadTheme, openThemeDialog, handleThemeInput, handleThemeDialogClose } from './theme.js';
 
 /**
  * Kurzform: Klick-Handler für das Element mit der angegebenen ID registieren
@@ -27,7 +27,7 @@ onClick('themeBtn', openThemeDialog);
 loadTheme();
 
 // Fenster für die Farben
-document.getElementById('themeForm').addEventListener('change', handleThemeChange);
+document.getElementById('themeForm').addEventListener('input', handleThemeInput);
 document.getElementById('themeDialog').addEventListener('close', handleThemeDialogClose);
 
 // Modus-Auswahl

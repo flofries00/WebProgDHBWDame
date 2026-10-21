@@ -1,10 +1,13 @@
 // Farbschema für Brett und Steine: Fenster mit den Vorlagen, Farben als CSS-Variablen anwenden und im Browser merken.
 // Die Vorlagen und die Kontrastprüfung stehen in colors.js
-import { BOARD_PRESETS, PIECE_PRESETS, DEFAULT_THEME, deriveColors, parseStoredTheme } from './colors.js';
+import { BOARD_PRESETS, PIECE_PRESETS, DEFAULT_THEME, deriveColors, parseStoredTheme, checkColors } from './colors.js';
 
 const STORAGE_KEY = 'boardTheme';
 let currentTheme = DEFAULT_THEME; // Aktuelles Farbschema: { board, pieces, colors }
 let draft = null; // Auswahl im geöffneten Fenster, wird erst mit "Übernehmen" zum aktuellen Farbschema
+
+// Welche Farben zum Brett und welche zu den Steinen gehören (für eigene Farben)
+const BOARD_COLOR_KEYS = ['light', 'dark', 'frame'];
 
 /**
  * Schreibt die Farben als CSS-Variablen auf ein Element.
@@ -97,13 +100,99 @@ function showDraftSelection() {
 }
 
 /**
+ * Baut das Mini-Brett für die Vorschau: Steine beider Farben, je eine Dame, ein Zug- und ein Schlagfeld.
+ * Es benutzt dieselben Klassen wie das echte Brett, die Farben kommen von applyColors auf der Vorschau.
+ */
+function renderPreview() {
+    const preview = document.getElementById('themePreview');
+    if (preview.childElementCount > 0) return; // Nur beim ersten Öffnen bauen
+
+    // Was auf welchem Feld liegt: b = schwarz, w = weiß, B/W = Dame, m = Zugfeld, c = Schlagfeld
+    const layout = ['.b.b.b.b', 'b.b.b.b.', '.......B', '....m...', '...c....', 'W.......', '.w.w.w.w', 'w.w.w.w.'];
+
+    const board = document.createElement('div');
+    board.className = 'preview-board';
+    layout.forEach((rowText, row) => {
+        [...rowText].forEach((symbol, col) => {
+            const cell = document.createElement('span');
+            cell.className = 'cell ' + ((row + col) % 2 !== 0 ? 'black-bg' : 'white-bg');
+            if (symbol === 'm') cell.classList.add('highlighted');
+            if (symbol === 'c') cell.classList.add('highlighted-capture');
+
+            if ('bBwW'.includes(symbol)) {
+                const piece = document.createElement('span');
+                const color = symbol.toLowerCase() === 'w' ? 'white' : 'black';
+                piece.className = `piece ${color}-piece` + (symbol === symbol.toUpperCase() ? ' dame' : '');
+                cell.append(piece);
+            }
+            board.append(cell);
+        });
+    });
+
+    // Beschriftung im Rahmen (ein Buchstabe pro Spalte), damit man deren Lesbarkeit sieht
+    const label = document.createElement('div');
+    label.className = 'preview-label';
+    for (const letter of 'ABCDEFGH') {
+        const span = document.createElement('span');
+        span.textContent = letter;
+        label.append(span);
+    }
+
+    preview.append(board, label);
+}
+
+/**
+ * Zeigt die Kontrastprüfung des Entwurfs an
+ */
+function renderWarnings() {
+    const warnings = checkColors(draft.colors);
+    const box = document.getElementById('themeWarnings');
+
+    if (warnings.length === 0) {
+        const ok = document.createElement('p');
+        ok.className = 'theme-ok';
+        ok.textContent = 'Alle Kontraste sind in Ordnung.';
+        box.replaceChildren(ok);
+        return;
+    }
+
+    const intro = document.createElement('p');
+    intro.textContent = 'Hinweis: Diese Farben sind womöglich schwer zu erkennen.';
+    const list = document.createElement('ul');
+    list.append(
+        ...warnings.map((text) => {
+            const item = document.createElement('li');
+            item.textContent = text;
+            return item;
+        })
+    );
+    box.replaceChildren(intro, list);
+}
+
+/**
+ * Bringt das Fenster auf den Stand des Entwurfs: Auswahl, Farbwähler, Vorschau und Kontrastprüfung
+ */
+function updateDialog() {
+    showDraftSelection();
+
+    // Nur ändern, wenn nötig: sonst würde ein gerade offener Farbwähler beim Ziehen gestört
+    document.querySelectorAll('#themeForm input[type="color"]').forEach((input) => {
+        if (input.value !== draft.colors[input.name]) input.value = draft.colors[input.name];
+    });
+
+    applyColors(document.getElementById('themePreview'), draft.colors);
+    renderWarnings();
+}
+
+/**
  * Öffnet das Fenster mit einer Kopie des aktuellen Farbschemas als Entwurf
  */
 export function openThemeDialog() {
     draft = structuredClone(currentTheme);
     renderPresetList('boardPresetList', 'boardPreset', BOARD_PRESETS, ['light', 'dark', 'frame']);
     renderPresetList('piecePresetList', 'piecePreset', PIECE_PRESETS, ['pieceLight', 'pieceDark']);
-    showDraftSelection();
+    renderPreview();
+    updateDialog();
 
     const dialog = document.getElementById('themeDialog');
     dialog.returnValue = ''; // Ergebnis vom letzten Mal zurücksetzen
@@ -111,9 +200,9 @@ export function openThemeDialog() {
 }
 
 /**
- * Andere Vorlage gewählt: deren Farben in den Entwurf übernehmen
+ * Änderung im Fenster: Vorlage gewählt (deren Farben übernehmen) oder eigene Farbe eingestellt
  */
-export function handleThemeChange(event) {
+export function handleThemeInput(event) {
     const { name, value } = event.target;
 
     if (name === 'boardPreset') {
@@ -124,7 +213,14 @@ export function handleThemeChange(event) {
         const { pieceLight, pieceDark } = PIECE_PRESETS[value];
         draft.pieces = value;
         Object.assign(draft.colors, { pieceLight, pieceDark });
+    } else if (Object.hasOwn(draft.colors, name)) {
+        // Eigene Farbe: Diese Gruppe entspricht keiner Vorlage mehr
+        draft.colors[name] = value;
+        if (BOARD_COLOR_KEYS.includes(name)) draft.board = 'custom';
+        else draft.pieces = 'custom';
     }
+
+    updateDialog();
 }
 
 /**

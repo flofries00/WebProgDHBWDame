@@ -307,15 +307,31 @@
         <dialog id="themeDialog" class="confirm-dialog theme-dialog" aria-labelledby="themeTitle">
             <form method="dialog" id="themeForm">
                 <h3 id="themeTitle">Farben</h3>
-                <div class="theme-options">
-                    <fieldset>
+                <div class="theme-layout">
+                    <!-- Vorschau mit den Farben aus dem Fenster (nur zum Anschauen, das Brett erzeugt theme.js) -->
+                    <div id="themePreview" class="theme-preview" aria-hidden="true"></div>
+
+                    <fieldset class="theme-board">
                         <legend>Brett</legend>
                         <div id="boardPresetList" class="preset-list"></div>
                     </fieldset>
-                    <fieldset>
+                    <fieldset class="theme-pieces">
                         <legend>Steine</legend>
                         <div id="piecePresetList" class="preset-list"></div>
                     </fieldset>
+
+                    <!-- Eigene Farben: Der name passt jeweils zum Feld in colors.js -->
+                    <fieldset class="theme-custom">
+                        <legend>Eigene Farben</legend>
+                        <label>Helle Felder <input type="color" name="light" /></label>
+                        <label>Dunkle Felder <input type="color" name="dark" /></label>
+                        <label>Rahmen <input type="color" name="frame" /></label>
+                        <label>Helle Steine <input type="color" name="pieceLight" /></label>
+                        <label>Dunkle Steine <input type="color" name="pieceDark" /></label>
+                    </fieldset>
+
+                    <!-- Ergebnis der Kontrastprüfung, wird bei jeder Änderung vorgelesen -->
+                    <div id="themeWarnings" class="theme-warnings" role="status"></div>
                 </div>
                 <div class="dialog-buttons">
                     <button class="secondary-btn" value="cancel">Abbrechen</button>

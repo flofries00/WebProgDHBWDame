@@ -89,6 +89,7 @@
 
     /* Bestätigungs-Box (dialog) */
     .confirm-dialog {
+        box-sizing: border-box; /* Padding zählt zur Breite, sonst ragt die Box auf dem Handy über den Rand */
         width: 90%;
         max-width: 25rem;
         padding: 1.875rem;
@@ -116,7 +117,7 @@
 
     /* Fenster für die Farben: breiter als die Bestätigungs-Box, Inhalt linksbündig */
     .theme-dialog {
-        max-width: 40rem;
+        max-width: 48rem;
         text-align: start;
 
         & h3 {
@@ -124,10 +125,14 @@
         }
     }
 
-    /* Brett und Steine nebeneinander, auf schmalen Bildschirmen untereinander */
-    .theme-options {
+    /* Oben Vorschau, Brett und Steine nebeneinander, darunter eigene Farben und Kontrastprüfung */
+    .theme-layout {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+        grid-template-columns: auto 1fr 1fr;
+        grid-template-areas:
+            'preview board pieces'
+            'custom custom custom'
+            'warnings warnings warnings';
         gap: 1rem;
         margin-block-end: 1.25rem;
 
@@ -141,6 +146,70 @@
         & legend {
             padding-inline: 0.5rem;
             font-weight: bold;
+        }
+    }
+
+    .theme-board {
+        grid-area: board;
+    }
+
+    .theme-pieces {
+        grid-area: pieces;
+    }
+
+    /* Fünf Farbwähler nebeneinander, Beschriftung jeweils darüber */
+    .theme-custom {
+        grid-area: custom;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.25rem;
+
+        & label {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        & input {
+            width: 3.5rem;
+            height: 2.25rem;
+            padding: 0.125rem;
+            cursor: pointer;
+            border: 1px solid var(--color-border-strong);
+            border-radius: var(--radius-small);
+            background: var(--color-surface);
+        }
+    }
+
+    /* Kontrastprüfung: grüner Haken oder Liste mit Hinweisen */
+    .theme-warnings {
+        grid-area: warnings;
+
+        & p {
+            margin: 0;
+        }
+
+        & ul {
+            margin: 0.25rem 0 0;
+            padding-inline-start: 1.25rem;
+        }
+
+        & .theme-ok {
+            font-weight: bold;
+            color: var(--color-waiting-text);
+        }
+    }
+
+    /* Schmale Bildschirme: alles untereinander */
+    @media (max-width: 40rem) {
+        .theme-layout {
+            grid-template-columns: 1fr;
+            grid-template-areas:
+                'preview'
+                'board'
+                'pieces'
+                'custom'
+                'warnings';
         }
     }
 

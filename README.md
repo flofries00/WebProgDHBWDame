@@ -6,6 +6,7 @@ Ein modernes, browserbasiertes Dame-Spiel, entwickelt als Projekt für den Kurs 
 
 - **Lobby & Validierung:** Namenseingabe mit Regex-Prüfung und Fail-Safes.
 - **Bedenkzeit wählbar:** 1, 3, 5 oder 10 Minuten pro Spieler oder Partymodus (für beide dieselbe Zufallszeit von 1 bis 10 Minuten, mit eigener Auslosung). Online spielen nur Spieler mit derselben Einstellung gegeneinander.
+- **Farbauswahl:** 8 Brett- und 4 Steinvorlagen oder eigene Farben, mit Live-Vorschau und Kontrastprüfung nach WCAG (Hinweis bei schwer erkennbaren Kombinationen). Die Wahl wird im Browser gespeichert.
 - **Münzwurf-Animation:** 3D-CSS-Animation zur zufälligen Bestimmung des Startspielers inkl. Bounce-Effekt.
 - **Vollständige Regel-Engine** für die Variante „Klassisch“ (siehe [Spielregeln](#spielregeln)), inkl. automatischer Erkennung und roter Hervorhebung der Pflichtschläge.
 - **UX-Features:** Optische Trophäen-Anzeige geschlagener Steine in der Kopfzeile, globale Deselektion ("Klick-ins-Leere") und Anzeige der Zugberechtigung.
@@ -63,9 +64,11 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
 │       ├── state.js     Gemeinsamer Zustand (Spielmodus, Namen, Farbe)
 │       ├── socket.js    Gemeinsame Verbindung zum Server
 │       ├── sound.js     Töne über die Web Audio API
-│       └── theme.js     Farbschemata fürs Brett (Auswahl in der Kopfzeile, wird im Browser gespeichert)
+│       ├── theme.js     Farben-Fenster: Vorlagen, eigene Farben, Vorschau, Speichern im Browser
+│       └── colors.js    Farbvorlagen und Kontrastprüfung nach WCAG ohne HTML (testbar wie rules.js)
 └── tests/
     ├── rules.test.js    Unit-Tests der Spielregeln
+    ├── colors.test.js   Unit-Tests der Farblogik (Kontrast, Warnungen, Speicherstand)
     └── server.test.js   Integrationstests gegen den echten Server
 ```
 
@@ -81,7 +84,8 @@ flowchart TB
         Game["game.js<br/>Brett, Uhr, Computergegner"]
         RulesC["rules.js<br/>Spielregeln"]
         Sound["sound.js<br/>Töne"]
-        Theme["theme.js<br/>Farbschemata"]
+        Theme["theme.js<br/>Farben-Fenster"]
+        Colors["colors.js<br/>Farben und Kontrast"]
         State["state.js<br/>gemeinsamer Zustand"]
         SocketC["socket.js<br/>Serververbindung"]
         HTML --> Main
@@ -89,6 +93,7 @@ flowchart TB
         Main --> Game
         Main --> Sound
         Main --> Theme
+        Theme --> Colors
         UI <--> Game
         Game --> RulesC
         Game --> Sound
