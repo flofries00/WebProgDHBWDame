@@ -919,11 +919,14 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  *  c) Ein eigenes Fenster öffnen, wo bei der Auswahl auch eine Vorschau des Bretts zu sehen ist
  *  d) Eigene Konstellationen von Brett- und Steinfarben sollen möglich sein (Mit Hinweis auf mögliche Kontrastprobleme bei problematischen Kombinationen)
  *
+ * evtl. eigenes Farbrad? (Farbe "individuell" für Brett und Steine? Kontrast trotzdem beachten!)
+ *
  * F) Abschluss
  * UI abschließend kontrollieren
  * Code-Kommentare verbessern
  * Github-Repo aufräumen (README, Lizenz), Präsentation vorbereiten
  * Auto-Klick bei Schlägen (also nicht erst Klick auf Stein sondern direkt auf Feld)
+ * Auf Server hochladen (http und https Zertifikate)
  *
  * G) Optional, nur wenn Zeit bleibt
  * Github CI, Dark-Mode, Tutorial, Performance

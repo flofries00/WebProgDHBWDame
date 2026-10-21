@@ -56,7 +56,6 @@
         display: flex;
         align-items: center;
         gap: 0.9375rem;
-        min-width: 0; /* Darf schmaler werden als sein Inhalt, dann schrumpft die Farbauswahl */
     }
 
     /* Kleine Buttons in der Kopfzeile. Weil der Layer "layout" nach "components" kommt,
@@ -65,23 +64,12 @@
         margin: 0;
         padding: 0.5rem 0.9375rem;
         font-size: 1rem;
+        color: var(--color-text);
         background: var(--color-surface-alt);
 
         &:hover:not(:disabled) {
             background: var(--color-surface-alt-hover);
         }
-    }
-
-    /* Auswahl des Farbschemas, im selben Stil wie die Buttons daneben */
-    .nav-select {
-        min-width: 0; /* Kürzt auf sehr schmalen Handys den Text, statt die Kopfzeile zu sprengen */
-        padding: 0.5rem;
-        font: inherit;
-        color: var(--color-text);
-        background: var(--color-surface-alt);
-        border: none;
-        border-radius: var(--radius-medium);
-        cursor: pointer;
     }
 
     .clock-display {
@@ -212,6 +200,10 @@
 
         .nav-controls {
             gap: 0.5rem;
+        }
+
+        .nav-btn {
+            padding-inline: 0.625rem;
         }
     }
 }

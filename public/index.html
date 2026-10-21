@@ -30,14 +30,8 @@
             </div>
             <h1 class="nav-title">Dame Online</h1>
             <div class="nav-controls">
-                <!-- Farbschema für Brett und Steine (Label nur für Screenreader) -->
-                <label for="themeSelect" class="visually-hidden">Farbschema des Bretts</label>
-                <select id="themeSelect" class="nav-select">
-                    <option value="holz">Holzoptik</option>
-                    <option value="gruen">Turnieroptik</option>
-                    <option value="blau">Eisoptik</option>
-                    <option value="kontrast">Hoher Kontrast</option>
-                </select>
+                <!-- Öffnet das Fenster für die Farben -->
+                <button id="themeBtn" class="nav-btn">Farbauswahl</button>
                 <button id="tutorialBtn" class="nav-btn">?</button>
                 <button id="soundBtn" class="nav-btn" title="Ton an/aus">🔊</button>
                 <span id="realTimeClock" class="clock-display">00:00</span>
@@ -306,6 +300,26 @@
                 <div class="dialog-buttons">
                     <button id="confirmNo" class="secondary-btn" value="cancel"></button>
                     <button id="confirmYes" value="confirm"></button>
+                </div>
+            </form>
+        </dialog>
+        <!-- Fenster für die Farben von Brett und Steine, die Vorlagen erzeugt theme.js -->
+        <dialog id="themeDialog" class="confirm-dialog theme-dialog" aria-labelledby="themeTitle">
+            <form method="dialog" id="themeForm">
+                <h3 id="themeTitle">Farben</h3>
+                <div class="theme-options">
+                    <fieldset>
+                        <legend>Brett</legend>
+                        <div id="boardPresetList" class="preset-list"></div>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Steine</legend>
+                        <div id="piecePresetList" class="preset-list"></div>
+                    </fieldset>
+                </div>
+                <div class="dialog-buttons">
+                    <button class="secondary-btn" value="cancel">Abbrechen</button>
+                    <button value="apply">Übernehmen</button>
                 </div>
             </form>
         </dialog>

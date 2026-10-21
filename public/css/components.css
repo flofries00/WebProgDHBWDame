@@ -114,6 +114,68 @@
         }
     }
 
+    /* Fenster für die Farben: breiter als die Bestätigungs-Box, Inhalt linksbündig */
+    .theme-dialog {
+        max-width: 40rem;
+        text-align: start;
+
+        & h3 {
+            text-align: center;
+        }
+    }
+
+    /* Brett und Steine nebeneinander, auf schmalen Bildschirmen untereinander */
+    .theme-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+        gap: 1rem;
+        margin-block-end: 1.25rem;
+
+        & fieldset {
+            margin: 0;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-medium);
+        }
+
+        & legend {
+            padding-inline: 0.5rem;
+            font-weight: bold;
+        }
+    }
+
+    .preset-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+    }
+
+    /* Eine Vorlage: Radiobutton, Farbfelder, Name */
+    .preset-option {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+
+        & input {
+            margin: 0;
+            accent-color: var(--color-primary);
+        }
+    }
+
+    /* Kleine Farbfelder einer Vorlage (Farben setzt theme.js) */
+    .swatches {
+        display: inline-flex;
+        overflow: hidden;
+        border: 1px solid var(--color-border-strong);
+        border-radius: var(--radius-small);
+
+        & span {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+    }
+
     /* Buttons nebeneinander und mittig */
     .dialog-buttons {
         display: flex;

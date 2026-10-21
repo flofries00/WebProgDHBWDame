@@ -12,7 +12,7 @@ import {
 } from './ui.js';
 import { abortGame } from './game.js';
 import { toggleSound } from './sound.js';
-import { loadBoardTheme, setBoardTheme } from './theme.js';
+import { loadTheme, openThemeDialog, handleThemeChange, handleThemeDialogClose } from './theme.js';
 
 /**
  * Kurzform: Klick-Handler für das Element mit der angegebenen ID registieren
@@ -23,8 +23,12 @@ function onClick(id, handler) {
 
 // Kopfzeile
 onClick('soundBtn', toggleSound);
-document.getElementById('themeSelect').addEventListener('change', (event) => setBoardTheme(event.target.value));
-loadBoardTheme();
+onClick('themeBtn', openThemeDialog);
+loadTheme();
+
+// Fenster für die Farben
+document.getElementById('themeForm').addEventListener('change', handleThemeChange);
+document.getElementById('themeDialog').addEventListener('close', handleThemeDialogClose);
 
 // Modus-Auswahl
 onClick('modeComputerBtn', () => selectMode('computer'));

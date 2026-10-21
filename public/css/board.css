@@ -262,12 +262,12 @@
         box-shadow: inset 0 -1px 2px rgba(0, 0, 0, 0.5);
 
         &.white-piece {
-            background: #ffffff;
+            background: var(--color-piece-light);
             border: 1px solid var(--color-piece-white-border);
         }
 
         &.black-piece {
-            background: #333333;
+            background: var(--color-piece-dark);
             border: 1px solid var(--color-piece-black-border);
         }
     }
