@@ -7,6 +7,7 @@ Ein modernes, browserbasiertes Dame-Spiel, entwickelt als Projekt für den Kurs 
 - **Lobby & Validierung:** Namenseingabe mit Regex-Prüfung und Fail-Safes.
 - **Bedenkzeit wählbar:** 1, 3, 5 oder 10 Minuten pro Spieler oder Partymodus (für beide dieselbe Zufallszeit von 1 bis 10 Minuten, mit eigener Auslosung). Online spielen nur Spieler mit derselben Einstellung gegeneinander.
 - **Farbauswahl:** 8 Brett- und 4 Steinvorlagen oder eigene Farben, mit Live-Vorschau und Kontrastprüfung nach WCAG (Hinweis bei schwer erkennbaren Kombinationen). Die Wahl wird im Browser gespeichert.
+- **Hilfe-Fenster** (?) mit Bedienung, Markierungen und Spielregeln.
 - **Münzwurf-Animation:** 3D-CSS-Animation zur zufälligen Bestimmung des Startspielers inkl. Bounce-Effekt.
 - **Vollständige Regel-Engine** für die Variante „Klassisch“ (siehe [Spielregeln](#spielregeln)), inkl. automatischer Erkennung und roter Hervorhebung der Pflichtschläge.
 - **UX-Features:** Optische Trophäen-Anzeige geschlagener Steine in der Kopfzeile, globale Deselektion ("Klick-ins-Leere") und Anzeige der Zugberechtigung.
@@ -44,7 +45,7 @@ Aktuell wird die Variante **„Klassisch“** gespielt. Eine zweite Variante „
 **Spielende**
 
 - Gewonnen hat, wessen Gegner keine Steine mehr hat **oder** keinen gültigen Zug mehr ausführen kann.
-- Jede Seite hat 5 Minuten Bedenkzeit (Schachuhr-Prinzip). Wer die Zeit überschreitet, verliert.
+- Jede Seite hat dieselbe Bedenkzeit (1, 3, 5 oder 10 Minuten, im Partymodus ausgelost), es gilt das Schachuhr-Prinzip. Wer die Zeit überschreitet, verliert.
 - Wer aufgibt oder eine Online-Partie verlässt, verliert.
 
 ## Dateistruktur

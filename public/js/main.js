@@ -22,6 +22,7 @@ function onClick(id, handler) {
 }
 
 // Kopfzeile
+onClick('helpBtn', () => document.getElementById('helpDialog').showModal());
 onClick('soundBtn', toggleSound);
 onClick('themeBtn', openThemeDialog);
 loadTheme();

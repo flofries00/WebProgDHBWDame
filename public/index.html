@@ -32,7 +32,7 @@
             <div class="nav-controls">
                 <!-- Öffnet das Fenster für die Farben -->
                 <button id="themeBtn" class="nav-btn">Farbauswahl</button>
-                <button id="tutorialBtn" class="nav-btn">?</button>
+                <button id="helpBtn" class="nav-btn" aria-label="Hilfe" title="Hilfe">?</button>
                 <button id="soundBtn" class="nav-btn" title="Ton an/aus">🔊</button>
                 <span id="realTimeClock" class="clock-display">00:00</span>
             </div>
@@ -300,6 +300,61 @@
                 </div>
             </form>
         </dialog>
+        <!-- Hilfe: Bedienung und Spielregeln (öffnet sich über den ?-Button in der Kopfzeile) -->
+        <dialog id="helpDialog" class="confirm-dialog help-dialog" aria-labelledby="helpTitle">
+            <form method="dialog">
+                <h3 id="helpTitle">Hilfe</h3>
+
+                <h4>Bedienung</h4>
+                <ul>
+                    <li>
+                        <strong>Maus oder Finger:</strong> Stein antippen und dann das Zielfeld, oder den Stein dorthin
+                        ziehen.
+                    </li>
+                    <li>
+                        <strong>Tastatur:</strong> Mit Tab aufs Brett, mit den Pfeiltasten bewegen, mit Enter oder
+                        Leertaste auswählen und ziehen, mit Escape die Auswahl aufheben.
+                    </li>
+                    <li>
+                        <strong>Schlagzwang:</strong> Rote Felder lassen sich direkt anklicken, wenn nur ein Stein
+                        dorthin schlagen kann.
+                    </li>
+                </ul>
+
+                <h4>Markierungen</h4>
+                <ul>
+                    <li>Grünes Feld mit <strong>Punkt</strong>: Hierhin kann der ausgewählte Stein ziehen.</li>
+                    <li>Rotes Feld mit <strong>Ring</strong>: Hier wird geschlagen.</li>
+                    <li>Stein mit <strong>Krone</strong>: eine Dame.</li>
+                </ul>
+
+                <h4>Regeln (Variante „Klassisch“)</h4>
+                <ul>
+                    <li>Gespielt wird auf den dunklen Feldern, Weiß beginnt.</li>
+                    <li>
+                        Steine ziehen ein Feld diagonal vorwärts und schlagen nur vorwärts, indem sie über einen Gegner
+                        springen.
+                    </li>
+                    <li>
+                        Es gilt <strong>Schlagzwang</strong>. Kann derselbe Stein danach erneut schlagen, muss er
+                        weiterschlagen.
+                    </li>
+                    <li>
+                        Wer die gegnerische Grundlinie erreicht, bekommt eine <strong>Dame</strong>. Sie zieht und
+                        schlägt beliebig weit in alle Richtungen.
+                    </li>
+                    <li>
+                        Gewonnen hat, wessen Gegner keine Steine oder keinen Zug mehr hat, die Zeit überschreitet oder
+                        aufgibt.
+                    </li>
+                </ul>
+
+                <div class="dialog-buttons">
+                    <button value="close">Schließen</button>
+                </div>
+            </form>
+        </dialog>
+
         <!-- Fenster für die Farben von Brett und Steine, die Vorlagen erzeugt theme.js -->
         <dialog id="themeDialog" class="confirm-dialog theme-dialog" aria-labelledby="themeTitle">
             <form method="dialog" id="themeForm">
