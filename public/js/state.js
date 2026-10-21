@@ -6,7 +6,7 @@ export const state = {
     gameMode: '', // 'computer' oder 'online'
     currentPlayerName: '', // Eigener Spielername
     opponentName: 'Computer', // Name des Gegners
-    playerGetsWhite: true, // Spielt der eigene Spieler weiß?
-    timeSetting: '5', // Gewählte Bedenkzeit
-    timeMinutes: 5, // Tatsächliche Bedenkzeit pro Spieler in Minuten
+    playerGetsWhite: true, // Spielt der eigene Spieler Weiß?
+    timeSetting: '5', // Gewählte Bedenkzeit: '1', '3', '5', '10' (Minuten) oder 'party'
+    timeMinutes: 5, // Tatsächliche Bedenkzeit pro Spieler in Minuten (im Partymodus ausgelost)
 };

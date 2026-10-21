@@ -21,7 +21,7 @@ export function selectMode(mode) {
 
 /**
  * Versteckt alle Bildschirme und zeigt nur den übergebenen an.
- * @param {string} screenId - Die ID des divs (z.B. 'loginScreen')
+ * @param {string} screenId - ID des Bildschirms (z.B. 'loginScreen')
  */
 export function showScreen(screenId) {
     // Sucht alle Elemente mit der Klasse '.screen' und entfernt die Klasse '.active'
@@ -32,7 +32,7 @@ export function showScreen(screenId) {
 
 /**
  * Prüft die Eingabe im Namensfeld auf Länge und erlaubte Zeichen.
- * Aktiviert/Deaktiviert den "Suchen"-Button entsprechend und zeigt spezifische Fehler an.
+ * Gibt den Button "Weiter" nur bei gültigem Namen frei und zeigt passende Fehlermeldungen an.
  */
 export function checkInput() {
     const inputField = document.getElementById('playerName');
@@ -40,7 +40,7 @@ export function checkInput() {
     const errorText = document.getElementById('nameError');
     const searchBtn = document.getElementById('searchBtn');
 
-    // Fail-Safe Bedingung: Such-Button sofort sperren sobald getippt wird.
+    // Button erst einmal sperren, er wird nur bei gültigem Namen wieder freigegeben
     searchBtn.disabled = true;
 
     // RegEx (Regulärer Ausdruck): ^ = Start, $ = Ende.
@@ -48,29 +48,29 @@ export function checkInput() {
     // Das + bedeutet: mindestens ein Zeichen muss vorhanden sein
     const isValidChars = /^[a-zA-Z0-9äöüÄÖÜß]+$/.test(nameInput);
 
-    // Testen auf Fälle:
-    // Fall 1: Feld ist komplett leer (oder User hat Input wieder komplett gelöscht)
+    // Die möglichen Fälle nacheinander prüfen:
+    // Fall 1: Feld ist komplett leer (oder der Name wurde wieder gelöscht)
     if (nameInput.length === 0) {
-        errorText.textContent = ''; // Keinen Fehler anzeigen, wenn noch kein Input getätigt.
+        errorText.textContent = ''; // Ohne Eingabe keine Fehlermeldung
         inputField.classList.remove('invalid');
-        return; // Funktion hier abbrechen, button bleibt gesperrt
+        return; // Button bleibt gesperrt
     }
 
-    // Fall 2: Es wurden Verbotene Zeichen (Sonderzeichen, Leerzeichen, Emojism etc.) eingegeben
+    // Fall 2: Es wurden verbotene Zeichen eingegeben (Sonderzeichen, Leerzeichen, Emojis usw.)
     if (!isValidChars) {
         errorText.textContent = 'Bitte nur Buchstaben und Zahlen eingeben.';
         inputField.classList.add('invalid');
-        return; // Funktion hier abbrechen, button bleibt gesperrt
+        return; // Button bleibt gesperrt
     }
 
     // Fall 3: Der Name ist zu kurz
     else if (nameInput.length < 2) {
         errorText.textContent = 'Der Name muss mindestens zwei Zeichen lang sein';
         inputField.classList.add('invalid');
-        return; // Funktion hier abbrechen, button bleibt gesperrt
+        return; // Button bleibt gesperrt
     }
 
-    // Fall 4: Keine Fehler, alles passt.
+    // Fall 4: Der Name ist gültig
     errorText.textContent = ''; // Fehlertext löschen
     inputField.classList.remove('invalid'); // Roten Rahmen entfernen
 
@@ -119,7 +119,7 @@ socket.on('queueStatus', (status) => {
  * Wechselt in den Wartebildschirm.
  */
 export function startSearch() {
-    //Schutz vor Doppelauslösung, nur dann suchen, wenn der Setupbildschirm wirklich angezeigt wird
+    // Schutz vor Doppelauslösung: nur suchen, wenn der Setup-Bildschirm wirklich angezeigt wird
     if (!document.getElementById('setupScreen').classList.contains('active')) return;
 
     // Ohne Serververbindung ist keine Online-Partie möglich
@@ -144,13 +144,13 @@ export function startSearch() {
         // Echter Multiplayer: Server um Match mit gleicher Bedenkzeit bitten
         socket.emit('findMatch', state.currentPlayerName, state.timeSetting);
     } else {
-        // Computer: Wie bisher simuliert
+        // Gegen den Computer: Die Suche wird nur simuliert
         state.opponentName = 'Computer';
         // Gegnernamen in HTML schreiben
         document.getElementById('opponentNameDisplay').textContent = state.opponentName;
         document.getElementById('opponentNameHeader').textContent = state.opponentName;
 
-        // Sicherheitshalber alten Timer stoppen, bevor ein neuer Startet
+        // Sicherheitshalber alten Timer stoppen, bevor ein neuer startet
         clearTimeout(searchTimeout);
 
         // Simuliert eine Netzwerksuche: Nach 2000 Millisekunden (2 Sekunden) geht es weiter
@@ -159,7 +159,7 @@ export function startSearch() {
 }
 
 /**
- * Bricht die Suche ab und geht zurück zur Anmeldung.
+ * Bricht die Suche ab und geht zurück zum Setup-Bildschirm
  */
 export function cancelWait() {
     // Laufenden Timer abbrechen
@@ -232,7 +232,7 @@ function showPartyDraw() {
 }
 
 /**
- * Simuliert den Münzwurf für den Startspieler.
+ * Münzwurf: Die Münze zeigt die eigene Farbe, danach läuft der Countdown bis zum Spielstart
  */
 export function simulateCoinToss() {
     // Evtl. noch laufende Timer einer vorherigen Auslosung stoppen
@@ -248,7 +248,7 @@ export function simulateCoinToss() {
 
     coin.style.setProperty('--end-rotation', state.playerGetsWhite ? '1800deg' : '1980deg');
 
-    // Kleiner Trick um Animationen bei einer Revanche auch abspielen zu lassen
+    // Animation neu starten (auch bei einer Revanche): Klasse entfernen, Neuberechnung erzwingen, Klasse wieder setzen
     coin.classList.remove('spin');
     container.classList.remove('bounce');
 
@@ -261,7 +261,7 @@ export function simulateCoinToss() {
         container.classList.add('bounce');
         playSound('coinLand');
 
-        // Formuliert aus sicht des Spielers
+        // Ergebnis aus Sicht des Spielers
         const baseText = state.playerGetsWhite ? 'Du hast die weißen Steine' : 'Du hast die schwarzen Steine';
 
         document.getElementById('startPlayerText').textContent = baseText;
@@ -306,7 +306,7 @@ export function requestReplay() {
 }
 
 /**
- * Verlässt das Match und kehrt zur Anmeldung zurück
+ * Verlässt die Partie und kehrt zur Modusauswahl zurück
  */
 export function leaveToLobby() {
     if (state.gameMode === 'online') {
@@ -329,7 +329,7 @@ export function leaveToLobby() {
     showScreen('modeScreen');
 }
 
-// Antwort von Server empfangen
+// Der Server hat einen Gegner gefunden (auch bei einer Revanche)
 socket.on('matchFound', (data) => {
     state.opponentName = data.oppName;
     state.playerGetsWhite = data.isWhite;
@@ -342,7 +342,7 @@ socket.on('matchFound', (data) => {
     oppDisp.textContent = state.opponentName;
     oppHead.textContent = state.opponentName;
 
-    // Replay-UI für nächste Runde zurücksetzen
+    // Revanche-Anzeige für die nächste Runde zurücksetzen
     const replayBtn = document.getElementById('replayBtn');
     const replayStatus = document.getElementById('replayStatus');
     if (replayBtn) {
@@ -356,7 +356,7 @@ socket.on('matchFound', (data) => {
 });
 
 /**
- * Aktualisiert Echtzeit-Uhr in der oberen Navigation
+ * Aktualisiert die Uhrzeit in der Kopfzeile
  */
 function updateRealTimeClock() {
     const clockEl = document.getElementById('realTimeClock');
@@ -372,7 +372,7 @@ function updateRealTimeClock() {
     clockEl.textContent = timeString;
 }
 
-// Uhrzeitschleife starten (und jede Sekunde updaten)
+// Uhrzeit jede Sekunde aktualisieren
 setInterval(updateRealTimeClock, 1000);
 // Direkt beim Laden der Seite aufrufen
 updateRealTimeClock();
@@ -381,7 +381,7 @@ updateRealTimeClock();
  * Verarbeitet Chat-Eingaben
  */
 export function handleChatSubmit(event) {
-    event.preventDefault(); // Formular nicht wirklich abschicken (sonst lädt Seite neu)
+    event.preventDefault(); // Formular nicht wirklich abschicken (sonst lädt die Seite neu)
 
     const input = document.getElementById('chatInput');
     const msg = input.value.trim();
@@ -426,7 +426,7 @@ socket.on('chatMessage', (msg) => {
     addChatMessage(state.opponentName, msg, false);
 });
 
-// Socket Events für die Revanche
+// Socket-Ereignisse für die Revanche
 socket.on('opponentWantsReplay', () => {
     const status = document.getElementById('replayStatus');
     if (status) {
@@ -470,12 +470,12 @@ socket.on('opponentLeft', () => {
 });
 
 /**
- * Feuert eine CSS-basierte Konfetti-Animation ab.
+ * Lässt beim Gewinner Konfetti regnen (Animation per CSS)
  */
 export function fireConfetti() {
     if (prefersReducedMotion()) return;
 
-    // Kleine Farbmischung
+    // Farben der Schnipsel
     const colors = ['#e2001a', '#28a745', '#007bff', '#ffc107', '#ffd700'];
 
     // 150 Schnipsel erzeugen
@@ -531,8 +531,8 @@ export function fireRain() {
 }
 
 /**
- * Zeigt eine Bestätigungs-Box im Spielfenster (anstatt des Browser Popups)
- * Returned ein Promise: true = bestätigt, false = abgelehnt
+ * Zeigt eine Bestätigungs-Box im Spielfenster (statt des Browser-Popups confirm())
+ * Liefert ein Promise: true = bestätigt, false = abgelehnt
  */
 export function showConfirm(title, text, confirmLabel, cancelLabel) {
     const dialog = document.getElementById('confirmDialog');
@@ -557,12 +557,12 @@ export function showConfirm(title, text, confirmLabel, cancelLabel) {
 
 /**
  * Eigene Verbindung zum Server ist abgebrochen (z.B. WLAN weg oder Server beendet).
- * EIne Online-Partie lässt sich danach nicht fortsetzen: Spiel beenden und zurück zur Lobby
+ * Eine Online-Partie lässt sich danach nicht fortsetzen: Spiel beenden und zurück zur Lobby
  */
 socket.on('disconnect', () => {
     if (state.gameMode !== 'online') return; // Partien gegen den Computer brauchen keinen Server
 
-    // Auf Modus-, Namens-, und Setupbildschirm läuft nichts, was beendet werden müsste
+    // Auf Modus-, Namens- und Setup-Bildschirm läuft nichts, was beendet werden müsste
     const activeScreen = document.querySelector('.screen.active').id;
     if (['modeScreen', 'loginScreen', 'setupScreen'].includes(activeScreen)) return;
 

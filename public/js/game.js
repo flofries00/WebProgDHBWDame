@@ -7,13 +7,13 @@ import { BOARD_SIZE, createInitialBoard, getLegalMoves, findMove, applyMove, get
 // Globale Variablen für das Spielfeld
 let board = []; // Spielbrett als Daten
 let currentTurn = 'white'; // Weiß hat nach den bekannten Dame-Regeln immer den ersten Zug
-let selectedPiece = null; // Speichert das HTML-Element des aktuell angeklickten Steins.
-let moveCount = 0; // Zählt Züge mit
+let selectedPiece = null; // HTML-Element des aktuell ausgewählten Steins
+let moveCount = 0; // Anzahl der abgeschlossenen Züge (für den Endbildschirm)
 let startTime = 300; // Bedenkzeit pro Spieler in Sekunden (wird bei Spielstart aus der Einstellung gesetzt)
-let whiteTime = startTime; // Startzeit Weiß
-let blackTime = startTime; // Startzeit Schwarz
+let whiteTime = startTime; // Restzeit Weiß in Sekunden
+let blackTime = startTime; // Restzeit Schwarz in Sekunden
 let timerInterval = null;
-let isMultiJumping = false; // Sperrt andere Steine während eines Multisprungs
+let isMultiJumping = false; // Läuft ein Mehrfachsprung? Dann darf nur der springende Stein weiterziehen
 let computerMoveTimeout = null; // Ausstehender Computerzug (damit er abgebrochen werden kann)
 let drag = null; // Laufendes Ziehen eines Steins: { piece, pointerId, startX, startY, bounds, moved }
 
@@ -52,7 +52,7 @@ function getCurrentLegalMoves() {
  * Startet das eigentliche Brettspiel.
  */
 export function startGame() {
-    // Spielstatus und Trophäen resetten
+    // Spielstand und geschlagene Steine (Trophäen) zurücksetzen
     currentTurn = 'white';
     moveCount = 0;
     isMultiJumping = false;
@@ -69,14 +69,14 @@ export function startGame() {
     updateTimerDisplays();
     startTurnTimer();
 
-    // Kopfzeile dynamisch anpassen, basierend auf Farbwahl-Zufallsevent
+    // Farben der Spieler in der Kopfzeile (beim Münzwurf ausgelost)
     document.getElementById('p1Color').textContent = state.playerGetsWhite ? '(Weiß)' : '(Schwarz)';
     document.getElementById('compColor').textContent = state.playerGetsWhite ? '(Schwarz)' : '(Weiß)';
 
-    // Dynamische Textanzeige
+    // Anzeigen, wer am Zug ist
     updateTurnIndicator();
 
-    // Zug-Log für neues Spiel leeren
+    // Spielverlauf für die neue Partie leeren
     const logList = document.getElementById('logList');
     if (logList) logList.innerHTML = '';
 
@@ -89,7 +89,7 @@ export function startGame() {
     // Direkt bei Start prüfen, ob Felder hervorgehoben werden müssen
     autoHighlightCaptures();
 
-    // Initiales Sperren der Gegnerischen Steine
+    // Steine sperren, die gerade nicht ziehen dürfen
     updatePieceCursors();
 
     // Chatbox nur im Multiplayer aktivieren
@@ -108,7 +108,7 @@ export function startGame() {
         }
     }
 
-    // Wenn Computer weiß ist, fängt er an
+    // Hat der Computer Weiß, beginnt er (makeComputerMove prüft das selbst)
     if (state.gameMode === 'computer') {
         makeComputerMove();
     }
@@ -178,7 +178,7 @@ function selectPiece(pieceElement, isTrusted) {
         return;
     }
 
-    // a) Gehört der Stein dem Spieler, der gerade am Zug ist? (laut Brett-Daten)
+    // Gehört der Stein dem Spieler, der gerade am Zug ist? (laut Brett-Daten)
     const { row, col } = getPosition(pieceElement);
     if (board[row][col]?.color !== currentTurn) {
         return;
@@ -195,10 +195,10 @@ function selectPiece(pieceElement, isTrusted) {
         return; // Stein kann nicht ziehen oder ein anderer Stein muss schlagen
     }
 
-    // b) Vorherige Auswahl aufheben (falls man doch einen anderen Stein ziehen will)
+    // Vorherige Auswahl aufheben (falls man doch einen anderen Stein ziehen will)
     clearSelection();
 
-    // c) Neuen Stein als "ausgewählt" markieren und seine Zielfelder anzeigen
+    // Neuen Stein als "ausgewählt" markieren und seine Zielfelder anzeigen
     selectedPiece = pieceElement;
     pieceElement.classList.add('selected');
     showValidMoves(moves);
@@ -213,7 +213,7 @@ function clearSelection() {
         selectedPiece = null;
     }
 
-    // Entfernt die Hintergrundfarbe von allen eventuell markierten Zielfeldern
+    // Markierung von allen Zielfeldern entfernen
     document.querySelectorAll('.cell.highlighted, .cell.highlighted-capture').forEach((cell) => {
         cell.classList.remove('highlighted', 'highlighted-capture');
     });
@@ -292,7 +292,7 @@ function handleBoardClick(event) {
         const captures = getCurrentLegalMoves().filter(
             (move) => move.captured && move.toRow === to.row && move.toCol === to.col
         );
-        if (captures.length !== 1) return; // Mehrere Steine können dorthin schlagen -> Erst den Stein wählen
+        if (captures.length !== 1) return; // Mehrere Steine können dorthin schlagen: erst den Stein wählen
         selectPiece(getCell(captures[0].fromRow, captures[0].fromCol).querySelector('.piece'), event.isTrusted);
     }
 
@@ -305,7 +305,7 @@ function handleBoardClick(event) {
     const move = findMove(getCurrentLegalMoves(), from.row, from.col, to.row, to.col);
     if (!move) return;
 
-    // Sende Zug an Gegner
+    // Online: Zug an den Server schicken (er prüft ihn und leitet ihn an den Gegner weiter)
     if (state.gameMode === 'online' && event.isTrusted) {
         socket.emit('makeMove', { fromR: move.fromRow, fromC: move.fromCol, toR: move.toRow, toC: move.toCol });
     }
@@ -357,14 +357,15 @@ function handleBoardClick(event) {
         spinAnim.onfinish = () => pieceToAnimate.classList.remove('hide-crown');
     };
 
-    // 3. FLIP-Animation: NUR ausführen, wenn es kein Drag & Drop ('drop') war!
+    // 4. Flug-Animation (FLIP: Der Stein steht schon im Zielfeld und fliegt optisch vom Startfeld dorthin).
+    //    Beim Drag & Drop entfällt sie, weil der Stein schon dort liegt.
     if (event.type !== 'drop') {
         const endRect = pieceToAnimate.getBoundingClientRect();
         let dx = startRect.left - endRect.left;
         let dy = startRect.top - endRect.top;
 
-        // DER NEUE TRICK: Wenn das Brett um 180 Grad gedreht ist, fliegen die Steine
-        // lokal in die falsche Richtung. Wir drehen die Richtung mathematisch einfach um!
+        // Auf dem gedrehten Brett (Schwarz) zeigt eine Verschiebung innerhalb des Bretts
+        // in die Gegenrichtung des Bildschirms, deshalb wird sie umgekehrt
         if (isFlipped) {
             dx = -dx;
             dy = -dy;
@@ -385,14 +386,14 @@ function handleBoardClick(event) {
 
         const moveAnim = pieceToAnimate.animate(moveKeyframes, { duration: 350, easing: 'ease-in-out' });
 
-        // Wenn er befördert wird, warten wir den Flug ab und drehen ihn dann
+        // Bei einer Beförderung erst den Flug abwarten, dann die Dame drehen
         if (getsPromoted) moveAnim.onfinish = playPromoteAnim;
     } else {
-        // Beim Drag & Drop: Keine Flug-Animation, aber falls er befördert wird, Drehung abspielen!
+        // Drag & Drop: keine Flug-Animation, bei einer Beförderung trotzdem die Dame drehen
         if (getsPromoted) playPromoteAnim();
     }
 
-    // Zug in Log eintragen (übergibt nun auch getsPromoted)
+    // Zug in den Spielverlauf eintragen
     addToLog(move.fromRow, move.fromCol, move.toRow, move.toCol, isCapture, getsPromoted);
 
     // Mehrfachsprung: Laut Regeln muss derselbe Stein weiterschlagen
@@ -408,10 +409,10 @@ function handleBoardClick(event) {
 
         // Falls Computer am Zug ist, darf auch er direkt nochmal springen
         if (state.gameMode === 'computer' && !isMyTurn()) makeComputerMove();
-        return; // Funktion hier beenden - Kein Spielerwechsel
+        return; // Kein Spielerwechsel, derselbe Stein springt weiter
     }
 
-    // Normales Zug-Ende - Multijump zurücksetzen
+    // Normales Zugende: Ein Mehrfachsprung ist damit vorbei
     isMultiJumping = false;
 
     // Markierungen aufheben
@@ -463,27 +464,27 @@ function handleGlobalClick(event) {
     // Klicks des Spielers, der nicht dran ist, dürfen keine fremde Auswahl aufheben
     if (event.isTrusted && !isMyTurn()) return;
 
-    // Wenn kein Stein ausgewählt ist, passiert nix
+    // Ohne ausgewählten Stein gibt es nichts aufzuheben
     if (!selectedPiece) return;
 
-    // Geht Klick auf ein Feld mit eigenem Stein, greift selectPiece()
+    // Geht der Klick auf ein Feld mit eigenem Stein, greift selectPiece()
     if (event.target.closest('.cell')?.querySelector('.' + currentTurn + '-piece')) return;
 
-    // Geht Klick auf ein gültiges Zielfeld greift handleBoardClick()
+    // Geht der Klick auf ein gültiges Zielfeld, greift handleBoardClick()
     if (event.target.closest('.cell.highlighted, .cell.highlighted-capture')) return;
 
     // Mehrfachsprung darf nicht durch Klick ins Leere abgebrochen werden
     if (isMultiJumping) return;
 
-    // In allen anderen Fällen
+    // Sonst: Auswahl aufheben
     clearSelection();
 
-    // Falls Schlagzwang herrscht müssen alle roten Felder wieder auftauchen
+    // Bei Schlagzwang die roten Felder wieder einblenden
     autoHighlightCaptures();
 }
 
 /**
- * Funktion, die am Zuganfang prüft, ob der aktuelle Spieler noch ziehen kann.
+ * Prüft nach einem Zug, ob der Spieler am Zug noch ziehen kann. Wenn nicht, endet das Spiel.
  */
 function checkWinCondition() {
     // Keine Steine oder kein erlaubter Zug mehr: Der Gegner gewinnt
@@ -496,7 +497,7 @@ function checkWinCondition() {
 }
 
 /**
- * Funktion, die das Spiel beendet und den Gewinner anzeigt.
+ * Beendet das Spiel und zeigt den Endbildschirm. reason: '' (normales Ende), 'timeout' oder 'opponentLeft'
  */
 export function endGame(winnerColor, reason = '') {
     // Uhr anhalten
@@ -547,7 +548,7 @@ export function endGame(winnerColor, reason = '') {
         endBoardCont.appendChild(clonedBoard);
     }
 
-    // Bildschrim wechseln
+    // Zum Endbildschirm wechseln
     showScreen('endScreen');
 
     // Konfetti und Fanfare zünden nur bei Gewinner, sonst Regen und Verlierermelodie
@@ -628,7 +629,7 @@ function startTurnTimer() {
 }
 
 /**
- * Formatiert Sekunden in MM:SS und schreibt sie ins HTML und prüft auf <= 30s
+ * Zeigt die Restzeiten an: Digitaluhr (MM:SS), Zeitbalken und Warnung ab 30 Sekunden
  */
 function updateTimerDisplays() {
     const format = (sec) => {
@@ -692,7 +693,7 @@ function updateActiveTimerStyle() {
 }
 
 /**
- * Züge von Server empfangen und auf dem Brett simulieren
+ * Zug des Online-Gegners (vom Server geprüft) mit simulierten Klicks auf dem Brett nachspielen
  */
 socket.on('receiveMove', (m) => {
     // Number() verhindert, dass manipulierte Daten den Selektor sprengen
@@ -788,7 +789,7 @@ function handlePointerUp(event) {
 }
 
 /**
- * Aktualisiert Kopfzeile
+ * Zeigt in der Kopfzeile, wer am Zug ist
  */
 function updateTurnIndicator() {
     const text = isMyTurn() ? 'Du bist am Zug' : `${state.opponentName} ist am Zug`;
@@ -799,7 +800,7 @@ function updateTurnIndicator() {
  * Schreibt einen Zug in den Spielverlauf und scrollt mit
  */
 function addToLog(sRow, sCol, eRow, eCol, isCapture, getsPromoted = false) {
-    // Array-Indexe in Schach-Koordinaten umwandeln
+    // Zeile und Spalte in die Brettschreibweise umwandeln (z.B. A1)
     const startStr = toSquareName(sRow, sCol);
     const endStr = toSquareName(eRow, eCol);
 
@@ -817,7 +818,7 @@ function addToLog(sRow, sCol, eRow, eCol, isCapture, getsPromoted = false) {
     const list = document.getElementById('logList');
     if (list) {
         list.appendChild(li);
-        // Liste nach unten scrollen lassen
+        // Zum neuesten Zug scrollen
         list.scrollTop = list.scrollHeight;
     }
 }
@@ -856,14 +857,14 @@ function updatePieceCursors() {
     allPieces.forEach((p) => {
         let isLocked = false;
 
-        // Option A: Stein gehört nicht dem Spieler am Zug
+        // Gesperrt, wenn der Stein nicht dem Spieler am Zug gehört, ...
         const { row, col } = getPosition(p);
         if (board[row][col]?.color !== currentTurn) isLocked = true;
 
-        // Option B: Gegner ist am Zug
+        // ... wenn der Gegner am Zug ist ...
         if (!isMyTurn()) isLocked = true;
 
-        // Option C: Multischlag läuft, aber falscher Stein
+        // ... oder wenn gerade ein anderer Stein einen Mehrfachsprung macht
         if (isMultiJumping && p !== selectedPiece) isLocked = true;
 
         p.classList.toggle('locked', isLocked);
@@ -890,7 +891,7 @@ function handleBoardKeydown(event) {
     const directions = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
     const direction = directions[event.key];
     if (!direction) return;
-    event.preventDefault(); // Sonst scrollt Seite mit
+    event.preventDefault(); // Sonst scrollt die Seite mit
 
     // Ist das Brett für Schwarz gedreht, zeigen die Pfeile auf dem Bildschirm in die Gegenrichtung
     const flip = state.playerGetsWhite ? 1 : -1;

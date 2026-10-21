@@ -18,7 +18,7 @@ const io = new Server(http, { maxHttpBufferSize: 1e4 }); // So werden Nachrichte
 // (sonst wären auch server.js, package.json und node_modules abrufbar)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Erlaubte Bedenkzeiten in Minuten, 'party' = Beide bekommen die gleiche Zufällige Bedenkzeit zwischen 1 und 10 Minuten
+// Erlaubte Bedenkzeiten in Minuten, 'party' = beide bekommen dieselbe Zufallszeit von 1 bis 10 Minuten
 const TIME_SETTINGS = ['1', '3', '5', '10', 'party'];
 
 // Wartende Spieler, eine Warteschlange pro Bedenkzeit (es spielen nur Spieler mit gleicher Einstellung gegeneinander)
@@ -156,8 +156,8 @@ io.on('connection', (socket) => {
         // Nur gültige Koordinaten akzeptieren, sonst Nachricht verwerfen
         if (![fromR, fromC, toR, toC].every(isValidCoord)) return;
 
-        // Ist dieser Spieler gar nicht am Zug? (Nach Spielende hat der Spieler am Zug keine erlaubten Züge mehr
-        // Deshalb wird dann automatisch jeder Zug abgelehnt
+        // Ist dieser Spieler gar nicht am Zug? Nach Spielende hat der Spieler am Zug keine erlaubten Züge mehr,
+        // deshalb wird dann automatisch jeder Zug abgelehnt
         if (game.turn !== socket.color) {
             console.warn(`Zug abgelehnt (nicht am Zug): ${socket.id}`);
             return;
@@ -198,14 +198,14 @@ io.on('connection', (socket) => {
         socket.to(socket.oppId).emit('chatMessage', cleanMsg);
     });
 
-    // Replay-Logik
+    // Revanche: Startet, sobald beide Spieler sie wollen
     onSafe(socket, 'requestReplay', () => {
         socket.wantsReplay = true;
         if (socket.oppId) {
             const oppSocket = io.sockets.sockets.get(socket.oppId);
 
             if (oppSocket && oppSocket.wantsReplay) {
-                // Beide wollen Revanche - neue Partie mit neu ausgelosten Farben starten
+                // Beide wollen Revanche: neue Partie mit neu ausgelosten Farben starten
                 socket.wantsReplay = false;
                 oppSocket.wantsReplay = false;
                 startMatch(socket, oppSocket);

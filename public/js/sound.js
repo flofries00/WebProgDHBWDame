@@ -1,6 +1,6 @@
-// Sound-Effekte für Spielzüge, erzeugt per Web Audio API (also keine Audiodateien nötig)
+// Sound-Effekte (Züge, Münzwurf, Spielende), erzeugt per Web Audio API (also keine Audiodateien nötig)
 let audioCtx = null; // Audio-Kontext wird erst bei Bedarf erstellt
-let soundEnabled = true; // Ton an/aus (Umschaltbar per Button)
+let soundEnabled = true; // Ton an/aus (umschaltbar per Button)
 
 /**
  * Liefert den Audio-Kontext und erstellt ihn beim ersten Aufruf
