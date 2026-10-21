@@ -337,7 +337,7 @@
         &.active-timer {
             border-color: var(--color-primary);
             background-color: var(--color-primary-soft);
-            color: var(--color-primary);
+            color: var(--color-primary-text);
 
             /* Blinkt in den letzten 30 Sekunden */
             &.low-time {
@@ -350,7 +350,7 @@
     @keyframes pulseWarning {
         0% {
             background-color: var(--color-primary-soft);
-            color: var(--color-primary);
+            color: var(--color-primary-text);
             transform: scale(1);
         }
 

@@ -148,7 +148,6 @@ export function startSearch() {
         state.opponentName = 'Computer';
         // Gegnernamen in HTML schreiben
         document.getElementById('opponentNameDisplay').textContent = state.opponentName;
-        document.getElementById('legendOpponent').textContent = state.opponentName;
         document.getElementById('opponentNameHeader').textContent = state.opponentName;
 
         // Sicherheitshalber alten Timer stoppen, bevor ein neuer Startet
@@ -244,9 +243,6 @@ export function simulateCoinToss() {
     document.getElementById('startPlayerText').textContent = 'Auslosung läuft...';
     document.getElementById('countdownText').textContent = '';
 
-    // Eingegebenen Spielernamen dynamisch auf Münze anzeigen
-    document.getElementById('legendName').textContent = state.currentPlayerName;
-
     const coin = document.getElementById('coinElement');
     const container = document.querySelector('.coin-container'); // Container für den Bounce holen
 
@@ -276,7 +272,7 @@ export function simulateCoinToss() {
         const updateText = () => {
             const strong = document.createElement('strong');
             strong.textContent = timeLeft;
-            countdownEl.replaceChildren('Spiel startet in ', strong, ' Sekunden...');
+            countdownEl.replaceChildren('Spiel startet in ', strong, timeLeft === 1 ? ' Sekunde...' : ' Sekunden...');
         };
 
         updateText(); // Startwert, direkt nach dem Münzaufprall anzeigen.
@@ -341,11 +337,9 @@ socket.on('matchFound', (data) => {
 
     // Namen in HTML eintragen
     const oppDisp = document.getElementById('opponentNameDisplay');
-    const legOpp = document.getElementById('legendOpponent');
     const oppHead = document.getElementById('opponentNameHeader');
 
     oppDisp.textContent = state.opponentName;
-    legOpp.textContent = state.opponentName;
     oppHead.textContent = state.opponentName;
 
     // Replay-UI für nächste Runde zurücksetzen

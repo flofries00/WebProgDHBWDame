@@ -5,13 +5,13 @@
         --color-primary: #e2001a; /* DHBW-Rot */
         --color-primary-hover: color-mix(in srgb, var(--color-primary), black 12%); /* etwas dunkleres Rot */
         --color-primary-soft: #fff0f0; /* sehr helles Rot für Hintergründe */
+        --color-primary-text: #c70017; /* Rote Schrift auf hellrotem Grund (5,5:1) */
         --color-on-primary: #ffffff; /* Schrift auf rotem Grund */
 
         /* Text */
         --color-text: #333333;
         --color-text-soft: #555555;
         --color-text-muted: #666666;
-        --color-text-faint: #888888;
 
         /* Flächen und Rahmen */
         --color-surface: #ffffff;

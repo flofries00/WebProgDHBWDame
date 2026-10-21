@@ -517,7 +517,7 @@ export function endGame(winnerColor, reason = '') {
     } else if (reason === 'opponentLeft') {
         textEl.textContent = `${state.opponentName} hat das Spiel verlassen. ${winner} gewinnt!`;
     } else {
-        textEl.textContent = `${winner} hat gewonnen in ${moveCount} Zügen!`;
+        textEl.textContent = `${winner} hat in ${moveCount} ${moveCount === 1 ? 'Zug' : 'Zügen'} gewonnen!`;
     }
 
     // Spielverlauf in Endbildschirm kopieren
@@ -803,9 +803,11 @@ function addToLog(sRow, sCol, eRow, eCol, isCapture, getsPromoted = false) {
     const startStr = toSquareName(sRow, sCol);
     const endStr = toSquareName(eRow, eCol);
 
+    // "Du ziehst" bzw. "Computer zieht": Das Verb richtet sich nach der Person
     const name = isMyTurn() ? 'Du' : state.opponentName;
-    const verb = isCapture ? 'schlägt' : 'zieht';
-    const promoText = getsPromoted ? ' und wird zur Dame' : '';
+    const verbs = isMyTurn() ? { capture: 'schlägst', move: 'ziehst' } : { capture: 'schlägt', move: 'zieht' };
+    const verb = isCapture ? verbs.capture : verbs.move;
+    const promoText = getsPromoted ? ', der Stein wird zur Dame' : '';
 
     const li = document.createElement('li');
     const strong = document.createElement('strong');

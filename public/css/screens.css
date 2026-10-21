@@ -369,7 +369,7 @@
     .sys-msg {
         margin: 0;
         font-style: italic;
-        color: var(--color-text-faint);
+        color: var(--color-text-muted);
     }
 
     /* ---------- Endbildschirm ---------- */
