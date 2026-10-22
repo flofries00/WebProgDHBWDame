@@ -86,13 +86,13 @@ async function connectClient() {
 /**
  * Verbindet zwei Spieler und startet eine Partie. Liefert die Clients nach Farbe sortiert.
  */
-async function startGame() {
+async function startGame(variant = 'klassisch') {
     const a = await connectClient();
     const b = await connectClient();
     const matchA = waitFor(a, 'matchFound');
     const matchB = waitFor(b, 'matchFound');
-    a.emit('findMatch', 'Anna');
-    b.emit('findMatch', 'Bernd');
+    a.emit('findMatch', 'Anna', '5', variant);
+    b.emit('findMatch', 'Bernd', '5', variant);
     const [infoA] = await Promise.all([matchA, matchB]);
     return infoA.isWhite ? { white: a, black: b } : { white: b, black: a };
 }
@@ -175,14 +175,38 @@ describe('Matchmaking', () => {
         const watcher = await connectClient();
         const player = await connectClient();
 
-        const nowWaiting = waitForStatus(watcher, (status) => status.waiting['3'] === 1);
+        const nowWaiting = waitForStatus(watcher, (status) => status.waiting.klassisch['3'] === 1);
         player.emit('findMatch', 'Anna', '3');
         const status = await nowWaiting;
         assert.ok(status.online >= 2); // Mindestens die beiden Test-Clients sind verbunden
 
-        const notWaiting = waitForStatus(watcher, (status) => status.waiting['3'] === 0);
+        const notWaiting = waitForStatus(watcher, (status) => status.waiting.klassisch['3'] === 0);
         player.emit('cancelSearch');
         await notWaiting;
+    });
+
+    it('bringt nur Spieler mit derselben Variante zusammen', async () => {
+        const international = await connectClient();
+        const klassisch = await connectClient();
+        const alsoInternational = await connectClient();
+        international.emit('findMatch', 'Anna', '5', 'international');
+        klassisch.emit('findMatch', 'Bernd', '5', 'klassisch');
+        await expectNoEvent(international, 'matchFound'); // Gleiche Zeit, aber andere Variante
+
+        const matchA = waitFor(international, 'matchFound');
+        const matchC = waitFor(alsoInternational, 'matchFound');
+        alsoInternational.emit('findMatch', 'Clara', '5', 'international');
+        const [infoA] = await Promise.all([matchA, matchC]);
+        assert.equal(infoA.oppName, 'Clara');
+        klassisch.emit('cancelSearch');
+    });
+
+    it('ignoriert unbekannte Varianten', async () => {
+        const invalid = await connectClient();
+        const valid = await connectClient();
+        invalid.emit('findMatch', 'Hacker', '5', 'schach');
+        valid.emit('findMatch', 'Clara', '5', 'schach');
+        await expectNoEvent(valid, 'matchFound');
     });
 
     it('ignoriert ungültige Bedenkzeiten', async () => {
@@ -257,42 +281,44 @@ describe('Zugprüfung', () => {
         await received;
     });
 
-    it('akzeptiert eine komplette Partie und danach keine Züge mehr', async () => {
-        const { white, black } = await startGame();
-        const players = { white, black };
-        let board = createInitialBoard();
-        let turn = 'white';
-        let multiJumpFrom = null;
+    // Fester Spielverlauf: Weiß nimmt immer den ersten erlaubten Zug, Schwarz den letzten
+    // (mit Schlägen, Mehrfachsprüngen und Beförderungen)
+    for (const variant of ['klassisch', 'international']) {
+        it(`akzeptiert eine komplette Partie (${variant}) und danach keine Züge mehr`, async () => {
+            const { white, black } = await startGame(variant);
+            const players = { white, black };
+            let board = createInitialBoard(variant);
+            let turn = 'white';
+            let multiJumpFrom = null;
 
-        // Fester Spielverlauf: Weiß nimmt immer den ersten erlaubten Zug, Schwarz den letzten
-        // (endet nach 53 Zügen mit Schlägen, Mehrfachsprüngen und einer Beförderung)
-        while (!getWinner(board, turn)) {
-            const moves = getLegalMoves(board, turn, multiJumpFrom);
-            const move = turn === 'white' ? moves[0] : moves[moves.length - 1];
-            const opponent = players[opponentOf(turn)];
+            while (!getWinner(board, turn, variant)) {
+                const moves = getLegalMoves(board, turn, multiJumpFrom, variant);
+                const move = turn === 'white' ? moves[0] : moves[moves.length - 1];
+                const opponent = players[opponentOf(turn)];
 
-            const received = waitFor(opponent, 'receiveMove');
-            players[turn].emit('makeMove', toMessage(move));
-            assert.deepEqual(await received, toMessage(move));
+                const received = waitFor(opponent, 'receiveMove');
+                players[turn].emit('makeMove', toMessage(move));
+                assert.deepEqual(await received, toMessage(move));
 
-            const result = applyMove(board, move);
-            board = result.board;
-            if (result.mustContinue) {
-                multiJumpFrom = { row: move.toRow, col: move.toCol };
-            } else {
-                multiJumpFrom = null;
-                turn = opponentOf(turn);
+                const result = applyMove(board, move, variant);
+                board = result.board;
+                if (result.mustContinue) {
+                    multiJumpFrom = { row: move.toRow, col: move.toCol };
+                } else {
+                    multiJumpFrom = null;
+                    turn = opponentOf(turn);
+                }
             }
-        }
 
-        // Nach Spielende darf auch der Gewinner nicht mehr ziehen
-        const winner = getWinner(board, turn);
-        const lastMoves = getLegalMoves(board, winner);
-        if (lastMoves.length > 0) {
-            players[winner].emit('makeMove', toMessage(lastMoves[0]));
-            await expectNoEvent(players[opponentOf(winner)], 'receiveMove');
-        }
-    });
+            // Nach Spielende darf auch der Gewinner nicht mehr ziehen
+            const winner = getWinner(board, turn, variant);
+            const lastMoves = getLegalMoves(board, winner, null, variant);
+            if (lastMoves.length > 0) {
+                players[winner].emit('makeMove', toMessage(lastMoves[0]));
+                await expectNoEvent(players[opponentOf(winner)], 'receiveMove');
+            }
+        });
+    }
 });
 
 describe('Chat', () => {

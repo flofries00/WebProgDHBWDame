@@ -100,7 +100,7 @@ function renderBoard() {
             const target = targets.find((move) => move.toRow === row && move.toCol === col);
             if (target) cell.classList.add(target.captured ? 'highlighted-capture' : 'highlighted');
 
-            const label = [toSquareName(row, col)];
+            const label = [toSquareName(row, col, board.length)];
             if (piece) {
                 const element = createPieceElement(piece);
                 const isSelected = selected?.row === row && selected?.col === col;

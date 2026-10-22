@@ -2,7 +2,9 @@ import { state } from './state.js';
 import { socket } from './socket.js';
 import { showScreen, leaveToLobby, fireConfetti, fireRain, showConfirm } from './ui.js';
 import { playSound } from './sound.js';
-import { BOARD_SIZE, createInitialBoard, getLegalMoves, findMove, applyMove, getWinner } from './rules.js';
+import { createInitialBoard, getLegalMoves, findMove, applyMove, getWinner } from './rules.js';
+
+const COLUMN_LETTERS = 'ABCDEFGHIJ'; // Spaltenbuchstaben, reichen bis zum 10x10 Brett
 
 // Globale Variablen für das Spielfeld
 let board = []; // Spielbrett als Daten
@@ -50,7 +52,7 @@ function isMyTurn() {
  */
 function getCurrentLegalMoves() {
     const onlyFrom = isMultiJumping ? getPosition(selectedPiece) : null;
-    return getLegalMoves(board, currentTurn, onlyFrom);
+    return getLegalMoves(board, currentTurn, onlyFrom, state.variant);
 }
 
 /**
@@ -123,7 +125,8 @@ export function startGame() {
  * Erstellt das Brett in der Startaufstellung und zeichnet es als HTML.
  */
 function generateBoard() {
-    board = createInitialBoard(); // Startaufstellung als Daten (rules.js)
+    board = createInitialBoard(state.variant); // Startaufstellung der gewählten Variante als Daten (rules.js)
+    const size = board.length;
 
     // Nachspielen beginnt mit der Startaufstellung
     turnHistory = [{ board, from: null, to: null, logCount: 0 }];
@@ -131,8 +134,8 @@ function generateBoard() {
     const boardElement = document.getElementById('board');
     boardElement.innerHTML = ''; // Brett komplett leeren, bevor es neu gebaut wird
 
-    for (let row = 0; row < BOARD_SIZE; row++) {
-        for (let col = 0; col < BOARD_SIZE; col++) {
+    for (let row = 0; row < size; row++) {
+        for (let col = 0; col < size; col++) {
             // Jedes Feld ist ein Button: So ist es per Tastatur fokussierbar und reagiert auf Enter und Leertaste
             const cell = document.createElement('button');
             cell.type = 'button';
@@ -159,10 +162,15 @@ function generateBoard() {
     }
 
     // Startfeld für die Tastatur: das eigene Eckfeld unten links (aus Sicht des Spielers)
-    const startCell = state.playerGetsWhite ? getCell(BOARD_SIZE - 1, 0) : getCell(0, BOARD_SIZE - 1);
+    const startCell = state.playerGetsWhite ? getCell(size - 1, 0) : getCell(0, size - 1);
     startCell.tabIndex = 0;
-    // Brett visuell um 180° drehen, wenn man Schwarz hat
+
+    // Brettgröße für CSS und Beschriftung im Rahmen passend zur Variante
     const wrapper = document.getElementById('boardWrapper');
+    wrapper.style.setProperty('--board-size', size);
+    renderCoordinates(wrapper, size);
+
+    // Brett visuell um 180° drehen, wenn man schwarz hat
     if (!state.playerGetsWhite) {
         wrapper.classList.add('flipped');
     } else {
@@ -171,11 +179,28 @@ function generateBoard() {
 }
 
 /**
- * Erstellt das HTML-Element für einen Stein aus den Brett-Daten ({ color, king })
+ * Schreibt die Beschriftung in den Rahmen: Buchstaben oben und unten, Zahlen links und rechts (von oben nach unten)
+ */
+function renderCoordinates(wrapper, size) {
+    const makeLabels = (texts) =>
+        texts.map((text) => {
+            const span = document.createElement('span');
+            span.textContent = text;
+            return span;
+        });
+    const letters = [...COLUMN_LETTERS.slice(0, size)];
+    const numbers = Array.from({ length: size }, (_, i) => size - i);
+
+    wrapper.querySelectorAll('.coords-x').forEach((element) => element.replaceChildren(...makeLabels(letters)));
+    wrapper.querySelectorAll('.coords-y').forEach((element) => element.replaceChildren(...makeLabels(numbers)));
+}
+
+/**
+ * Erstellt das HTML-Element für einen Stein aus den Brett-Daten ({ color, king, taken })
  */
 export function createPieceElement(piece) {
     const element = document.createElement('span');
-    element.className = `piece ${piece.color}-piece` + (piece.king ? ' dame' : '');
+    element.className = `piece ${piece.color}-piece` + (piece.king ? ' dame' : '') + (piece.taken ? ' taken' : '');
     return element;
 }
 
@@ -245,8 +270,8 @@ function showValidMoves(moves) {
 /**
  * Wandelt Zeile und Spalte in die Brettschreibweise um (z.B. 7, 0 -> "A1")
  */
-export function toSquareName(row, col) {
-    return 'ABCDEFGH'[col] + (BOARD_SIZE - row);
+export function toSquareName(row, col, size) {
+    return COLUMN_LETTERS[col] + (size - row);
 }
 
 /**
@@ -259,7 +284,7 @@ function updateCellLabels() {
         .forEach((cell) => {
             const { row, col } = getPosition(cell);
             const piece = board[row][col];
-            const parts = [toSquareName(row, col)];
+            const parts = [toSquareName(row, col, board.length)];
 
             if (cell.classList.contains('white-bg')) {
                 parts.push('helles Feld');
@@ -331,14 +356,12 @@ function handleBoardClick(event) {
     turnEnd = { row: move.toRow, col: move.toCol };
 
     // 2. Zug in den Brett-Daten ausführen (rules.js liefert auch Beförderung und Mehrfachsprung)
-    const result = applyMove(board, move);
+    const result = applyMove(board, move, state.variant);
     board = result.board;
     const getsPromoted = result.promoted;
 
     // 3. HTML an die neuen Brett-Daten anpassen
     if (isCapture) {
-        getCell(move.captured.row, move.captured.col).innerHTML = ''; // Gegnerstein entfernen
-
         // Kleine Trophäe erzeugen und in Kopfzeile packen
         const trophy = document.createElement('div');
         trophy.className = `captured-piece ${victimColor}-piece`;
@@ -349,6 +372,17 @@ function handleBoardClick(event) {
     // 'appendChild' verschiebt das HTML-Element automatisch in die neue Zelle
     const pieceToAnimate = selectedPiece;
     targetCell.appendChild(pieceToAnimate);
+
+    // Geschlagene Steine an die Brett-Daten anpassen: Klassisch verschwinden sie sofort.
+    // International bleiben sie halb durchsichtig liegen, bis der ganze Zug zu Ende ist
+    document
+        .getElementById('board')
+        .querySelectorAll('.piece')
+        .forEach((element) => {
+            const { row, col } = getPosition(element);
+            if (!board[row][col]) element.remove();
+            else element.classList.toggle('taken', Boolean(board[row][col].taken));
+        });
 
     // Sound abspielen (Schlag oder normaler Zug)
     playSound(isCapture ? 'capture' : 'move');
@@ -506,7 +540,7 @@ function handleGlobalClick(event) {
  */
 function checkWinCondition() {
     // Keine Steine oder kein erlaubter Zug mehr: Der Gegner gewinnt
-    const winner = getWinner(board, currentTurn);
+    const winner = getWinner(board, currentTurn, state.variant);
     if (winner) {
         endGame(winner);
         return true;
@@ -883,8 +917,8 @@ function updateTurnIndicator() {
  */
 function addToLog(sRow, sCol, eRow, eCol, isCapture, getsPromoted = false) {
     // Zeile und Spalte in die Brettschreibweise umwandeln (z.B. A1)
-    const startStr = toSquareName(sRow, sCol);
-    const endStr = toSquareName(eRow, eCol);
+    const startStr = toSquareName(sRow, sCol, board.length);
+    const endStr = toSquareName(eRow, eCol, board.length);
 
     // "Du ziehst" bzw. "Computer zieht": Das Verb richtet sich nach der Person
     const name = isMyTurn() ? 'Du' : state.opponentName;
@@ -1019,6 +1053,8 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  *
  * G) Optional, nur wenn Zeit bleibt
  * Github CI, Performance
- * Variante "International" (#18), Private Räume
+ * Private Räume
  * Tests überprüfen - Wird auch wirklich ALLES ALLES getestet? (z.B. auch die Uhr, die Tastatursteuerung, das Drag & Drop, die Bildschirmleser-Beschriftungen, die Online-Variante)
+ * Zug rückgängig machen Option in vs. Computer
+ * Timer für Zeit in Warteschlange
  */

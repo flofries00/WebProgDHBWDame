@@ -2,6 +2,7 @@
 @layer board {
     /* Brett mit Holzrahmen, in dem die Koordinaten stehen (Zahlen links und rechts, Buchstaben oben und unten) */
     .board-wrapper {
+        --board-size: 8; /* Felder pro Seite, game.js setzt 10 für die Variante International */
         --frame-width: 1.5rem; /* Breite des Rahmens = Platz für die Beschriftung */
         display: grid;
         grid-template-columns: var(--frame-width) 1fr var(--frame-width);
@@ -19,19 +20,19 @@
         transition: transform 0.5s ease;
     }
 
-    /* Zahlen 8-1 */
+    /* Zahlen (8 bzw. 10 bis 1) */
     .coords-y {
         display: grid;
-        grid-template-rows: repeat(8, 1fr);
+        grid-template-rows: repeat(var(--board-size), 1fr);
         align-items: center;
         justify-items: center;
         font-weight: bold;
     }
 
-    /* Buchstaben A-H */
+    /* Buchstaben A-H bzw. A-J */
     .coords-x {
         display: grid;
-        grid-template-columns: repeat(8, 1fr);
+        grid-template-columns: repeat(var(--board-size), 1fr);
         align-items: center;
         justify-items: center;
         font-weight: bold;
@@ -64,13 +65,13 @@
         transform: rotate(180deg);
     }
 
-    /* Das eigentliche Brett: 8x8 Felder, bleibt quadratisch */
+    /* Das eigentliche Brett: 8x8 Felder bzw. 10x10 Felder, bleibt quadratisch */
     .board {
         grid-column: 2;
         grid-row: 2;
         display: grid;
-        grid-template-columns: repeat(8, 1fr);
-        grid-template-rows: repeat(8, 1fr);
+        grid-template-columns: repeat(var(--board-size), minmax(0, 1fr));
+        grid-template-rows: repeat(var(--board-size), minmax(0, 1fr));
         width: 100%;
         min-width: 17.5rem;
         max-width: 35rem;
@@ -221,6 +222,11 @@
         &.locked {
             cursor: not-allowed;
             transform: none;
+        }
+
+        /* International: schon geschlagen, bleibt aber bis zum Ende des Zugs liegen */
+        &.taken {
+            opacity: 0.35;
         }
 
         /* Eigene Steine: Wischen auf dem Stein zieht ihn, statt die Seite zu scrollen (Handy) */

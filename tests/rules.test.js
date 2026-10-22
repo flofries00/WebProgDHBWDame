@@ -2,7 +2,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-    BOARD_SIZE,
     createInitialBoard,
     getPieceMoves,
     getLegalMoves,
@@ -12,8 +11,8 @@ import {
     opponentOf,
 } from '../public/js/rules.js';
 
-// Hilfsfunktionen, um eigene Stellungen aufzubauen
-const emptyBoard = () => Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(null));
+// Hilfsfunktionen, um eigene Stellungen aufzubauen (8x8 für Klassisch, 10x10 für International)
+const emptyBoard = (size = 8) => Array.from({ length: size }, () => Array(size).fill(null));
 const man = (color) => ({ color, king: false }); // normaler Stein
 const king = (color) => ({ color, king: true }); // Dame
 const countPieces = (board, color) => board.flat().filter((piece) => piece?.color === color).length;
@@ -207,5 +206,100 @@ describe('Spielende', () => {
     it('liefert die Farbe des Gegners', () => {
         assert.equal(opponentOf('white'), 'black');
         assert.equal(opponentOf('black'), 'white');
+    });
+});
+
+describe('Variante International', () => {
+    const INT = 'international';
+
+    it('hat ein 10x10-Brett mit je 20 Steinen', () => {
+        const board = createInitialBoard(INT);
+        assert.equal(board.length, 10);
+        assert.equal(countPieces(board, 'white'), 20);
+        assert.equal(countPieces(board, 'black'), 20);
+    });
+
+    it('erlaubt Weiß zu Beginn genau 9 Züge', () => {
+        assert.equal(getLegalMoves(createInitialBoard(INT), 'white', null, INT).length, 9);
+    });
+
+    it('lässt normale Steine auch rückwärts schlagen', () => {
+        const board = emptyBoard(10);
+        board[4][3] = man('white');
+        board[5][4] = man('black');
+        const captures = getPieceMoves(board, 4, 3, INT).filter((move) => move.captured);
+        assert.deepEqual(targets(captures), ['6,5']);
+    });
+
+    it('lässt normale Steine aber nur vorwärts ziehen', () => {
+        const board = emptyBoard(10);
+        board[4][3] = man('white');
+        assert.deepEqual(targets(getPieceMoves(board, 4, 3, INT)), ['3,2', '3,4']);
+    });
+
+    // Stein A (8,1) kann einen Stein schlagen, Stein B (8,7) nacheinander zwei
+    const majoritySetup = () => {
+        const board = emptyBoard(10);
+        board[8][1] = man('white');
+        board[7][2] = man('black');
+        board[8][7] = man('white');
+        board[7][6] = man('black');
+        board[5][6] = man('black');
+        return board;
+    };
+
+    it('verlangt den Schlag, mit dem man die meisten Steine schlägt (Mehrheitsschlag)', () => {
+        const moves = getLegalMoves(majoritySetup(), 'white', null, INT);
+        assert.equal(moves.length, 1);
+        assert.deepEqual([moves[0].fromRow, moves[0].fromCol, moves[0].toRow, moves[0].toCol], [8, 7, 6, 5]);
+    });
+
+    it('lässt geschlagene Steine bis zum Ende des Zugs liegen', () => {
+        const first = applyMove(
+            majoritySetup(),
+            findMove(getLegalMoves(majoritySetup(), 'white', null, INT), 8, 7, 6, 5),
+            INT
+        );
+        assert.equal(first.mustContinue, true);
+        assert.equal(first.board[7][6].taken, true);
+
+        const second = applyMove(
+            first.board,
+            findMove(getLegalMoves(first.board, 'white', { row: 6, col: 5 }, INT), 6, 5, 4, 7),
+            INT
+        );
+        assert.equal(second.mustContinue, false);
+        assert.equal(second.board[7][6], null);
+        assert.equal(second.board[5][6], null);
+    });
+
+    it('erlaubt nicht, einen geschlagenen Stein ein zweites Mal zu überspringen', () => {
+        const board = emptyBoard(10);
+        board[5][4] = man('white');
+        board[4][3] = { ...man('black'), taken: true };
+        assert.ok(getPieceMoves(board, 5, 4, INT).every((move) => !move.captured));
+    });
+
+    it('macht keine Dame, wenn der Stein über die Grundlinie hinweg weiterschlagen muss', () => {
+        const board = emptyBoard(10);
+        board[2][1] = man('white');
+        board[1][2] = man('black');
+        board[1][4] = man('black'); // nach der Landung auf 0,3 rückwärts schlagbar
+        const first = applyMove(board, findMove(getLegalMoves(board, 'white', null, INT), 2, 1, 0, 3), INT);
+        assert.equal(first.mustContinue, true);
+        assert.equal(first.promoted, false);
+
+        const second = applyMove(first.board, getLegalMoves(first.board, 'white', { row: 0, col: 3 }, INT)[0], INT);
+        assert.equal(second.promoted, false);
+        assert.equal(second.board[2][5].king, false);
+    });
+
+    it('macht eine Dame, wenn der Zug auf der Grundlinie endet', () => {
+        const board = emptyBoard(10);
+        board[2][1] = man('white');
+        board[1][2] = man('black');
+        const result = applyMove(board, getLegalMoves(board, 'white', null, INT)[0], INT);
+        assert.equal(result.promoted, true);
+        assert.equal(result.board[0][3].king, true);
     });
 });

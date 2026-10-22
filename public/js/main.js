@@ -9,6 +9,7 @@ import {
     requestReplay,
     leaveToLobby,
     handleChatSubmit,
+    renderQueueStatus,
 } from './ui.js';
 import { abortGame, moveReview } from './game.js';
 import { toggleSound } from './sound.js';
@@ -66,11 +67,12 @@ document.getElementById('loginForm').addEventListener('submit', (event) => {
 });
 onClick('loginBackBtn', () => showScreen('modeScreen'));
 
-// Spiel einrichten (Bedenkzeit)
+// Spiel einrichten (Variante und Bedenkzeit)
 document.getElementById('setupForm').addEventListener('submit', (event) => {
     event.preventDefault();
     startSearch();
 });
+document.getElementById('setupForm').addEventListener('change', renderQueueStatus); // Andere Variante gewählt
 onClick('setupBackBtn', () => showScreen('loginScreen'));
 
 // Wartebildschirm

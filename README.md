@@ -9,11 +9,12 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
 **Spielen**
 
 - **Zwei Modi:** gegen den Computer oder online gegen einen anderen Menschen, mit Chat und Revanche.
-- **Vollständige Spielregeln** der Variante „Klassisch“ (siehe [Spielregeln](#spielregeln)): Schlagzwang, Mehrfachsprung,
-  fliegende Dame. Pflichtschläge werden automatisch rot markiert und lassen sich direkt anklicken.
+- **Zwei Varianten mit vollständigen Spielregeln** (siehe [Spielregeln](#spielregeln)): „Klassisch“ (8×8) und
+  „International“ (10×10, Rückwärtsschlagen und Mehrheitsschlag). Schlagzwang, Mehrfachsprung, fliegende Dame.
+  Pflichtschläge werden automatisch rot markiert und lassen sich direkt anklicken.
 - **Bedenkzeit wählbar:** 1, 3, 5 oder 10 Minuten pro Spieler oder Partymodus (für beide dieselbe Zufallszeit von 1 bis
-  10 Minuten, mit eigener Auslosung). Online spielen nur Spieler mit derselben Einstellung gegeneinander, der
-  Setup-Bildschirm zeigt, wo gerade jemand wartet.
+  10 Minuten, mit eigener Auslosung). Online spielen nur Spieler mit derselben Variante und Bedenkzeit gegeneinander,
+  der Setup-Bildschirm zeigt, wo gerade jemand wartet.
 - **Münzwurf** um die Farbe, Countdown bis zum Start, Konfetti oder Regen am Ende, Spielverlauf und Endstand.
 
 **Bedienung und Oberfläche**
@@ -35,7 +36,8 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
 
 ## Spielregeln
 
-Aktuell wird die Variante **„Klassisch“** gespielt. Eine zweite Variante „International“ (10×10) ist geplant.
+Es gibt zwei Varianten, ausgewählt wird im Setup-Bildschirm vor der Partie. Die Unterschiede legt `VARIANTS` in
+`rules.js` fest.
 
 ### Variante „Klassisch“
 
@@ -68,6 +70,19 @@ Aktuell wird die Variante **„Klassisch“** gespielt. Eine zweite Variante „
 - Gewonnen hat, wessen Gegner keine Steine mehr hat **oder** keinen gültigen Zug mehr ausführen kann.
 - Jede Seite hat dieselbe Bedenkzeit (1, 3, 5 oder 10 Minuten, im Partymodus ausgelost), es gilt das Schachuhr-Prinzip. Wer die Zeit überschreitet, verliert.
 - Wer aufgibt oder eine Online-Partie verlässt, verliert.
+
+### Variante „International“
+
+Wie „Klassisch“, mit diesen Unterschieden (Regeln des Weltverbands FMJD):
+
+- Brett mit 10×10 Feldern, jede Seite beginnt mit 20 Steinen auf den ersten vier Reihen.
+- Normale Steine ziehen nur vorwärts, schlagen aber auch **rückwärts**.
+- **Mehrheitsschlag:** Gibt es mehrere Schlagmöglichkeiten, muss die gewählt werden, mit der insgesamt die meisten
+  gegnerischen Steine geschlagen werden (Damen zählen wie normale Steine).
+- Geschlagene Steine bleiben bis zum Ende des Zugs liegen (halb durchsichtig angezeigt) und dürfen nicht zweimal
+  übersprungen werden.
+- Ein Stein wird nur zur Dame, wenn sein Zug auf der gegnerischen Grundlinie **endet**. Muss er von dort weiterschlagen,
+  bleibt er ein normaler Stein.
 
 ## Barrierefreiheit
 
@@ -167,7 +182,7 @@ flowchart TB
 
 **Wichtige Entscheidungen:**
 
-- **Gemeinsame Spielregeln:** `rules.js` arbeitet nur mit Daten (8×8-Array) und kennt kein HTML. Dadurch nutzen Browser und Server dieselbe Datei. Der Browser zeigt erlaubte Züge sofort an, der Server ist der Schiedsrichter und leitet nur erlaubte Züge weiter.
+- **Gemeinsame Spielregeln:** `rules.js` arbeitet nur mit Daten (8×8- bzw. 10x10-Array) und kennt kein HTML. Dadurch nutzen Browser und Server dieselbe Datei. Der Browser zeigt erlaubte Züge sofort an, der Server ist der Schiedsrichter und leitet nur erlaubte Züge weiter.
 - **Server führt pro Partie ein eigenes Brett** und weiß, wer am Zug ist. Ein manipulierter Browser kann weder für den Gegner ziehen noch Regeln brechen.
 - **Computergegner läuft komplett im Browser**, dafür ist keine Serververbindung nötig.
 - **Bewusste Grenze:** Die Schachuhr läuft nur im Browser. Eine Server-Uhr wäre der nächste Schritt gegen Manipulation der Bedenkzeit.
@@ -218,19 +233,19 @@ sequenceDiagram
 
 ## Socket.io-Ereignisse
 
-| Ereignis              | Richtung         | Daten                                         | Prüfung auf dem Server                                                                                |
-| --------------------- | ---------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `findMatch`           | Browser → Server | Spielername, Bedenkzeit                       | Name: 2–16 Zeichen, nur Buchstaben und Ziffern; Zeit: `1`, `3`, `5`, `10` oder `party` (Standard `5`) |
-| `cancelSearch`        | Browser → Server | –                                             | –                                                                                                     |
-| `matchFound`          | Server → Browser | `oppName`, `isWhite`, `timeMinutes`           | –                                                                                                     |
-| `queueStatus`         | Server → Browser | `waiting` (pro Bedenkzeit 0 oder 1), `online` | – (wird bei jeder Änderung an alle geschickt)                                                         |
-| `makeMove`            | Browser → Server | `fromR`, `fromC`, `toR`, `toC`                | ganze Zahlen 0–7, Spieler ist am Zug, Zug laut `rules.js` erlaubt                                     |
-| `receiveMove`         | Server → Browser | `fromR`, `fromC`, `toR`, `toC`                | nur geprüfte Züge werden weitergeleitet                                                               |
-| `chatMessage`         | beide Richtungen | Text                                          | muss Text sein, wird gekürzt (max. 200 Zeichen), leere werden verworfen                               |
-| `requestReplay`       | Browser → Server | –                                             | –                                                                                                     |
-| `opponentWantsReplay` | Server → Browser | –                                             | –                                                                                                     |
-| `leaveMatch`          | Browser → Server | –                                             | –                                                                                                     |
-| `opponentLeft`        | Server → Browser | –                                             | –                                                                                                     |
+| Ereignis              | Richtung         | Daten                                                      | Prüfung auf dem Server                                                                                                                                                    |
+| --------------------- | ---------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `findMatch`           | Browser → Server | Spielername, Bedenkzeit, Variante                          | Name: 2–16 Zeichen, nur Buchstaben und Ziffern; Zeit: `1`, `3`, `5`, `10` oder `party` (Standard `5`); Variante: `klassisch` oder `international` (Standard: `klassisch`) |
+| `cancelSearch`        | Browser → Server | –                                                          | –                                                                                                                                                                         |
+| `matchFound`          | Server → Browser | `oppName`, `isWhite`, `timeMinutes`                        | –                                                                                                                                                                         |
+| `queueStatus`         | Server → Browser | `waiting` (pro Variante und Bedenkzeit 0 oder 1), `online` | – (wird bei jeder Änderung an alle geschickt)                                                                                                                             |
+| `makeMove`            | Browser → Server | `fromR`, `fromC`, `toR`, `toC`                             | ganze Zahlen auf dem Brett (0-7 bzw. 0-9), Spieler ist am Zug, Zug laut `rules.js` erlaubt                                                                                |
+| `receiveMove`         | Server → Browser | `fromR`, `fromC`, `toR`, `toC`                             | nur geprüfte Züge werden weitergeleitet                                                                                                                                   |
+| `chatMessage`         | beide Richtungen | Text                                                       | muss Text sein, wird gekürzt (max. 200 Zeichen), leere werden verworfen                                                                                                   |
+| `requestReplay`       | Browser → Server | –                                                          | –                                                                                                                                                                         |
+| `opponentWantsReplay` | Server → Browser | –                                                          | –                                                                                                                                                                         |
+| `leaveMatch`          | Browser → Server | –                                                          | –                                                                                                                                                                         |
+| `opponentLeft`        | Server → Browser | –                                                          | –                                                                                                                                                                         |
 
 Zusätzlich gilt: Nachrichten über 10 KB lehnt Socket.io ab, und jeder Handler läuft in `try/catch` (`onSafe`). Ein fehlerhaftes Ereignis bringt den Server also nicht zum Absturz.
 
@@ -280,10 +295,7 @@ Beenden mit: `pkill -f "node server.js"`
 
 ## Mögliche Erweiterungen
 
-- Zweite Variante „International“ (10×10, Steine schlagen auch rückwärts)
 - Private Räume für Partien mit Freunden
-- Dark Mode und ein interaktives Tutorial
-- Durchklickbares Replay einer Partie (Zug für Zug)
 
 ## Autor
 

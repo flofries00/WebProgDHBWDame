@@ -100,10 +100,16 @@
                 </form>
             </section>
 
-            <!-- 1b. Bildschirm: Spiel einrichten (Bedenkzeit) -->
+            <!-- 1b. Bildschirm: Spiel einrichten (Variante und Bedenkzeit) -->
             <section id="setupScreen" class="screen">
                 <h2>Spiel einrichten</h2>
                 <form id="setupForm">
+                    <!-- Die Werte passen zu VARIANTS in rules.js, die Regeln stehen im Hilfe-Fenster -->
+                    <fieldset class="time-options">
+                        <legend>Variante</legend>
+                        <label><input type="radio" name="variant" value="klassisch" checked /> Klassisch (8×8)</label>
+                        <label><input type="radio" name="variant" value="international" /> International (10×10)</label>
+                    </fieldset>
                     <fieldset class="time-options">
                         <legend>Bedenkzeit pro Spieler</legend>
                         <!-- Die leeren .queue-badge füllt ui.js im Online-Modus mit "1 wartet" -->
@@ -210,19 +216,11 @@
                                 auswählen und auf ein Zielfeld ziehen, mit Escape die Auswahl aufheben.
                             </p>
                             <div id="boardWrapper" class="board-wrapper">
-                                <!-- Beschriftung auf allen vier Seiten, so steht sie auch auf dem gedrehten Brett links und unten -->
-                                <div class="coords-y coords-left" aria-hidden="true">
-                                    <span>8</span><span>7</span><span>6</span><span>5</span> <span>4</span><span>3</span
-                                    ><span>2</span><span>1</span>
-                                </div>
-                                <div class="coords-y coords-right" aria-hidden="true">
-                                    <span>8</span><span>7</span><span>6</span><span>5</span> <span>4</span><span>3</span
-                                    ><span>2</span><span>1</span>
-                                </div>
-                                <div class="coords-x coords-top" aria-hidden="true">
-                                    <span>A</span><span>B</span><span>C</span><span>D</span> <span>E</span><span>F</span
-                                    ><span>G</span><span>H</span>
-                                </div>
+                                <!-- Beschriftung auf allen vier Seiten, so steht sie auch auf dem gedrehten Brett links und unten.
+                                     Die Buchstaben und Zahlen schreibt game.js passend zur Brettgröße hinein -->
+                                <div class="coords-y coords-left" aria-hidden="true"></div>
+                                <div class="coords-y coords-right" aria-hidden="true"></div>
+                                <div class="coords-x coords-top" aria-hidden="true"></div>
                                 <div
                                     id="board"
                                     class="board"
@@ -230,10 +228,7 @@
                                     aria-label="Spielbrett"
                                     aria-describedby="boardHelp"
                                 ></div>
-                                <div class="coords-x coords-bottom" aria-hidden="true">
-                                    <span>A</span><span>B</span><span>C</span><span>D</span> <span>E</span><span>F</span
-                                    ><span>G</span><span>H</span>
-                                </div>
+                                <div class="coords-x coords-bottom" aria-hidden="true"></div>
                             </div>
 
                             <div class="vertical-timer-container">
@@ -400,6 +395,21 @@
                         Gewonnen hat, wessen Gegner keine Steine oder keinen Zug mehr hat, die Zeit überschreitet oder
                         aufgibt.
                     </li>
+                </ul>
+
+                <h4>Unterschiede in der Variante "International"</h4>
+                <ul>
+                    <li>Brett mit 10x10 Feldern, jede Seite beginnt mit 20 Steinen</li>
+                    <li>Normale Steine schlagen auch <strong>rückwärts</strong> (ziehen aber nur vorwärts)</li>
+                    <li>
+                        <strong>Mehrheitsschlag:</strong> Gibt es mehrere Schläge, muss der gewählt werden, mit dem man
+                        die meisten Steine schlägt
+                    </li>
+                    <li>
+                        Geschlagene Steine bleiben bis zum Ende des Zugs halb durchsichtig liegen und dürfen nicht
+                        zweimal übersprungen werden
+                    </li>
+                    <li>Ein Stein wird nur zur Dame, wenn sein Zug auf der gegnerischen Grundlinie endet</li>
                 </ul>
 
                 <div class="dialog-buttons">

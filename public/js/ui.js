@@ -2,6 +2,7 @@ import { state } from './state.js';
 import { socket } from './socket.js';
 import { startGame, endGame, stopGame } from './game.js';
 import { playSound } from './sound.js';
+import { VARIANTS } from './rules.js';
 
 // Globale Variablen für den Spielablauf
 
@@ -9,7 +10,7 @@ let searchTimeout; // Timer für Gegnersuche
 let coinTossTimeout; // Timer bis zur Landung der Münze
 let countdownInterval; // Countdown bis Spielstart
 let partyTimeout; // Nächster Schritt der Zeit-Auslosung im Partymodus
-let queueStatus = null; // Letzter Stand der Warteschlangen vom Server: { waiting: { '1': 0, ... }, online }
+let queueStatus = null; // Letzter Stand der Warteschlangen vom Server: { waiting: { klassisch: { '1': 0, ...}, ...}, online }
 
 /**
  * Speichert den gewählten Spielmodus und wechselt zur Anmeldung.
@@ -94,15 +95,16 @@ export function showSetup() {
 }
 
 /**
- * Zeigt im Setup-Bildschirm, bei welcher Bedenkzeit schon jemand wartet und wie viele Spieler online sind.
+ * Zeigt im Setup-Bildschirm, bei welcher Bedenkzeit (in der gewählten Variante) schon jemand wartet und wie viele Spieler online sind.
  * Gegen den Computer bleibt alles leer.
  */
-function renderQueueStatus() {
+export function renderQueueStatus() {
     const isOnline = state.gameMode === 'online' && queueStatus;
+    const variant = document.querySelector('input[name="variant"]:checked').value;
 
     document.querySelectorAll('input[name="timeSetting"]').forEach((input) => {
         const badge = input.parentElement.querySelector('.queue-badge');
-        badge.textContent = isOnline && queueStatus.waiting[input.value] > 0 ? '1 wartet' : '';
+        badge.textContent = isOnline && queueStatus.waiting[variant][input.value] > 0 ? '1 wartet' : '';
     });
 
     document.getElementById('onlineCount').textContent = isOnline ? `Gerade online: ${queueStatus.online} Spieler` : '';
@@ -128,10 +130,12 @@ export function startSearch() {
         return;
     }
 
-    // Gewählte Bedenkzeit merken und im Wartebildschirm anzeigen
+    // Gewählte Variante und Bedenkzeit merken und im Wartebildschirm anzeigen
+    state.variant = document.querySelector('input[name="variant"]:checked').value;
     state.timeSetting = document.querySelector('input[name="timeSetting"]:checked').value;
-    document.getElementById('waitTimeText').textContent =
+    const timeText =
         state.timeSetting === 'party' ? 'Partymodus (Zufallszeit)' : `Bedenkzeit: ${state.timeSetting} min`;
+    document.getElementById('waitTimeText').textContent = `${VARIANTS[state.variant].name}, ${timeText}`;
 
     // Namen in die HTML-Platzhalter der anderen Bildschirme eintragen
     document.getElementById('waitName').textContent = state.currentPlayerName;
@@ -141,8 +145,8 @@ export function startSearch() {
     showScreen('waitingScreen');
 
     if (state.gameMode === 'online') {
-        // Echter Multiplayer: Server um Match mit gleicher Bedenkzeit bitten
-        socket.emit('findMatch', state.currentPlayerName, state.timeSetting);
+        // Echter Multiplayer: Server um Match mit gleicher Variante und Bedenkzeit bitten
+        socket.emit('findMatch', state.currentPlayerName, state.timeSetting, state.variant);
     } else {
         // Gegen den Computer: Die Suche wird nur simuliert
         state.opponentName = 'Computer';

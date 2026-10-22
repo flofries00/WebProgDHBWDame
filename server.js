@@ -5,7 +5,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 // Dieselben Spielregeln wie im Browser: So kann der Server jeden Zug selbst prüfen (Schutz gegen Cheating)
-import { BOARD_SIZE, createInitialBoard, getLegalMoves, findMove, applyMove, opponentOf } from './public/js/rules.js';
+import { VARIANTS, createInitialBoard, getLegalMoves, findMove, applyMove, opponentOf } from './public/js/rules.js';
 
 // In ES-Modulen gibt es __dirname nicht automatisch, daher aus der Adresse dieser Datei berechnen
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -21,17 +21,17 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Erlaubte Bedenkzeiten in Minuten, 'party' = beide bekommen dieselbe Zufallszeit von 1 bis 10 Minuten
 const TIME_SETTINGS = ['1', '3', '5', '10', 'party'];
 
-// Wartende Spieler, eine Warteschlange pro Bedenkzeit (es spielen nur Spieler mit gleicher Einstellung gegeneinander)
+// Wartende Spieler, eine Warteschlange pro Variante und Bedenkzeit (es spielen nur Spieler mit gleicher Einstellung gegeneinander)
 const waiting = new Map();
 
 // Grenzen für Eingaben vom Client
 const MAX_CHAT_LENGTH = 200;
 
 /**
- * Prüft, ob ein Wert eine gültige Brettkoordinate ist
+ * Prüft, ob ein Wert eine gültige Brettkoordinate auf einem Brett dieser Größe ist
  */
-function isValidCoord(value) {
-    return Number.isInteger(value) && value >= 0 && value < BOARD_SIZE;
+function isValidCoord(value, size) {
+    return Number.isInteger(value) && value >= 0 && value < size;
 }
 
 /**
@@ -52,7 +52,7 @@ function onSafe(socket, eventName, handler) {
  * Nimmt einen Spieler aus seiner Warteschlange (falls er dort wartet)
  */
 function leaveQueue(socket) {
-    if (waiting.get(socket.timeSetting) === socket) waiting.delete(socket.timeSetting);
+    if (waiting.get(socket.queueKey) === socket) waiting.delete(socket.queueKey);
 }
 
 /**
@@ -67,7 +67,8 @@ function startMatch(p1, p2) {
 
     // Spielstand auf dem Server (beide Sockets zeigen auf dasselbe Objekt)
     const game = {
-        board: createInitialBoard(),
+        variant: p1.variant, // Beide haben in derselben Warteschlange gewartet, also dieselbe Variante
+        board: createInitialBoard(p1.variant),
         turn: 'white', // Weiß beginnt
         multiJumpFrom: null, // Während eines Mehrfachsprungs: Position des springenden Steins
     };
@@ -107,8 +108,12 @@ function endMatch(socket) {
  * (so sieht man vor der Suche, mit welcher Bedenkzeit man sofort einen Gegner findet)
  */
 function broadcastQueueStatus() {
+    // Pro Variante und Bedenkzeit: 1 = dort wartet jemand, z.B. { klassisch: { '1': 0, '3': 1 }, international: {} }
     const waitingPerSetting = Object.fromEntries(
-        TIME_SETTINGS.map((setting) => [setting, waiting.has(setting) ? 1 : 0])
+        Object.keys(VARIANTS).map((variant) => [
+            variant,
+            Object.fromEntries(TIME_SETTINGS.map((time) => [time, waiting.has(`${variant}:${time}`) ? 1 : 0])),
+        ])
     );
     io.emit('queueStatus', { waiting: waitingPerSetting, online: io.of('/').sockets.size });
 }
@@ -118,24 +123,27 @@ io.on('connection', (socket) => {
     console.log('Verbunden: ', socket.id);
     broadcastQueueStatus(); // Neuer Spieler: Anzahl online hat sich geändert, er selbst bekommt den aktuellen Stand
 
-    onSafe(socket, 'findMatch', (name, timeSetting = '5') => {
-        // Namen und Bedenkzeit auch serverseitig prüfen (Client-Prüfung lässt sich umgehen)
+    onSafe(socket, 'findMatch', (name, timeSetting = '5', variant = 'klassisch') => {
+        // Namen, Bedenkzeit und Variante auch serverseitig prüfen (Client-Prüfung lässt sich umgehen)
         if (typeof name !== 'string' || !/^[a-zA-Z0-9äöüÄÖÜß]{2,16}$/.test(name)) return;
         if (!TIME_SETTINGS.includes(timeSetting)) return;
+        if (typeof variant !== 'string' || !Object.hasOwn(VARIANTS, variant)) return;
 
         leaveQueue(socket); // Falls der Spieler noch mit einer anderen Einstellung wartet
         socket.name = name; // Namen speichern, wichtig für Revanche
         socket.timeSetting = timeSetting; // Bedenkzeit merken, gilt auch für die Revanche
+        socket.variant = variant; // Variante ebenso
+        socket.queueKey = `${variant}:${timeSetting}`;
         socket.wantsReplay = false; // Alte Revanche-Wünsche verwerfen
 
-        // Wartet schon ein anderer Spieler mit derselben Bedenkzeit -> Match gefunden
-        const opponent = waiting.get(timeSetting);
+        // Wartet schon ein anderer Spieler mit derselben Variante und Bedenkzeit -> Match gefunden
+        const opponent = waiting.get(socket.queueKey);
         if (opponent && opponent !== socket) {
-            waiting.delete(timeSetting); // Warteschlange leeren
+            waiting.delete(socket.queueKey); // Warteschlange leeren
             startMatch(opponent, socket);
         } else {
-            // Erster Spieler mit dieser Bedenkzeit wartet
-            waiting.set(timeSetting, socket);
+            // Erster Spieler mit dieser Einstellung wartet
+            waiting.set(socket.queueKey, socket);
         }
         broadcastQueueStatus();
     });
@@ -154,7 +162,7 @@ io.on('connection', (socket) => {
         const { fromR, fromC, toR, toC } = moveData;
 
         // Nur gültige Koordinaten akzeptieren, sonst Nachricht verwerfen
-        if (![fromR, fromC, toR, toC].every(isValidCoord)) return;
+        if (![fromR, fromC, toR, toC].every((value) => isValidCoord(value, game.board.length))) return;
 
         // Ist dieser Spieler gar nicht am Zug? Nach Spielende hat der Spieler am Zug keine erlaubten Züge mehr,
         // deshalb wird dann automatisch jeder Zug abgelehnt
@@ -164,14 +172,15 @@ io.on('connection', (socket) => {
         }
 
         // Ist der Zug laut Regeln erlaubt? (Schlagzwang und Mehrfachsprung prüft rules.js)
-        const move = findMove(getLegalMoves(game.board, game.turn, game.multiJumpFrom), fromR, fromC, toR, toC);
+        const legalMoves = getLegalMoves(game.board, game.turn, game.multiJumpFrom, game.variant);
+        const move = findMove(legalMoves, fromR, fromC, toR, toC);
         if (!move) {
             console.warn(`Zug abgelehnt (nicht erlaubt): ${socket.id}`, moveData);
             return;
         }
 
         // Zug auf dem Server-Brett ausführen
-        const result = applyMove(game.board, move);
+        const result = applyMove(game.board, move, game.variant);
         game.board = result.board;
 
         if (result.mustContinue) {
