@@ -21,6 +21,7 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
 - Ziehen per **Klick, Drag & Drop** (Maus, Finger und Stift über Pointer Events) oder **Tastatur**.
 - **Farbauswahl:** 8 Brett- und 4 Steinvorlagen oder eigene Farben, mit Live-Vorschau und Kontrastprüfung. Die Wahl
   wird im Browser gespeichert.
+- **Dark-Mode:** folgt automatisch der Einstellung des Betriebssystems, lässt sich per Button in der Kopfzeile umschalten. Die Wahl wird im Browser gespeichert
 - **Hilfe-Fenster** (?) mit Bedienung, Markierungen und Regeln.
 - **Responsive** von 320px (Handy) bis zum großen Monitor, das Brett passt sich der Fensterhöhe an.
 - Töne für Züge, Münzwurf und Spielende, erzeugt per Web Audio API (abschaltbar).
@@ -105,6 +106,7 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
 │       ├── socket.js    Gemeinsame Verbindung zum Server
 │       ├── sound.js     Töne über die Web Audio API
 │       ├── theme.js     Farben-Fenster: Vorlagen, eigene Farben, Vorschau, Speichern im Browser
+|       ├── colorMode.js    Dark-Mode: helles oder dunkles Design der Seite umschalten und merken
 │       └── colors.js    Farbvorlagen und Kontrastprüfung nach WCAG ohne HTML (testbar wie rules.js)
 └── tests/
     ├── rules.test.js    Unit-Tests der Spielregeln
@@ -126,6 +128,7 @@ flowchart TB
         Sound["sound.js<br/>Töne"]
         Theme["theme.js<br/>Farben-Fenster"]
         Colors["colors.js<br/>Farben und Kontrast"]
+        ColorMode["colorMode.js<br/>Dark-Mode"]
         State["state.js<br/>gemeinsamer Zustand"]
         SocketC["socket.js<br/>Serververbindung"]
         HTML --> Main
@@ -133,6 +136,7 @@ flowchart TB
         Main --> Game
         Main --> Sound
         Main --> Theme
+        Main --> ColorMode
         Theme --> Colors
         UI <--> Game
         Game --> RulesC

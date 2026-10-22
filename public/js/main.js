@@ -13,6 +13,7 @@ import {
 import { abortGame } from './game.js';
 import { toggleSound } from './sound.js';
 import { loadTheme, openThemeDialog, handleThemeInput, handleThemeDialogClose } from './theme.js';
+import { loadColorMode, toggleColorMode } from './colorMode.js';
 
 /**
  * Kurzform: Klick-Handler für das Element mit der angegebenen ID registieren
@@ -25,7 +26,9 @@ function onClick(id, handler) {
 onClick('helpBtn', () => document.getElementById('helpDialog').showModal());
 onClick('soundBtn', toggleSound);
 onClick('themeBtn', openThemeDialog);
+onClick('colorModeBtn', toggleColorMode);
 loadTheme();
+loadColorMode();
 
 // Fenster für die Farben
 document.getElementById('themeForm').addEventListener('input', handleThemeInput);

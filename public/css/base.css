@@ -1,30 +1,47 @@
 /* Grundlagen: Design-Variablen (Farben, Formen, Schriften), Seitenhintergrund und Überschriften */
 @layer base {
+    /* Hell oder dunkel: Ohne eigene Wahl gilt die Einstellung des Betriebssystems.
+       Der Button in der Kopfzeile setzt data-color-mode auf <html> (colorMode.js).
+       light-dark(hell, dunkel) wählt dann bei jeder Farbe automatisch den passenden Wert */
+    :root {
+        color-scheme: light dark;
+
+        &[data-color-mode='light'] {
+            color-scheme: light;
+        }
+
+        &[data-color-mode='dark'] {
+            color-scheme: dark;
+        }
+    }
+
     :root {
         /* Markenfarben */
         --color-primary: #e2001a; /* DHBW-Rot */
         --color-primary-hover: color-mix(in srgb, var(--color-primary), black 12%); /* etwas dunkleres Rot */
-        --color-primary-soft: #fff0f0; /* sehr helles Rot für Hintergründe */
-        --color-primary-text: #c70017; /* Rote Schrift auf hellrotem Grund (5,5:1) */
+        --color-primary-soft: light-dark(#fff0f0, #3d1418); /* sehr helles (bzw. sehr dunkles) Rot für Hintergründe */
+        --color-primary-text: light-dark(#c70017, #ff8a95); /* Rote Schrift auf rötlichem Grund (5,5:1 bzw. 7:1) */
+        --color-accent-text: light-dark(#e2001a, #ff6b78); /* Rote Schrift auf normalem Grund (4,9:1 bzw. 6:1) */
         --color-on-primary: #ffffff; /* Schrift auf rotem Grund */
 
         /* Text */
-        --color-text: #333333;
-        --color-text-soft: #555555;
-        --color-text-muted: #666666;
+        --color-text: light-dark(#333333, #e8e8e8);
+        --color-text-soft: light-dark(#555555, #c8c8c8);
+        --color-text-muted: light-dark(#666666, #a8a8a8);
 
         /* Flächen und Rahmen */
-        --color-surface: #ffffff;
-        --color-surface-faint: #fafafa;
-        --color-surface-alt: #f0f0f0;
-        --color-surface-alt-hover: #e0e0e0;
-        --color-border-light: #eeeeee;
-        --color-border: #dddddd;
-        --color-border-strong: #cccccc;
-        --color-disabled: #cccccc;
+        --color-surface: light-dark(#ffffff, #1f1f1f);
+        --color-surface-faint: light-dark(#fafafa, #262626);
+        --color-surface-alt: light-dark(#f0f0f0, #2e2e2e);
+        --color-surface-alt-hover: light-dark(#e0e0e0, #3b3b3b);
+        --color-divider: light-dark(#f9f9f9, #2b2b2b); /* Trennlinie zwischen Einträgen im Spielverlauf */
+        --color-border-light: light-dark(#eeeeee, #333333);
+        --color-border: light-dark(#dddddd, #484848);
+        --color-border-strong: light-dark(#cccccc, #5c5c5c);
+        --color-disabled: light-dark(#cccccc, #555555);
         --color-success: #28a745;
-        --color-waiting-text: #1e6b30;
-        --color-waiting-bg: #e6f4ea;
+        --color-waiting-text: light-dark(#1e6b30, #8fd6a0);
+        --color-waiting-bg: light-dark(#e6f4ea, #1c3523);
         --color-focus: #ffffff;
         --color-focus-contrast: #000000;
 
@@ -42,7 +59,7 @@
         --color-piece-light: #e0e0e0;
         --color-piece-dark: #222222;
         --color-piece-white-border: #aaaaaa;
-        --color-piece-black-border: #111111;
+        --color-piece-black-border: light-dark(#111111, #777777); /* Im Dark-Mode heller sonst verschwindet der Stein */
         --color-piece-black-outline: #dddddd;
         --color-crown-on-white: #7a5c00;
         --color-crown-on-black: #ffd700;
@@ -51,14 +68,14 @@
         --icon-crown: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 7l5 4 5-7 5 7 5-4-2 11H4zM4 19h16v2H4z'/%3E%3C/svg%3E");
 
         /* Seitenhintergrund */
-        --gradient-page: linear-gradient(135deg, #fdf7f1 0%, #e6d3c0 100%);
-        --color-page-pattern: rgba(139, 69, 19, 0.04);
+        --gradient-page: linear-gradient(135deg, light-dark(#fdf7f1, #1a1613) 0%, light-dark(#e6d3c0, #2b2119) 100%);
+        --color-page-pattern: light-dark(rgba(139, 69, 19, 0.04), rgba(222, 184, 135, 0.04));
 
         /* Formen und Schatten */
         --radius-large: 0.75rem;
         --radius-medium: 0.5rem;
         --radius-small: 0.25rem;
-        --shadow-box: 0 10px 25px rgba(0, 0, 0, 0.15);
+        --shadow-box: 0 10px 25px light-dark(rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.5));
         --border-accent: 5px solid var(--color-primary); /* Roter Akzent oben an Boxen */
 
         /* Schriften */

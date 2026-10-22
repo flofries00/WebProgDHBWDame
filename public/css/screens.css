@@ -112,7 +112,7 @@
         margin-block: 1.25rem;
         font-size: 3rem;
         font-weight: bold;
-        color: var(--color-primary);
+        color: var(--color-accent-text);
     }
 
     /* ---------- Wartebildschirm: vier nacheinander pulsierende Kreise ---------- */
@@ -254,7 +254,7 @@
         align-items: flex-start;
         margin-block-end: 1.25rem;
         padding: 0.9375rem;
-        background: #fdfdfd;
+        background: var(--color-surface-faint);
         border: 1px solid var(--color-border-light);
         border-radius: var(--radius-medium);
     }
@@ -273,7 +273,7 @@
     .turn-indicator-large {
         font-size: 1.3em;
         font-weight: bold;
-        color: var(--color-primary);
+        color: var(--color-accent-text);
     }
 
     /* Spielverlauf (scrollt in sich, statt die Box zu vergrößern) */
@@ -314,7 +314,7 @@
 
         & li {
             padding-block: 0.25rem;
-            border-block-end: 1px solid #f9f9f9;
+            border-block-end: 1px solid var(--color-divider);
         }
     }
 
@@ -362,7 +362,7 @@
         color: var(--color-text);
 
         &.self {
-            color: var(--color-primary);
+            color: var(--color-accent-text);
         }
     }
 
@@ -407,7 +407,7 @@
         min-height: 1.25rem; /* Hält Platz frei, damit die Buttons nicht springen */
         margin-block-end: 0.9375rem;
         font-weight: bold;
-        color: var(--color-primary);
+        color: var(--color-accent-text);
     }
 
     /* Konfetti-Schnipsel (Position, Farbe und Dauer setzt JavaScript zufällig) */

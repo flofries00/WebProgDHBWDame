@@ -51,6 +51,8 @@
         border: 2px solid var(--color-border);
         border-radius: var(--radius-medium);
         font-size: 1rem;
+        color: var(--color-text);
+        background-color: var(--color-surface);
         transition: border-color 0.3s;
 
         &:focus {
@@ -84,7 +86,7 @@
         margin-block: 0.3125rem 0;
         font-size: 1rem;
         font-weight: bold;
-        color: var(--color-primary);
+        color: var(--color-accent-text);
     }
 
     /* Bestätigungs-Box (dialog) */
@@ -98,6 +100,7 @@
         border-radius: var(--radius-large);
         text-align: center;
         color: var(--color-text);
+        background: var(--color-surface);
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 
         /* Sanftes Einblenden beim Öffnen */

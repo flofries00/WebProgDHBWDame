@@ -936,7 +936,8 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * Auf Server hochladen (http und https Zertifikate)
  *
  * G) Optional, nur wenn Zeit bleibt
- * Github CI, Dark-Mode, Tutorial, Performance
+ * Github CI, Tutorial, Performance
  * Variante "International" (#18), Private Räume
  * Durchklickbares Game-Replay (Zug für Zug)
+ * Tests überprüfen - Wird auch wirklich ALLES ALLES getestet? (z.B. auch die Uhr, die Tastatursteuerung, das Drag & Drop, die Bildschirmleser-Beschriftungen, die Online-Variante)
  */

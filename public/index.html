@@ -13,6 +13,17 @@
         <!-- Einstiegspunkt der Styles, lädt alle Dateien aus css/ in der richtigen Layer-Reihenfolge. -->
         <link rel="stylesheet" href="css/main.css" />
 
+        <!-- Gespeichertes Design sofort setzen, bevor die Seite angezeigt wird, sonst
+        blitzt sie kurz im falschen Design auf, weil Module erst nach dem HTML laufen -->
+        <script>
+            try {
+                const mode = localStorage.getItem('colorMode');
+                if (mode === 'light' || mode === 'dark') document.documentElement.dataset.colorMode = mode;
+            } catch {
+                // Kein Zugriff auf den Speicher: Einstellung des Betriebssystems gilt
+            }
+        </script>
+
         <!-- Socket.io Client Bibliothek laden (stellt io() bereit, muss vor den Modulen geladen werden) -->
         <script src="/socket.io/socket.io.js"></script>
 
@@ -32,6 +43,8 @@
             <div class="nav-controls">
                 <!-- Öffnet das Fenster für die Farben -->
                 <button id="themeBtn" class="nav-btn">Farbauswahl</button>
+                <!-- Dark Mode an/aus -->
+                <button id="colorModeBtn" class="nav-btn" title="Dunkles Design" aria-pressed="false">🌙</button>
                 <button id="helpBtn" class="nav-btn" aria-label="Hilfe" title="Hilfe">?</button>
                 <button id="soundBtn" class="nav-btn" title="Ton an/aus">🔊</button>
                 <span id="realTimeClock" class="clock-display">00:00</span>
