@@ -54,6 +54,8 @@
         --color-capture-target: #ff9999;
         --color-move-marker: #14532d;
         --color-capture-marker: #7f1d1d;
+        --color-review-from: rgba(255, 221, 0, 0.35);
+        --color-review-to: rgba(255, 221, 0, 0.6);
 
         /* Spielsteine (auch für Logo und Münze): Grundfarben, den Verlauf berechnet die Regel weiter unten */
         --color-piece-light: #e0e0e0;

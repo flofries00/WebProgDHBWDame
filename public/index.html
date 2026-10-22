@@ -281,9 +281,48 @@
                 <div class="game-layout end-layout">
                     <!-- Linke Box: Finales Brett -->
                     <div class="game-left-box">
-                        <h3>Endstand</h3>
+                        <h3 id="reviewTitle" aria-live="polite">Endstand</h3>
                         <!-- Hier wird das Brett per JavaScript hineinkopiert -->
                         <div id="endBoardContainer" class="end-board-scale"></div>
+                        <!-- Partie Zug für Zug nachspielen (game.js) -->
+                        <div class="review-controls">
+                            <button
+                                type="button"
+                                id="reviewStartBtn"
+                                class="secondary-btn"
+                                aria-label="Zum Anfang"
+                                title="Zum Anfang"
+                            >
+                                ⏮
+                            </button>
+                            <button
+                                type="button"
+                                id="reviewPrevBtn"
+                                class="secondary-btn"
+                                aria-label="Zug zurück"
+                                title="Zug zurück"
+                            >
+                                ◀
+                            </button>
+                            <button
+                                type="button"
+                                id="reviewNextBtn"
+                                class="secondary-btn"
+                                aria-label="Zug vor"
+                                title="Zug vor"
+                            >
+                                ▶
+                            </button>
+                            <button
+                                type="button"
+                                id="reviewEndBtn"
+                                class="secondary-btn"
+                                aria-label="Zum Endstand"
+                                title="Zum Endstand"
+                            >
+                                ⏭
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Rechte Box: Log & Buttons -->

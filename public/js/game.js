@@ -16,6 +16,11 @@ let timerInterval = null;
 let isMultiJumping = false; // Läuft ein Mehrfachsprung? Dann darf nur der springende Stein weiterziehen
 let computerMoveTimeout = null; // Ausstehender Computerzug (damit er abgebrochen werden kann)
 let drag = null; // Laufendes Ziehen eines Steins: { piece, pointerId, startX, startY, bounds, moved }
+let turnHistory = []; // Brett nach jedem vollständigen Zug zum Nachspielen
+let turnStart = null; // Startfeld des laufenden Zugs
+let turnEnd = null; // Zielfeld des letzten Sprungs im laufenden Zug
+let reviewIndex = 0; // Welcher Eintrag aus turnHistory gerade auf dem Endbrett zu sehen ist
+let reviewBoard = null; // Brett im Endbildschirm, auf dem nachgespielt wird
 
 /**
  * Liefert ein Feld des ECHTEN Spielbretts (nicht der Kopie im Endbildschirm)
@@ -120,6 +125,9 @@ export function startGame() {
 function generateBoard() {
     board = createInitialBoard(); // Startaufstellung als Daten (rules.js)
 
+    // Nachspielen beginnt mit der Startaufstellung
+    turnHistory = [{ board, from: null, to: null, logCount: 0 }];
+
     const boardElement = document.getElementById('board');
     boardElement.innerHTML = ''; // Brett komplett leeren, bevor es neu gebaut wird
 
@@ -140,7 +148,11 @@ function generateBoard() {
 
             // Stein laut Brett-Daten einsetzen
             const piece = board[row][col];
-            if (piece) cell.appendChild(createPieceElement(piece));
+            if (piece) {
+                const pieceElement = createPieceElement(piece);
+                pieceElement.addEventListener('pointerdown', handlePointerDown); // Drag & Drop mit Maus, Finger und Stift
+                cell.appendChild(pieceElement);
+            }
 
             boardElement.appendChild(cell);
         }
@@ -164,7 +176,6 @@ function generateBoard() {
 function createPieceElement(piece) {
     const element = document.createElement('span');
     element.className = `piece ${piece.color}-piece` + (piece.king ? ' dame' : '');
-    element.addEventListener('pointerdown', handlePointerDown); // Drag & Drop mit Maus, Finger und Stift
     return element;
 }
 
@@ -315,6 +326,10 @@ function handleBoardClick(event) {
     const isCapture = move.captured !== null;
     const victimColor = isCapture ? board[move.captured.row][move.captured.col].color : null;
 
+    // Für das Nachspielen: Startfeld des Zug und aktuelles Zielfeld
+    if (!isMultiJumping) turnStart = { row: move.fromRow, col: move.fromCol };
+    turnEnd = { row: move.toRow, col: move.toCol };
+
     // 2. Zug in den Brett-Daten ausführen (rules.js liefert auch Beförderung und Mehrfachsprung)
     const result = applyMove(board, move);
     board = result.board;
@@ -421,6 +436,9 @@ function handleBoardClick(event) {
     // Zugzähler erhöhen
     moveCount++;
 
+    // Brett nach dem vollständigen Zug für das Nachspielen merken
+    recordTurn();
+
     // Spieler wechseln
     currentTurn = currentTurn === 'white' ? 'black' : 'white';
 
@@ -500,6 +518,9 @@ function checkWinCondition() {
  * Beendet das Spiel und zeigt den Endbildschirm. reason: '' (normales Ende), 'timeout' oder 'opponentLeft'
  */
 export function endGame(winnerColor, reason = '') {
+    // Endet das Spiel mitten in einem Zug (z.B. Zeit abgelaufen beim Mehrfachsprung), diesen Stand auch merken
+    recordTurn();
+
     // Uhr anhalten
     clearInterval(timerInterval);
 
@@ -546,6 +567,9 @@ export function endGame(winnerColor, reason = '') {
         // Die Kopie ist nur ein Bild: inert nimmt ihre Felder aus der Tab-Reihenfolge und vor dem Screenreader
         clonedBoard.inert = true;
         endBoardCont.appendChild(clonedBoard);
+        // Auf dem Brett der Kopie wird die Partie nachgespielt, los gehts beim Endstand
+        reviewBoard = clonedBoard.querySelector('.board');
+        showReviewStep(turnHistory.length - 1);
     }
 
     // Zum Endbildschirm wechseln
@@ -564,6 +588,57 @@ export function endGame(winnerColor, reason = '') {
     if (endLogList) {
         endLogList.scrollTop = endLogList.scrollHeight;
     }
+}
+
+/**
+ * Merkt sich das Brett nach einem Zug für das Nachspielen (nur, wenn sich seit dem letzten Eintrag etwas geändert hat)
+ */
+function recordTurn() {
+    if (turnHistory.at(-1).board === board) return;
+    const logCount = document.getElementById('logList').children.length;
+    turnHistory.push({ board, from: turnStart, to: turnEnd, logCount });
+}
+
+/**
+ * Zeigt auf dem Endbrett den Stand nach Zug "index" (0 = Startaufstellung) und markiert den Zug im Spielverlauf
+ */
+function showReviewStep(index) {
+    reviewIndex = index;
+    const { board: snapshot, from, to } = turnHistory[index];
+    const isAt = (square, row, col) => square?.row === row && square?.col === col;
+
+    // Steine laut gemerktem Brett setzen, Start- und Zielfeld des Zugs markieren
+    reviewBoard.querySelectorAll('.cell').forEach((cell) => {
+        const { row, col } = getPosition(cell);
+        const piece = snapshot[row][col];
+        cell.replaceChildren(...(piece ? [createPieceElement(piece)] : []));
+        cell.classList.toggle('review-from', isAt(from, row, col));
+        cell.classList.toggle('review-to', isAt(to, row, col));
+    });
+
+    // Überschrift: Startaufstellung, Zwischenstand oder Endstand
+    const last = turnHistory.length - 1;
+    let title = `Nach Zug ${index} von ${last}`;
+    if (index === 0) title = 'Startaufstellung';
+    if (index === last) title = 'Endstand';
+    document.getElementById('reviewTitle').textContent = title;
+
+    // Einträge dieses Zugs im Spielverlauf hervorheben (ein Mehrfachsprung hat mehrere Einträge)
+    const firstEntry = index > 0 ? turnHistory[index - 1].logCount : 0;
+    const lastEntry = turnHistory[index].logCount;
+    [...document.getElementById('endLogList').children].forEach((li, i) => {
+        li.classList.toggle('review-current', i >= firstEntry && i < lastEntry);
+    });
+    document.querySelector('#endLogList .review-current')?.scrollIntoView({ block: 'nearest' });
+}
+
+/**
+ * Buttons unter dem Endbrett: 'start', 'prev', 'next' oder 'end'
+ */
+export function moveReview(step) {
+    const last = turnHistory.length - 1;
+    const targets = { start: 0, prev: reviewIndex - 1, next: reviewIndex + 1, end: last };
+    showReviewStep(Math.min(Math.max(targets[step], 0), last));
 }
 
 /**
@@ -938,6 +1013,5 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * G) Optional, nur wenn Zeit bleibt
  * Github CI, Tutorial, Performance
  * Variante "International" (#18), Private Räume
- * Durchklickbares Game-Replay (Zug für Zug)
  * Tests überprüfen - Wird auch wirklich ALLES ALLES getestet? (z.B. auch die Uhr, die Tastatursteuerung, das Drag & Drop, die Bildschirmleser-Beschriftungen, die Online-Variante)
  */

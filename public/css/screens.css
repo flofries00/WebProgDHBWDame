@@ -316,6 +316,13 @@
             padding-block: 0.25rem;
             border-block-end: 1px solid var(--color-divider);
         }
+
+        /* Nachspielen: Einträge des gerade gezeigten Zugs */
+        & li.review-current {
+            font-weight: bold;
+            color: var(--color-text);
+            background: var(--color-surface-alt);
+        }
     }
 
     /* Chat */
@@ -400,6 +407,24 @@
     .end-board-scale {
         width: 100%;
         pointer-events: none;
+    }
+
+    /* Endbrett etwas klainer als im Spiel, damit de Buttons darunter passen */
+    #endScreen .board-wrapper {
+        max-width: min(37.25rem, 100dvh - 21.5rem);
+    }
+
+    /* Buttons zum Nachspielen unter dem Endbrett */
+    .review-controls {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-block-start: 0.75rem;
+
+        & button {
+            margin: 0;
+            padding: 0.375rem 0.875rem;
+        }
     }
 
     /* Statuszeile für die Revanche (z.B. "Gegner möchte noch eine Runde spielen") */

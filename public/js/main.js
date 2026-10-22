@@ -10,7 +10,7 @@ import {
     leaveToLobby,
     handleChatSubmit,
 } from './ui.js';
-import { abortGame } from './game.js';
+import { abortGame, moveReview } from './game.js';
 import { toggleSound } from './sound.js';
 import { loadTheme, openThemeDialog, handleThemeInput, handleThemeDialogClose } from './theme.js';
 import { loadColorMode, toggleColorMode } from './colorMode.js';
@@ -63,3 +63,7 @@ onClick('abortBtn', abortGame);
 // Endbildschirm
 onClick('replayBtn', requestReplay);
 onClick('lobbyBtn', leaveToLobby);
+onClick('reviewStartBtn', () => moveReview('start'));
+onClick('reviewPrevBtn', () => moveReview('prev'));
+onClick('reviewNextBtn', () => moveReview('next'));
+onClick('reviewEndBtn', () => moveReview('end'));

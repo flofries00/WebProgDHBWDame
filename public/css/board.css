@@ -139,6 +139,15 @@
                 border-radius: 50%;
             }
         }
+
+        /* Nachspielen im Endbildschirm: Start und Zeilfeld des gezeigten Zugs gelb */
+        &.review-from {
+            background-image: linear-gradient(var(--color-review-from), var(--color-review-from));
+        }
+
+        &.review-to {
+            background-image: linear-gradient(var(--color-review-to), var(--color-review-to));
+        }
     }
 
     /* Ein Spielstein */
