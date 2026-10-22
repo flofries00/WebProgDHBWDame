@@ -629,7 +629,14 @@ function showReviewStep(index) {
     [...document.getElementById('endLogList').children].forEach((li, i) => {
         li.classList.toggle('review-current', i >= firstEntry && i < lastEntry);
     });
-    document.querySelector('#endLogList .review-current')?.scrollIntoView({ block: 'nearest' });
+    // Nur die Liste scrollen: scrollIntoView würde auf schmalen Bildschirmen die ganze Seite mitscrollen
+    // und die Buttons unter dem Finger wegschieben. Der aktuelle Zug landet in der Mitte der Liste
+    const list = document.getElementById('endLogList');
+    const current = list.querySelector('.review-current');
+    if (current) {
+        const offset = current.getBoundingClientRect().top - list.getBoundingClientRect().top;
+        list.scrollTop += offset - list.clientHeight / 2 + current.offsetHeight / 2;
+    }
 }
 
 /**
