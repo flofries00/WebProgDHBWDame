@@ -142,6 +142,30 @@
         }
     }
 
+    /* Tutorial: schmales Fenster mit Übungsbrett, Buttons dürfen auf dem Handy umbrechen */
+    .tutorial-dialog {
+        max-width: 28rem;
+
+        & p {
+            margin-block: 0 0.5rem;
+        }
+
+        & .dialog-buttons {
+            flex-wrap: wrap;
+        }
+    }
+
+    /* Rückmeldung unter dem Übungsbrett, grün bei Erfolg */
+    .tutorial-feedback {
+        min-height: 3rem;
+        font-weight: bold;
+        color: var(--color-text-soft);
+
+        &.success {
+            color: var(--color-waiting-text);
+        }
+    }
+
     /* Fenster für die Farben: breiter als die Bestätigungs-Box, Inhalt linksbündig */
     .theme-dialog {
         max-width: 48rem;

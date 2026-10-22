@@ -65,6 +65,7 @@
                 <div class="mode-buttons">
                     <button id="modeComputerBtn">🤖 Gegen Computer</button>
                     <button id="modeOnlineBtn">👤 Gegen Mensch</button>
+                    <button id="tutorialBtn" class="secondary-btn">📖 Tutorial</button>
                 </div>
             </section>
 
@@ -402,6 +403,7 @@
                 </ul>
 
                 <div class="dialog-buttons">
+                    <button type="button" id="helpTutorialBtn" class="secondary-btn">Tutorial starten</button>
                     <button value="close">Schließen</button>
                 </div>
             </form>
@@ -440,6 +442,21 @@
                 <div class="dialog-buttons">
                     <button class="secondary-btn" value="cancel">Abbrechen</button>
                     <button value="apply">Übernehmen</button>
+                </div>
+            </form>
+        </dialog>
+        <!-- Interaktives Tutorial mit Übungsbrett -->
+        <dialog id="tutorialDialog" class="confirm-dialog tutorial-dialog" aria-labelledby="tutorialTitle">
+            <form method="dialog">
+                <h3 id="tutorialTitle">Tutorial</h3>
+                <p id="tutorialText"></p>
+                <div id="tutorialBoard" class="tutorial-board" role="group" aria-label="Übungsbrett"></div>
+                <!-- Rückmeldung zum Zug, wird vorgelesen -->
+                <p id="tutorialFeedback" class="tutorial-feedback" role="status"></p>
+                <div class="dialog-buttons">
+                    <button class="secondary-btn" value="close">Überspringen</button>
+                    <button type="button" id="tutorialRetryBtn" class="secondary-btn">Nochmal</button>
+                    <button type="button" id="tutorialNextBtn">Weiter</button>
                 </div>
             </form>
         </dialog>

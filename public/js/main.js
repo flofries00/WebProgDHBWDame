@@ -14,6 +14,14 @@ import { abortGame, moveReview } from './game.js';
 import { toggleSound } from './sound.js';
 import { loadTheme, openThemeDialog, handleThemeInput, handleThemeDialogClose } from './theme.js';
 import { loadColorMode, toggleColorMode } from './colorMode.js';
+import {
+    openTutorial,
+    openTutorialOnFirstVisit,
+    handleTutorialClick,
+    handleTutorialClose,
+    nextLesson,
+    restartLesson,
+} from './tutorial.js';
 
 /**
  * Kurzform: Klick-Handler für das Element mit der angegebenen ID registieren
@@ -33,6 +41,18 @@ loadColorMode();
 // Fenster für die Farben
 document.getElementById('themeForm').addEventListener('input', handleThemeInput);
 document.getElementById('themeDialog').addEventListener('close', handleThemeDialogClose);
+
+// Tutorial: beim ersten Besuch automatisch, sonst über die Startseite oder das Hilfe-Fenster
+document.getElementById('tutorialBoard').addEventListener('click', handleTutorialClick);
+document.getElementById('tutorialDialog').addEventListener('close', handleTutorialClose);
+onClick('tutorialNextBtn', nextLesson);
+onClick('tutorialRetryBtn', restartLesson);
+onClick('tutorialBtn', openTutorial);
+onClick('helpTutorialBtn', () => {
+    document.getElementById('helpDialog').close();
+    openTutorial();
+});
+openTutorialOnFirstVisit();
 
 // Modus-Auswahl
 onClick('modeComputerBtn', () => selectMode('computer'));

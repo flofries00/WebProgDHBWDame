@@ -173,7 +173,7 @@ function generateBoard() {
 /**
  * Erstellt das HTML-Element für einen Stein aus den Brett-Daten ({ color, king })
  */
-function createPieceElement(piece) {
+export function createPieceElement(piece) {
     const element = document.createElement('span');
     element.className = `piece ${piece.color}-piece` + (piece.king ? ' dame' : '');
     return element;
@@ -245,7 +245,7 @@ function showValidMoves(moves) {
 /**
  * Wandelt Zeile und Spalte in die Brettschreibweise um (z.B. 7, 0 -> "A1")
  */
-function toSquareName(row, col) {
+export function toSquareName(row, col) {
     return 'ABCDEFGH'[col] + (BOARD_SIZE - row);
 }
 
@@ -1018,7 +1018,7 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * Auf Server hochladen (http und https Zertifikate)
  *
  * G) Optional, nur wenn Zeit bleibt
- * Github CI, Tutorial, Performance
+ * Github CI, Performance
  * Variante "International" (#18), Private Räume
  * Tests überprüfen - Wird auch wirklich ALLES ALLES getestet? (z.B. auch die Uhr, die Tastatursteuerung, das Drag & Drop, die Bildschirmleser-Beschriftungen, die Online-Variante)
  */

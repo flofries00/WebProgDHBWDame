@@ -23,6 +23,7 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
   wird im Browser gespeichert.
 - **Dark-Mode:** folgt automatisch der Einstellung des Betriebssystems, lässt sich per Button in der Kopfzeile umschalten. Die Wahl wird im Browser gespeichert
 - **Hilfe-Fenster** (?) mit Bedienung, Markierungen und Regeln.
+- **Interaktives Tutorial** mit Übungsbrett: 6 Lektionen (Ziehen, Schlagen, Schlagzwang, Mehrfachsprung, Dame, Damenzug). Öffnet sich beim ersten Besuch, danach über die Startseite oder das Hilfe-Fenster
 - **Responsive** von 320px (Handy) bis zum großen Monitor, das Brett passt sich der Fensterhöhe an.
 - Töne für Züge, Münzwurf und Spielende, erzeugt per Web Audio API (abschaltbar).
 
@@ -106,7 +107,8 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
 │       ├── socket.js    Gemeinsame Verbindung zum Server
 │       ├── sound.js     Töne über die Web Audio API
 │       ├── theme.js     Farben-Fenster: Vorlagen, eigene Farben, Vorschau, Speichern im Browser
-|       ├── colorMode.js    Dark-Mode: helles oder dunkles Design der Seite umschalten und merken
+│       ├── colorMode.js    Dark-Mode: helles oder dunkles Design der Seite umschalten und merken
+│       ├── tutorial.js  Interaktives Tutorial: Lektionen auf einem Übungsbrett
 │       └── colors.js    Farbvorlagen und Kontrastprüfung nach WCAG ohne HTML (testbar wie rules.js)
 └── tests/
     ├── rules.test.js    Unit-Tests der Spielregeln
@@ -129,6 +131,7 @@ flowchart TB
         Theme["theme.js<br/>Farben-Fenster"]
         Colors["colors.js<br/>Farben und Kontrast"]
         ColorMode["colorMode.js<br/>Dark-Mode"]
+        Tutorial["tutorial.js<br/>Tutorial mit Übungsbrett"]
         State["state.js<br/>gemeinsamer Zustand"]
         SocketC["socket.js<br/>Serververbindung"]
         HTML --> Main
@@ -137,6 +140,8 @@ flowchart TB
         Main --> Sound
         Main --> Theme
         Main --> ColorMode
+        Main --> Tutorial
+        Tutorial --> RulesC
         Theme --> Colors
         UI <--> Game
         Game --> RulesC
