@@ -1,6 +1,6 @@
 // Interaktives Tutorial: Auf einem kleinen Übungsbrett macht man die wichtigsten Züge selbst.
 // Öffnet sich beim ersten Besuch automatisch und lässt sich über die Startseite und das Hilfe-Fenster wieder aufrufen
-import { getLegalMoves, applyMove } from './rules.js';
+import { getLegalMoves, getPieceMoves, applyMove } from './rules.js';
 import { createPieceElement, toSquareName } from './game.js';
 import { playSound } from './sound.js';
 
@@ -8,6 +8,7 @@ const STORAGE_KEY = 'tutorialSeen';
 
 // Die Lektionen. Das Brett steht als Text da: w/b = weißer/schwarzer Stein, W = weiße Dame, . = leer.
 // Die Aufstellungen sind so gewählt, dass jeder erlaubte Zug das Ziel der Lektion erfüllt
+// Zuerst die klassischen Lektionen (8x8), danach optional die Lektionen für International (10x10)
 const LESSONS = [
     {
         title: 'Ziehen',
@@ -42,10 +43,76 @@ const LESSONS = [
     {
         title: 'Die Dame schlägt',
         text: 'Die Dame zieht und schlägt beliebig weit in alle Richtungen, auch aus der Ferne. Schlage den Stein.',
-        success: 'Geschafft! Jetzt kennst du alle Regeln! Viel Spaß beim Spielen!',
+        success: 'Geschafft! Jetzt kennst du alle Regeln der klassischen Variante! Viel Spaß beim Spielen!',
         layout: ['........', '........', '........', '....b...', '........', '........', '.W......', '........'],
     },
+    {
+        variant: 'international',
+        title: 'Rückwärts schlagen',
+        text: 'International ist das Brett 10×10 groß. Steine ziehen weiter nur nach vorne, dürfen aber auch rückwärts schlagen. Schlage den Stein hinter dir.',
+        success: 'Richtig! Schlagen geht in alle vier Richtungen.',
+        layout: [
+            '..........',
+            '..........',
+            '..........',
+            '..........',
+            '..........',
+            '....w.....',
+            '.....b....',
+            '..........',
+            '..........',
+            '..........',
+        ],
+    },
+    {
+        variant: 'international',
+        title: 'Mehrheitsschlag',
+        text: 'Hast du mehrere Schläge zur Wahl, musst du den nehmen, der die meisten Steine schlägt. Geschlagene Steine bleiben bis zum Ende des Zugs liegen.',
+        success: 'Genau: Es zählt immer der Schlag mit den meisten Steinen.',
+        layout: [
+            '..........',
+            '..........',
+            '..........',
+            '..........',
+            '.....b....',
+            '..........',
+            '...b......',
+            '..w.....b.',
+            '.........w',
+            '..........',
+        ],
+    },
+    {
+        variant: 'international',
+        title: 'Dame erst am Ende',
+        text: 'Ein Stein wird nur zur Dame, wenn sein Zug auf der Grundlinie endet. Kann er dort weiterschlagen, muss er weiter. Schlage beide Steine.',
+        success:
+            'Geschafft! Keine Dame, weil der Zug nicht auf der Grundlinie endete. Jetzt kennst du auch International!',
+        layout: [
+            '..........',
+            '....b.b...',
+            '...w......',
+            '..........',
+            '..........',
+            '..........',
+            '..........',
+            '..........',
+            '..........',
+            '..........',
+        ],
+    },
 ];
+
+/**
+ * Variante einer Lektion (ohne Angabe: klassisch)
+ */
+const variantOf = (lesson) => lesson.variant ?? 'klassisch';
+
+/**
+ * Ist die Lektion die letzte ihrer Variante? Dann endet hier das Tutorial (oder es geht mit International weiter)
+ */
+const isLastOfVariant = (index) =>
+    index === LESSONS.length - 1 || variantOf(LESSONS[index + 1]) !== variantOf(LESSONS[index]);
 
 let lessonIndex = 0;
 let board = []; // Übungsbrett im Format von rules.js
@@ -69,7 +136,7 @@ function parseLayout(layout) {
  * Erlaubte Züge für Weiß
  */
 function legalMoves() {
-    return getLegalMoves(board, 'white', jumpingFrom);
+    return getLegalMoves(board, 'white', jumpingFrom, variantOf(LESSONS[lessonIndex]));
 }
 
 /**
@@ -119,7 +186,9 @@ function renderBoard() {
         });
     });
 
-    document.getElementById('tutorialBoard').replaceChildren(...cells);
+    const boardElement = document.getElementById('tutorialBoard');
+    boardElement.style.setProperty('--tutorial-size', board.length); // 8 oder 10 Felder pro Reihe
+    boardElement.replaceChildren(...cells);
 }
 
 /**
@@ -142,13 +211,18 @@ function startLesson(index) {
     jumpingFrom = null;
     solved = false;
 
-    document.getElementById('tutorialTitle').textContent = `Tutorial (${index + 1}/${LESSONS.length}): ${lesson.title}`;
+    // Nummer innerhalb der Variante, z.B. "Tutorial (2/6)" oder "Tutorial International (1/3)"
+    const sameVariant = LESSONS.filter((other) => variantOf(other) === variantOf(lesson));
+    const name = variantOf(lesson) === 'klassisch' ? 'Tutorial' : 'Tutorial International';
+    document.getElementById('tutorialTitle').textContent =
+        `${name} (${sameVariant.indexOf(lesson) + 1}/${sameVariant.length}): ${lesson.title}`;
     document.getElementById('tutorialText').textContent = lesson.text;
     setFeedback('');
 
     const nextBtn = document.getElementById('tutorialNextBtn');
     nextBtn.disabled = true;
-    nextBtn.textContent = index === LESSONS.length - 1 ? 'Los gehts!' : 'Weiter';
+    nextBtn.textContent = isLastOfVariant(index) ? 'Los gehts!' : 'Weiter';
+    document.getElementById('tutorialInternationalBtn').hidden = true;
     renderBoard();
 }
 
@@ -156,7 +230,7 @@ function startLesson(index) {
  * Führt einen Zug auf dem Übungsbrett aus
  */
 function makeMove(move) {
-    const result = applyMove(board, move);
+    const result = applyMove(board, move, variantOf(LESSONS[lessonIndex]));
     board = result.board;
     playSound(move.captured ? 'capture' : 'move');
     if (result.promoted) playSound('promote');
@@ -179,6 +253,11 @@ function makeMove(move) {
     const nextBtn = document.getElementById('tutorialNextBtn');
     nextBtn.disabled = false;
     nextBtn.focus();
+
+    // Nach der letzten klassischen Lektion: Angebot, International zu lernen
+    document.getElementById('tutorialInternationalBtn').hidden = !(
+        isLastOfVariant(lessonIndex) && lessonIndex < LESSONS.length - 1
+    );
 }
 
 /**
@@ -197,8 +276,13 @@ export function handleTutorialClick(event) {
     } else if (board[row][col]?.color === 'white' && !jumpingFrom) {
         // Eigener Stein: auswählen, wenn er ziehen darf, sonst erklären warum nicht
         const canMove = legalMoves().some((move) => move.fromRow === row && move.fromCol === col);
+        const canCapture = getPieceMoves(board, row, col, variantOf(LESSONS[lessonIndex])).some(
+            (move) => move.captured
+        );
         selected = canMove ? { row, col } : null;
-        setFeedback(canMove ? '' : 'Dieser Stein darf gerade nicht ziehen: Ein anderer Stein kann schlagen.');
+        if (canMove) setFeedback('');
+        else if (canCapture) setFeedback('Dieser Stein darf nicht schlagen: Ein anderer Schlag nimmt mehr Steine.');
+        else setFeedback('Dieser Stein darf gerade nicht ziehen: Ein anderer Stein kann schlagen.');
         renderBoard();
     }
 
@@ -209,14 +293,21 @@ export function handleTutorialClick(event) {
 }
 
 /**
- * "Weiter": nächste Lektion, nach der letzten schließt sich das Fenster
+ * "Weiter": nächste Lektion, nach der letzten einer Variante schließt sich das Fenster
  */
 export function nextLesson() {
-    if (lessonIndex === LESSONS.length - 1) {
+    if (isLastOfVariant(lessonIndex)) {
         document.getElementById('tutorialDialog').close();
     } else {
         startLesson(lessonIndex + 1);
     }
+}
+
+/**
+ * "International lernen": nach den klassischen Lektionen mit der ersten Lektion für International weitermachen
+ */
+export function startInternationalLessons() {
+    startLesson(LESSONS.findIndex((lesson) => variantOf(lesson) === 'international'));
 }
 
 /**

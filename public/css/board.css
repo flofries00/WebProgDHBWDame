@@ -298,8 +298,8 @@
     /* Übungsbrett im Tutorial: gleiche Felder und Steine wie das echte Brett, nur kleiner */
     .tutorial-board {
         display: grid;
-        grid-template-columns: repeat(8, minmax(0, 1fr));
-        grid-template-rows: repeat(8, minmax(0, 1fr));
+        grid-template-columns: repeat(var(--tutorial-size, 8), minmax(0, 1fr));
+        grid-template-rows: repeat(var(--tutorial-size, 8), minmax(0, 1fr));
         width: min(100%, 18rem);
         aspect-ratio: 1 / 1;
         margin: 0.75rem auto;

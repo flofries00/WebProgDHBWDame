@@ -1049,8 +1049,8 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * UI abschließend kontrollieren
  * Code-Kommentare verbessern
  * Github-Repo aufräumen (README, Lizenz), Präsentation vorbereiten
- * Auf Server hochladen (http und https Zertifikate)
- * Tutorial für International
+ * Mehr Farbauswahlvorschläge
+ * Weitere Dame-Varianten? (inkl. Tutorial falls nötig)
  *
  * G) Optional, nur wenn Zeit bleibt
  * Github CI, Performance

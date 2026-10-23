@@ -18,6 +18,7 @@ import { loadColorMode, toggleColorMode } from './colorMode.js';
 import {
     openTutorial,
     openTutorialOnFirstVisit,
+    startInternationalLessons,
     handleTutorialClick,
     handleTutorialClose,
     nextLesson,
@@ -48,6 +49,7 @@ document.getElementById('tutorialBoard').addEventListener('click', handleTutoria
 document.getElementById('tutorialDialog').addEventListener('close', handleTutorialClose);
 onClick('tutorialNextBtn', nextLesson);
 onClick('tutorialRetryBtn', restartLesson);
+onClick('tutorialInternationalBtn', startInternationalLessons);
 onClick('tutorialBtn', openTutorial);
 onClick('helpTutorialBtn', () => {
     document.getElementById('helpDialog').close();
