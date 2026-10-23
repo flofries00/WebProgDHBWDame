@@ -10,6 +10,7 @@ let searchTimeout; // Timer für Gegnersuche
 let coinTossTimeout; // Timer bis zur Landung der Münze
 let countdownInterval; // Countdown bis Spielstart
 let partyTimeout; // Nächster Schritt der Zeit-Auslosung im Partymodus
+let waitInterval; // Sekundentakt der Wartezeit-Anzeige
 let queueStatus = null; // Letzter Stand der Warteschlangen vom Server: { waiting: { klassisch: { '1': 0, ...}, ...}, online }
 
 /**
@@ -29,6 +30,8 @@ export function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
     // Fügt die Klasse '.active' nur dem gewünschten Bildschirm hinzu
     document.getElementById(screenId).classList.add('active');
+    // Die Wartezeit läuft nur, solange der Wartebildschirm zu sehen ist (egal, wie man ihn verlässt)
+    if (screenId !== 'waitingScreen') clearInterval(waitInterval);
 }
 
 /**
@@ -144,6 +147,8 @@ export function startSearch() {
     // Wechsel zum Wartebildschirm
     showScreen('waitingScreen');
 
+    startWaitClock();
+
     if (state.gameMode === 'online') {
         // Echter Multiplayer: Server um Match mit gleicher Variante und Bedenkzeit bitten
         socket.emit('findMatch', state.currentPlayerName, state.timeSetting, state.variant);
@@ -160,6 +165,21 @@ export function startSearch() {
         // Simuliert eine Netzwerksuche: Nach 2000 Millisekunden (2 Sekunden) geht es weiter
         searchTimeout = setTimeout(startComputerMatch, 2000);
     }
+}
+
+/**
+ * Zeigt, wie lange man schon wartet (z.B. "0:42"). Die Zeit wird aus dem Startzeitpunkt berechnet, so stimmt sie auch, wenn der Browser den Takt in einem Hintergrundtab verlangsamt
+ */
+function startWaitClock() {
+    const clock = document.getElementById('waitClock');
+    const start = Date.now();
+    const update = () => {
+        const seconds = Math.floor((Date.now() - start) / 1000);
+        clock.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+    };
+    clearInterval(waitInterval);
+    update();
+    waitInterval = setInterval(update, 1000);
 }
 
 /**

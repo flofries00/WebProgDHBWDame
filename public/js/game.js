@@ -1049,11 +1049,10 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * UI abschließend kontrollieren
  * Code-Kommentare verbessern
  * Github-Repo aufräumen (README, Lizenz), Präsentation vorbereiten
- * Weitere Dame-Varianten? (inkl. Tutorial falls nötig)
+ * Andere Warteanimation (fünf oder sechs Steine im ausgewählten Design, die sich intervallmäßig von der hellen auf die dunkle Seite drehen)
  *
  * G) Optional, nur wenn Zeit bleibt
  * Github CI, Performance
  * Private Räume
  * Zug rückgängig machen Option in vs. Computer
- * Timer für Zeit in Warteschlange
  */

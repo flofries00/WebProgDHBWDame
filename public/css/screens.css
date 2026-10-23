@@ -115,6 +115,11 @@
         color: var(--color-accent-text);
     }
 
+    /* Wartezeit: Ziffern gleich breit, damit der Text beim Hochzählen nicht wackelt */
+    .wait-clock {
+        font-variant-numeric: tabular-nums;
+    }
+
     /* ---------- Wartebildschirm: vier nacheinander pulsierende Kreise ---------- */
     .waiting-animation {
         display: flex;
