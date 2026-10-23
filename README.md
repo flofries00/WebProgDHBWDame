@@ -16,11 +16,12 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
   10 Minuten, mit eigener Auslosung). Online spielen nur Spieler mit derselben Variante und Bedenkzeit gegeneinander,
   der Setup-Bildschirm zeigt, wo gerade jemand wartet.
 - **Münzwurf** um die Farbe, Countdown bis zum Start, Konfetti oder Regen am Ende, Spielverlauf und Endstand.
+- **Warte-Bildschirm** mit Wartezeit und fünf Steinen im gewählten Design, die sich nacheinander umdrehen.
 
 **Bedienung und Oberfläche**
 
 - Ziehen per **Klick, Drag & Drop** (Maus, Finger und Stift über Pointer Events) oder **Tastatur**.
-- **Farbauswahl:** 8 Brett- und 4 Steinvorlagen oder eigene Farben, mit Live-Vorschau und Kontrastprüfung. Die Wahl
+- **Farbauswahl:** 13 Brett- und 8 Steinvorlagen oder eigene Farben, mit Live-Vorschau und Kontrastprüfung. Die Wahl
   wird im Browser gespeichert.
 - **Dark-Mode:** folgt automatisch der Einstellung des Betriebssystems, lässt sich per Button in der Kopfzeile umschalten. Die Wahl wird im Browser gespeichert
 - **Hilfe-Fenster** (?) mit Bedienung, Markierungen und Regeln.
@@ -33,6 +34,7 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
 - Der Server führt für jede Partie ein eigenes Brett und **prüft jeden Zug** mit denselben Regeln wie der Browser
   (`rules.js`). Unerlaubte oder gefälschte Züge werden verworfen.
 - Namen, Bedenkzeit und Chatnachrichten werden auch serverseitig geprüft, Nachrichten werden nur als Text angezeigt.
+- Alle Maßnahmen gegen Cheating stehen als Liste [1]-[6] oben in `server.js` und sind im Code mit "Cheating-Schutz [Nr.]" markiert.
 
 ## Spielregeln
 
@@ -100,7 +102,7 @@ Wie „Klassisch“, mit diesen Unterschieden (Regeln des Weltverbands FMJD):
 ## Qualitätssicherung
 
 - **Automatische Tests** mit `node:test` (`npm test`): Spielregeln, Farblogik und Kontrast sowie Integrationstests gegen
-  den echten Server (Matchmaking, Zugprüfung, Chat, Revanche, Warteschlangen).
+  den echten Server (Matchmaking, Zugprüfung, Chat, Nachrichten über 10kB, Revanche, Warteschlangen, HTTPS, Serverstart).
 - **ESLint** (`npm run lint`) und **Prettier** (`npm run format:check`) für einheitlichen, fehlerarmen Code.
 
 ## Dateistruktur
