@@ -1047,9 +1047,7 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  *
  * F) Abschluss
  * UI abschließend kontrollieren
- * Code-Kommentare verbessern
  * Github-Repo aufräumen (README, Lizenz), Präsentation vorbereiten
- * Andere Warteanimation (fünf oder sechs Steine im ausgewählten Design, die sich intervallmäßig von der hellen auf die dunkle Seite drehen)
  *
  * G) Optional, nur wenn Zeit bleibt
  * Github CI, Performance

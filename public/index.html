@@ -148,11 +148,23 @@
                 <p>Warte auf Gegner...</p>
                 <p id="waitTimeText" class="login-subtitle"></p>
                 <p class="wait-clock">Wartezeit: <span id="waitClock">0:00</span></p>
-                <div class="waiting-animation">
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
+                <!-- Fünf Steine im gewählten Design drehen sich nacheinander um (nur Deko, für Screenreader ausgeblendet) -->
+                <div class="waiting-animation" aria-hidden="true">
+                    <div class="wait-piece">
+                        <span class="wait-face light"></span><span class="wait-face dark"></span>
+                    </div>
+                    <div class="wait-piece">
+                        <span class="wait-face light"></span><span class="wait-face dark"></span>
+                    </div>
+                    <div class="wait-piece">
+                        <span class="wait-face light"></span><span class="wait-face dark"></span>
+                    </div>
+                    <div class="wait-piece">
+                        <span class="wait-face light"></span><span class="wait-face dark"></span>
+                    </div>
+                    <div class="wait-piece">
+                        <span class="wait-face light"></span><span class="wait-face dark"></span>
+                    </div>
                 </div>
                 <button id="cancelWaitBtn">Warten abbrechen</button>
             </section>
