@@ -1,0 +1,37 @@
+# Prüft bei jedem Push und Pull Request auf einem frischen Ubuntu-Rechner von GitHub,
+# ob sich das Projekt direkt nach dem Checkout installieren, bauen, prüfen und testen lässt
+name: CI
+
+on:
+    push:
+    pull_request:
+
+jobs:
+    # Codestil: ESLint und Prettier (ESLint 10 braucht Node 20 oder neuer, deshalb nur auf aktuellem Node)
+    check:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+            - uses: actions/setup-node@v7
+              with:
+                  node-version: 26
+                  cache: npm
+            - run: npm ci
+            - run: npm run build
+            - run: npm run lint
+            - run: npm run format:check
+
+    # Tests auf der Mindestversion aus package.json, der aktuellen LTS und der Version auf dem DHBW-Server
+    test:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node-version: [18, 24, 26]
+        steps:
+            - uses: actions/checkout@v7
+            - uses: actions/setup-node@v7
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: npm
+            - run: npm ci
+            - run: npm test
