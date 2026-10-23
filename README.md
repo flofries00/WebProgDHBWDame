@@ -24,7 +24,7 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
   wird im Browser gespeichert.
 - **Dark-Mode:** folgt automatisch der Einstellung des Betriebssystems, lässt sich per Button in der Kopfzeile umschalten. Die Wahl wird im Browser gespeichert
 - **Hilfe-Fenster** (?) mit Bedienung, Markierungen und Regeln.
-- **Interaktives Tutorial** mit Übungsbrett: 6 Lektionen (Ziehen, Schlagen, Schlagzwang, Mehrfachsprung, Dame, Damenzug). Öffnet sich beim ersten Besuch, danach über die Startseite oder das Hilfe-Fenster
+- **Interaktives Tutorial** mit Übungsbrett: 6 Lektionen (Ziehen, Schlagen, Schlagzwang, Mehrfachsprung, Dame, Damenzug), danach optional 3 Lektionen für International auf 10×10 (Rückwärtsschlagen, Mehrheitsschlag, Dame erst am Zugende). Öffnet sich beim ersten Besuch, danach über die Startseite oder das Hilfe-Fenster
 - **Responsive** von 320px (Handy) bis zum großen Monitor, das Brett passt sich der Fensterhöhe an.
 - Töne für Züge, Münzwurf und Spielende, erzeugt per Web Audio API (abschaltbar).
 
