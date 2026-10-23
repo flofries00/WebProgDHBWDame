@@ -1035,7 +1035,6 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * TODOs (sortiert nach Bewertungskriterien, Abgabe 27.10. 8:00 Uhr):
  *
  * A) Pflicht-Anforderungen
- * Firefox + Safari von Hand testen
  *
  * B) Werkzeuge
  *

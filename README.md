@@ -1,5 +1,7 @@
 # Dame Online – Browser Multiplayer
 
+[![CI](https://github.com/flofries00/WebProgDHBWDame/actions/workflows/ci.yml/badge.svg)](https://github.com/flofries00/WebProgDHBWDame/actions/workflows/ci.yml)
+
 Dame im Browser: gegen den Computer oder online gegen einen anderen Menschen. Entstanden als Projekt im Kurs
 Web-Programmierung an der DHBW Mannheim. Das Frontend kommt ohne Frameworks aus (HTML, CSS und JavaScript als
 ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jeden Online-Zug selbst.
