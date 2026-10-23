@@ -11,3 +11,6 @@ Thumbs.db
 
 # Lokale Einstellungen (Vorlage: .env.example)
 .env
+
+# HTTPS-Zertifikat und privater Schlüssel (liegen nur auf dem Server, der Schlüssel ist geheim)
+certs/

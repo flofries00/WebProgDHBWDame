@@ -1,5 +1,6 @@
 import express from 'express';
 import { createServer } from 'node:http';
+import { createServer as createSecureServer } from 'node:https';
 import { Server } from 'socket.io';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -243,22 +244,57 @@ if (fs.existsSync(envFile) && typeof process.loadEnvFile === 'function') {
     process.loadEnvFile(envFile);
 }
 
-// Port bestimmen: 1. Kommandozeile (npm start -- PORT_NR), 2. Umgebungsvariable PORT, 3. Standardport 3000
-const portInput = process.argv[2] || process.env.PORT || '3000';
-const PORT = Number(portInput);
-if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) {
-    console.error(`Ungültiger Port "${portInput}". Erlaubt sind nur ganze Zahlen von 1 bis 65535.`);
-    process.exit(1);
+/**
+ * Prüft eine Portangabe und beendet den Server mit verständlicher Meldung, wenn sie ungültig ist
+ */
+function parsePort(input) {
+    const port = Number(input);
+    if (!Number.isInteger(port) || port < 1 || port > 65535) {
+        console.error(`Ungültiger Port "${input}". Erlaubt sind nur ganze Zahlen von 1 bis 65535.`);
+        process.exit(1);
+    }
+    return port;
 }
 
-// Verständliche Meldung, falls der Port schon belegt ist
-http.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-        console.error(`Port ${PORT} ist bereits belegt. Anderen Port wählen, z.B.: npm start -- 8080`);
-    } else {
-        console.error('Server konnte nicht gestartet werden.', err.message);
-    }
-    process.exit(1);
-});
+/**
+ * Startet einen Server (HTTP oder HTTPS) mit verständlicher Meldung, falls der Port schon belegt ist
+ */
+function listen(server, port, protocol) {
+    server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            console.error(`Port ${port} ist bereits belegt. Anderen Port wählen, z.B.: npm start -- 8080 8443`);
+        } else {
+            console.error(`${protocol.toUpperCase()}-Server konnte nicht gestartet werden.`, err.message);
+        }
+        process.exit(1);
+    });
+    server.listen(port, () => console.log(`Server läuft auf ${protocol}://localhost:${port}`));
+}
 
-http.listen(PORT, () => console.log(`Server läuft auf http://localhost:${PORT}`));
+// Ports: 1. Kommandozeile (npm start -- 8080 8443), 2. Umgebungsvariablen PORT und HTTPS_PORT, 3. HTTP auf 3000
+const PORT = parsePort(process.argv[2] || process.env.PORT || '3000');
+const httpsPortInput = process.argv[3] || process.env.HTTPS_PORT;
+
+// HTTPS nur, wenn ein HTTPS-Port angegeben ist. Erst alles prüfen, dann starten
+let https = null;
+let HTTPS_PORT = null;
+if (httpsPortInput) {
+    HTTPS_PORT = parsePort(httpsPortInput);
+
+    // Zertifikat und privater Schlüssel (Standard: Ordner certs/, wird nicht ins Repository übernommen)
+    const certFile = path.resolve(__dirname, process.env.TLS_CERT || 'certs/server.crt');
+    const keyFile = path.resolve(__dirname, process.env.TLS_KEY || 'certs/server.key');
+    if (!fs.existsSync(certFile) || !fs.existsSync(keyFile)) {
+        console.error(`Für HTTPS fehlen Zertifikat oder Schlüssel: ${certFile} und ${keyFile}`);
+        console.error(`Wie man sie erzeugt, steht in der README im Abschnitt "HTTPS".`);
+        process.exit(1);
+    }
+
+    // Derselbe Express-Server liefert die Seite aus, Socket.io hängt zusätzlich am HTTPS-Server.
+    // Beide teilen sich Warteschlangen und Partien: Ein Spieler über HTTP kann gegen einen über HTTPS spielen.
+    https = createSecureServer({ cert: fs.readFileSync(certFile), key: fs.readFileSync(keyFile) }, app);
+    io.attach(https);
+}
+
+listen(http, PORT, 'http');
+if (https) listen(https, HTTPS_PORT, 'https');
