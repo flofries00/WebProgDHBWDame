@@ -128,7 +128,8 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
 └── tests/
     ├── rules.test.js    Unit-Tests der Spielregeln
     ├── colors.test.js   Unit-Tests der Farblogik (Kontrast, Warnungen, Speicherstand)
-    └── server.test.js   Integrationstests gegen den echten Server
+    ├── server.test.js   Integrationstests gegen den echten Server
+    └── https.test.js    Integrationstests für HTTPS (HTTP- und HTTPS-Spieler in einer Partie)
 ```
 
 ## Architektur
@@ -280,18 +281,51 @@ Hinweis: `npm build` (ohne `run`) existiert in aktuellen npm-Versionen nicht, ri
 npm test
 ```
 
-## Betrieb auf dem Ubuntu-Server
+### HTTPS
+
+Mit einem zweiten Port startet der Server zusätzlich HTTPS, z.B. `npm start -- 3000 3443` (oder `HTTPS_PORT=3443`).
+Beide Server teilen sich Warteschlangen und Partien: Ein Spieler über HTTP kann gegen einen über HTTPS spielen.
+
+Dafür braucht der Server ein Zertifikat und den privaten Schlüssel, standardmäßig `certs/server.crt` und
+`certs/server.key` (andere Pfade über `TLS_CERT` und `TLS_KEY`). Der Ordner `certs/` wird nicht ins Repository
+übernommen. Zum lokalen Ausprobieren reicht ein selbst signiertes Zertifikat (der Browser warnt dann einmal):
 
 ```bash
-git clone https://github.com/flofries00/WebProgDHBWDame.git
-cd WebProgDHBWDame
-npm install
-npm run build
-nohup npm start -- 8080 > server.log 2>&1 &
+mkdir certs
+openssl req -x509 -newkey rsa:2048 -nodes -days 30 -subj "/CN=localhost" -keyout certs/server.key -out certs/server.crt
 ```
 
-Der Server läuft dann im Hintergrund weiter, auch nach dem Abmelden. Ausgaben stehen in `server.log`.
-Beenden mit: `pkill -f "node server.js"`
+Unter Windows liefert Git Bash `openssl` mit. Dort vorher `export MSYS_NO_PATHCONV=1` ausführen, sonst macht Git Bash aus
+`/CN=localhost` einen Windows-Pfad.
+
+## Betrieb auf dem DHBW-Server
+
+Das Spiel ist als Dienst auf der VM der DHBW-Cloud eingerichtet (nur über das VPN der DHBW erreichbar):
+
+- `http://dame.s252553-at-student-dhbw-mannheim-de.users.dhbw.site`
+- `https://dame.s252553-at-student-dhbw-mannheim-de.users.dhbw.site`
+
+So ist der Server eingerichtet:
+
+| Teil                    | Umsetzung                                                                                                                                                        |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Name                    | AAAA-Eintrag `dame` in der eigenen DNS-Zone (self-service.dhbw.cloud), zeigt auf die IPv6-Adresse der VM                                                         |
+| Zertifikat              | Vom ACME-Dienst der DHBW (`certificates.dhbw.cloud`, ausgestellt von HARICA, daher ohne Browser-Warnung), geholt mit certbot über DNS-01 (`certbot-dns-rfc2136`) |
+| Erneuerung              | certbot erneuert automatisch. Danach kopiert `/etc/letsencrypt/renewal-hooks/deploy/dame.sh` die Dateien nach `certs/` und startet das Spiel neu                 |
+| Dienst                  | systemd-Dienst `/etc/systemd/system/dame.service`: läuft als Benutzer `ubuntu` auf Port 80 und 443, startet beim Hochfahren und nach einem Absturz neu           |
+| Ports unter 1024        | Nur das Recht `CAP_NET_BIND_SERVICE` statt Administrator-Rechten                                                                                                 |
+| Geheimnisse (Schlüssel) | Liegen nur auf dem Server (`certs/` und `/etc/letsencrypt/`), nie im Repository                                                                                  |
+
+Die wichtigsten Befehle auf dem Server:
+
+| Was                     | Befehl                                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------- |
+| Status                  | `systemctl status dame --no-pager`                                                          |
+| Ausgaben und Fehler     | `journalctl -u dame -n 30 --no-pager`                                                       |
+| Neu starten             | `sudo systemctl restart dame`                                                               |
+| Beenden                 | `sudo systemctl stop dame` (startet nach einem Neustart der VM wieder)                      |
+| Dauerhaft ausschalten   | `sudo systemctl disable --now dame`                                                         |
+| Neue Version einspielen | `cd ~/WebProgDHBWDame && git pull && npm install --omit=dev && sudo systemctl restart dame` |
 
 ## Mögliche Erweiterungen
 
