@@ -1050,6 +1050,7 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * Code-Kommentare verbessern
  * Github-Repo aufräumen (README, Lizenz), Präsentation vorbereiten
  * Auf Server hochladen (http und https Zertifikate)
+ * Tutorial für International
  *
  * G) Optional, nur wenn Zeit bleibt
  * Github CI, Performance
