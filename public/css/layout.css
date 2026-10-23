@@ -206,4 +206,20 @@
             padding-inline: 0.625rem;
         }
     }
+
+    /* Sehr schmale Handys (z.B. 320px): Abstände in der Kopfzeile verkleinern, damit nichts herausragt */
+    @media (max-width: 22.5rem) {
+        .global-header {
+            gap: 0.5rem;
+            padding-inline: 0.625rem;
+        }
+
+        .nav-controls {
+            gap: 0.375rem;
+        }
+
+        .nav-btn {
+            padding-inline: 0.5rem;
+        }
+    }
 }

@@ -23,7 +23,10 @@
     /* Zahlen (8 bzw. 10 bis 1) */
     .coords-y {
         display: grid;
-        grid-template-rows: repeat(var(--board-size), 1fr);
+        /* minmax(0, ...) und contain: size: Die Zahlen sind nie höher als die Reihen des Bretts
+        sonst schieben sie bei sehr kleinen Feldern (10x10 auf dem Handy) die Beschriftung nach unten */
+        grid-template-rows: repeat(var(--board-size), minmax(0, 1fr));
+        contain: size;
         align-items: center;
         justify-items: center;
         font-weight: bold;
