@@ -2,7 +2,7 @@
 // und spielt mit Test-Clients über Socket.io gegen ihn.
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:net';
 import { fileURLToPath } from 'node:url';
 import { io } from 'socket.io-client';
@@ -335,6 +335,18 @@ describe('Chat', () => {
         white.emit('chatMessage', { text: 'kein String' });
         await expectNoEvent(black, 'chatMessage');
     });
+
+    // Cheating-Schutz [6]: Socket.io lehnt Nachrichten über 10 kB ab und trennt den Absender
+    it('trennt bei Nachrichten über 10 kB die Verbindung, der Server läuft weiter', async () => {
+        const { white, black } = await startGame();
+        const disconnected = waitFor(white, 'disconnect');
+        const left = waitFor(black, 'opponentLeft');
+        white.emit('chatMessage', 'x'.repeat(20000));
+        await Promise.all([disconnected, left]);
+
+        // Andere Spieler können weiterhin eine Partie starten
+        await startGame();
+    });
 });
 
 describe('Partie verlassen', () => {
@@ -350,6 +362,14 @@ describe('Partie verlassen', () => {
         const left = waitFor(black, 'opponentLeft');
         white.disconnect();
         await left;
+    });
+
+    it('startet die Revanche erst, wenn beide sie wollen', async () => {
+        const { white, black } = await startGame();
+        const informed = waitFor(black, 'opponentWantsReplay');
+        white.emit('requestReplay');
+        await informed;
+        await expectNoEvent(white, 'matchFound');
     });
 
     it('startet bei einer Revanche eine neue Partie mit frischem Brett', async () => {
@@ -369,5 +389,13 @@ describe('Partie verlassen', () => {
         const received = waitFor(newBlack, 'receiveMove');
         newWhite.emit('makeMove', { fromR: 5, fromC: 0, toR: 4, toC: 1 });
         await received;
+    });
+});
+
+describe('Serverstart', () => {
+    it('bricht bei einem ungültigen Port mit verständlicher Meldung ab', () => {
+        const result = spawnSync(process.execPath, [SERVER_FILE, 'abc'], { encoding: 'utf-8' });
+        assert.equal(result.status, 1);
+        assert.match(result.stderr, /Ungültiger Port "abc"/);
     });
 });

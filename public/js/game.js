@@ -1049,13 +1049,11 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * UI abschließend kontrollieren
  * Code-Kommentare verbessern
  * Github-Repo aufräumen (README, Lizenz), Präsentation vorbereiten
- * Mehr Farbauswahlvorschläge
  * Weitere Dame-Varianten? (inkl. Tutorial falls nötig)
  *
  * G) Optional, nur wenn Zeit bleibt
  * Github CI, Performance
  * Private Räume
- * Tests überprüfen - Wird auch wirklich ALLES ALLES getestet? (z.B. auch die Uhr, die Tastatursteuerung, das Drag & Drop, die Bildschirmleser-Beschriftungen, die Online-Variante)
  * Zug rückgängig machen Option in vs. Computer
  * Timer für Zeit in Warteschlange
  */
