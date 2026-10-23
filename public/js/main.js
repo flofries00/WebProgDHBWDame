@@ -15,6 +15,7 @@ import { abortGame, moveReview } from './game.js';
 import { toggleSound } from './sound.js';
 import { loadTheme, openThemeDialog, handleThemeInput, handleThemeDialogClose } from './theme.js';
 import { loadColorMode, toggleColorMode } from './colorMode.js';
+import { loadLanguage, toggleLanguage } from './i18n.js';
 import {
     openTutorial,
     openTutorialOnFirstVisit,
@@ -37,8 +38,10 @@ onClick('helpBtn', () => document.getElementById('helpDialog').showModal());
 onClick('soundBtn', toggleSound);
 onClick('themeBtn', openThemeDialog);
 onClick('colorModeBtn', toggleColorMode);
+onClick('languageBtn', toggleLanguage);
 loadTheme();
 loadColorMode();
+loadLanguage();
 
 // Fenster für die Farben
 document.getElementById('themeForm').addEventListener('input', handleThemeInput);

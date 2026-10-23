@@ -1,6 +1,8 @@
 // Helles oder Dunkles Design der Seite (Dark-Mode). Das Brett behält seine Farben
 // aus dem Farben-Fenster
 // Ohne eigene Wahl gilt die Einstellung des Betriebssystems
+import { t, onLanguageChange } from './i18n.js';
+
 const STORAGE_KEY = 'colorMode';
 const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -19,7 +21,7 @@ function updateButton() {
     const button = document.getElementById('colorModeBtn');
     const dark = isDark();
     button.textContent = dark ? '☀️' : '🌙';
-    button.title = dark ? 'Helles Design' : 'Dunkles Design';
+    button.title = dark ? t('header.lightMode') : t('header.darkMode');
     button.setAttribute('aria-pressed', String(dark));
 }
 
@@ -30,6 +32,7 @@ function updateButton() {
 export function loadColorMode() {
     updateButton();
     systemDark.addEventListener('change', updateButton);
+    onLanguageChange(updateButton);
 }
 
 /**

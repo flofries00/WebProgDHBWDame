@@ -1046,10 +1046,15 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  *
  * F) Abschluss
  * UI abschließend kontrollieren
+ * Internationalisierung Deutsch/Englisch (Bonus, bis zu 5 Punkte): Schritt 1 von 7
  * Github-Repo aufräumen (README, Lizenz), Präsentation vorbereiten
+ * Server vor der Spielzeit am 29.10. einschalten (git pull, sudo systemctl enable --now dame)
  *
  * G) Optional, nur wenn Zeit bleibt
- * Github CI, Performance
+ * "Du bist am Zug" im Tab-Titel und Ton, wenn der Tab im Hintergrund ist
+ * Bedenkzeit auf dem Server mitzählen (Cheating-Schutz [7])
+ * Remis-Regel (z.B. 25 Züge nur mit Damen ohne Schlag)
+ * Schutz gegen Chat-Spam (höchstens ein paar Nachrichten pro Sekunde)
  * Private Räume
  * Zug rückgängig machen Option in vs. Computer
  */

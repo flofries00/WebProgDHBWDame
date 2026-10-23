@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Deklariert das Dokument als HTML5 und setzt die Sprache auf Deutsch -->
+<!-- Deklariert das Dokument als HTML5. Die Sprache ist zuerst Deutsch, i18n.js stellt sie beim Start um -->
 <html lang="de">
     <head>
         <meta charset="UTF-8" />
@@ -39,14 +39,29 @@
                 <span class="nav-piece black"></span>
                 <span class="nav-piece white"></span>
             </div>
-            <h1 class="nav-title">Dame Online</h1>
+            <h1 class="nav-title" data-i18n="header.title">Dame Online</h1>
             <div class="nav-controls">
-                <!-- Öffnet das Fenster für die Farben -->
-                <button id="themeBtn" class="nav-btn">Farbauswahl</button>
-                <!-- Dark Mode an/aus -->
+                <!-- Sprache: Der Button zeigt die Sprache, zu der er umschaltet -->
+                <button
+                    id="languageBtn"
+                    class="nav-btn"
+                    data-i18n="header.languageShort"
+                    data-i18n-aria-label="header.language"
+                    data-i18n-title="header.language"
+                >
+                    EN
+                </button>
+                <!-- Öffnet das Fenster für die Farben (auf sehr schmalen Handys nur als Symbol) -->
+                <button id="themeBtn" class="nav-btn">
+                    <span class="nav-icon" aria-hidden="true">🎨</span>
+                    <span class="nav-label" data-i18n="header.theme">Farbauswahl</span>
+                </button>
+                <!-- Dark Mode an/aus (Beschriftung setzt colorMode.js) -->
                 <button id="colorModeBtn" class="nav-btn" title="Dunkles Design" aria-pressed="false">🌙</button>
-                <button id="helpBtn" class="nav-btn" aria-label="Hilfe" title="Hilfe">?</button>
-                <button id="soundBtn" class="nav-btn" title="Ton an/aus">🔊</button>
+                <button id="helpBtn" class="nav-btn" data-i18n-aria-label="header.help" data-i18n-title="header.help">
+                    ?
+                </button>
+                <button id="soundBtn" class="nav-btn" data-i18n-title="header.sound">🔊</button>
                 <span id="realTimeClock" class="clock-display">00:00</span>
             </div>
         </header>
@@ -59,13 +74,13 @@
                     <div class="logo-piece black"></div>
                     <div class="logo-piece white"></div>
                 </div>
-                <h2>DAME</h2>
-                <p class="login-subtitle">Web-Engineering Projekt</p>
-                <p class="login-subtitle">Wähle deinen Spielmodus:</p>
+                <h2 data-i18n="mode.heading">DAME</h2>
+                <p class="login-subtitle" data-i18n="mode.subtitle">Web-Engineering Projekt</p>
+                <p class="login-subtitle" data-i18n="mode.choose">Wähle deinen Spielmodus:</p>
                 <div class="mode-buttons">
-                    <button id="modeComputerBtn">🤖 Gegen Computer</button>
-                    <button id="modeOnlineBtn">👤 Gegen Mensch</button>
-                    <button id="tutorialBtn" class="secondary-btn">📖 Tutorial</button>
+                    <button id="modeComputerBtn" data-i18n="mode.computer">🤖 Gegen Computer</button>
+                    <button id="modeOnlineBtn" data-i18n="mode.online">👤 Gegen Mensch</button>
+                    <button id="tutorialBtn" class="secondary-btn" data-i18n="mode.tutorial">📖 Tutorial</button>
                 </div>
             </section>
 
@@ -75,7 +90,7 @@
                     <div class="logo-piece black"></div>
                     <div class="logo-piece white"></div>
                 </div>
-                <h2>DAME</h2>
+                <h2 data-i18n="mode.heading">DAME</h2>
                 <p class="login-subtitle">Web-Engineering Projekt</p>
                 <!-- Formular: Enter im Eingabefeld schickt es automatisch ab -->
                 <form id="loginForm">
