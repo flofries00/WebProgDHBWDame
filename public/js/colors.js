@@ -13,6 +13,11 @@ export const BOARD_PRESETS = {
     sand: { name: 'Sand', light: '#f2e3c6', dark: '#8f6232', frame: '#5e3b1c' },
     lavendel: { name: 'Lavendel', light: '#ece4f5', dark: '#6a4c93', frame: '#3e2a5c' },
     dhbw: { name: 'DHBW', light: '#f6dcdc', dark: '#8e1b23', frame: '#4f0c12' },
+    kirsche: { name: 'Kirsche', light: '#f5e1d2', dark: '#a0412d', frame: '#5a1f14' },
+    mint: { name: 'Mint', light: '#e6f4ea', dark: '#2f7259', frame: '#173d2f' },
+    ozean: { name: 'Ozean', light: '#d8eef3', dark: '#1f6f8b', frame: '#0d3a4a' },
+    koralle: { name: 'Koralle', light: '#fde4d8', dark: '#b4472f', frame: '#5e2214' },
+    nacht: { name: 'Nacht', light: '#c9d1dc', dark: '#3b4a5e', frame: '#1b2330' },
     kontrast: { name: 'Hoher Kontrast', light: '#ffffff', dark: '#3a3a3a', frame: '#000000' },
 };
 
@@ -25,6 +30,10 @@ export const PIECE_PRESETS = {
     elfenbein: { name: 'Elfenbein / Braun', pieceLight: '#f2e8d0', pieceDark: '#4a2c12' },
     marine: { name: 'Creme / Marineblau', pieceLight: '#fbf3df', pieceDark: '#1f3a68' },
     gold: { name: 'Gold / Schwarz', pieceLight: '#e8c547', pieceDark: '#1a1a1a' },
+    rot: { name: 'Creme / Rot', pieceLight: '#f4ead5', pieceDark: '#9b1c1c' },
+    silber: { name: 'Silber / Anthrazit', pieceLight: '#c9ced3', pieceDark: '#2b2f33' },
+    ahorn: { name: 'Ahorn / Nussbaum', pieceLight: '#ecd5ad', pieceDark: '#3b2414' },
+    gruen: { name: 'Weiß / Dunkelgrün', pieceLight: '#f0f0f0', pieceDark: '#1e4d2b' },
 };
 
 /**
