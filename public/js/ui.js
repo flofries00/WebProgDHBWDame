@@ -2,7 +2,7 @@ import { state } from './state.js';
 import { socket } from './socket.js';
 import { startGame, endGame, stopGame } from './game.js';
 import { playSound } from './sound.js';
-import { VARIANTS } from './rules.js';
+import { t, setText } from './i18n.js';
 
 // Globale Variablen für den Spielablauf
 
@@ -55,27 +55,27 @@ export function checkInput() {
     // Die möglichen Fälle nacheinander prüfen:
     // Fall 1: Feld ist komplett leer (oder der Name wurde wieder gelöscht)
     if (nameInput.length === 0) {
-        errorText.textContent = ''; // Ohne Eingabe keine Fehlermeldung
+        setText(errorText); // Ohne Eingabe keine Fehlermeldung
         inputField.classList.remove('invalid');
         return; // Button bleibt gesperrt
     }
 
     // Fall 2: Es wurden verbotene Zeichen eingegeben (Sonderzeichen, Leerzeichen, Emojis usw.)
     if (!isValidChars) {
-        errorText.textContent = 'Bitte nur Buchstaben und Zahlen eingeben.';
+        setText(errorText, 'login.errorChars');
         inputField.classList.add('invalid');
         return; // Button bleibt gesperrt
     }
 
     // Fall 3: Der Name ist zu kurz
     else if (nameInput.length < 2) {
-        errorText.textContent = 'Der Name muss mindestens zwei Zeichen lang sein';
+        setText(errorText, 'login.errorShort');
         inputField.classList.add('invalid');
         return; // Button bleibt gesperrt
     }
 
     // Fall 4: Der Name ist gültig
-    errorText.textContent = ''; // Fehlertext löschen
+    setText(errorText); // Fehlertext löschen
     inputField.classList.remove('invalid'); // Roten Rahmen entfernen
 
     // Erst jetzt, wenn kein return ausgelöst wurde, wird der Button aktiviert.
@@ -91,8 +91,10 @@ export function showSetup() {
 
     state.currentPlayerName = document.getElementById('playerName').value;
     // Gegen den Computer gibt es nichts zu suchen
-    document.getElementById('setupStartBtn').textContent =
-        state.gameMode === 'online' ? 'Gegner suchen' : 'Spiel starten';
+    setText(
+        document.getElementById('setupStartBtn'),
+        state.gameMode === 'online' ? 'setup.findOpponent' : 'setup.startGame'
+    );
     renderQueueStatus();
     showScreen('setupScreen');
 }
@@ -107,10 +109,15 @@ export function renderQueueStatus() {
 
     document.querySelectorAll('input[name="timeSetting"]').forEach((input) => {
         const badge = input.parentElement.querySelector('.queue-badge');
-        badge.textContent = isOnline && queueStatus.waiting[variant][input.value] > 0 ? '1 wartet' : '';
+        setText(badge, isOnline && queueStatus.waiting[variant][input.value] > 0 ? 'setup.waitingBadge' : null);
     });
 
-    document.getElementById('onlineCount').textContent = isOnline ? `Gerade online: ${queueStatus.online} Spieler` : '';
+    const onlineCount = document.getElementById('onlineCount');
+    if (isOnline)
+        setText(onlineCount, queueStatus.online === 1 ? 'setup.onlineOne' : 'setup.online', {
+            count: queueStatus.online,
+        });
+    else setText(onlineCount);
 }
 
 // Der Server meldet jede Änderung an den Warteschlangen, die Anzeige aktualisiert sich sofort
@@ -129,16 +136,17 @@ export function startSearch() {
 
     // Ohne Serververbindung ist keine Online-Partie möglich
     if (state.gameMode === 'online' && !socket.connected) {
-        showConfirm('Keine Verbindung', 'Der Server ist gerade nicht erreichbar.', 'OK');
+        showConfirm(t('error.noConnectionTitle'), t('error.noConnectionText'), t('common.ok'));
         return;
     }
 
     // Gewählte Variante und Bedenkzeit merken und im Wartebildschirm anzeigen
     state.variant = document.querySelector('input[name="variant"]:checked').value;
     state.timeSetting = document.querySelector('input[name="timeSetting"]:checked').value;
-    const timeText =
-        state.timeSetting === 'party' ? 'Partymodus (Zufallszeit)' : `Bedenkzeit: ${state.timeSetting} min`;
-    document.getElementById('waitTimeText').textContent = `${VARIANTS[state.variant].name}, ${timeText}`;
+    const variant = { key: `variant.${state.variant}` }; // Name der Variante wird mit übersetzt
+    const waitTimeText = document.getElementById('waitTimeText');
+    if (state.timeSetting === 'party') setText(waitTimeText, 'wait.settingsParty', { variant });
+    else setText(waitTimeText, 'wait.settings', { variant, minutes: state.timeSetting });
 
     // Namen in die HTML-Platzhalter der anderen Bildschirme eintragen
     document.getElementById('waitName').textContent = state.currentPlayerName;
@@ -227,7 +235,7 @@ function showPartyDraw() {
 
     const numberEl = document.getElementById('partyTimeNumber');
     const textEl = document.getElementById('partyTimeText');
-    textEl.textContent = '';
+    setText(textEl);
 
     const steps = 15;
     let step = 0;
@@ -244,7 +252,7 @@ function showPartyDraw() {
         // Ergebnis anzeigen (die Zeit steht schon fest: vom Server bzw. in startComputerMatch ausgelost)
         const minutes = state.timeMinutes;
         numberEl.textContent = minutes;
-        textEl.textContent = `Ihr habt beide ${minutes} ${minutes === 1 ? 'Minute' : 'Minuten'} Bedenkzeit.`;
+        setText(textEl, minutes === 1 ? 'party.resultOne' : 'party.result', { minutes });
         playSound('coinLand');
 
         partyTimeout = setTimeout(() => {
@@ -264,8 +272,8 @@ export function simulateCoinToss() {
     clearInterval(countdownInterval);
 
     // Text der letzten Runde zurücksetzen
-    document.getElementById('startPlayerText').textContent = 'Auslosung läuft...';
-    document.getElementById('countdownText').textContent = '';
+    setText(document.getElementById('startPlayerText'), 'coin.drawing');
+    setText(document.getElementById('countdownText'));
 
     const coin = document.getElementById('coinElement');
     const container = document.querySelector('.coin-container'); // Container für den Bounce holen
@@ -286,17 +294,13 @@ export function simulateCoinToss() {
         playSound('coinLand');
 
         // Ergebnis aus Sicht des Spielers
-        const baseText = state.playerGetsWhite ? 'Du hast die weißen Steine' : 'Du hast die schwarzen Steine';
-
-        document.getElementById('startPlayerText').textContent = baseText;
+        setText(document.getElementById('startPlayerText'), state.playerGetsWhite ? 'coin.white' : 'coin.black');
         const countdownEl = document.getElementById('countdownText');
         let timeLeft = 5;
 
-        // Kurze Hilfsfunktion, die den Countdown in HTML schreibt
+        // Kurze Hilfsfunktion, die den Countdown anzeigt
         const updateText = () => {
-            const strong = document.createElement('strong');
-            strong.textContent = timeLeft;
-            countdownEl.replaceChildren('Spiel startet in ', strong, timeLeft === 1 ? ' Sekunde...' : ' Sekunden...');
+            setText(countdownEl, timeLeft === 1 ? 'coin.countdownOne' : 'coin.countdown', { seconds: timeLeft });
         };
 
         updateText(); // Startwert, direkt nach dem Münzaufprall anzeigen.
@@ -321,7 +325,7 @@ export function requestReplay() {
     if (state.gameMode === 'online') {
         const btn = document.getElementById('replayBtn');
         btn.disabled = true;
-        btn.textContent = 'Warte auf Gegner...';
+        setText(btn, 'wait.searching');
         socket.emit('requestReplay');
     } else {
         // Gegen Computer startet das Spiel sofort wieder, Farbe (und im Partymodus die Zeit) wird neu ausgelost
@@ -344,11 +348,11 @@ export function leaveToLobby() {
     const btn = document.getElementById('replayBtn');
     if (btn) {
         btn.disabled = false;
-        btn.textContent = 'Nochmal spielen';
+        setText(btn, 'end.replay');
     }
 
     const status = document.getElementById('replayStatus');
-    if (status) status.textContent = '';
+    if (status) setText(status);
 
     showScreen('modeScreen');
 }
@@ -371,9 +375,9 @@ socket.on('matchFound', (data) => {
     const replayStatus = document.getElementById('replayStatus');
     if (replayBtn) {
         replayBtn.disabled = false;
-        replayBtn.textContent = 'Nochmal spielen';
+        setText(replayBtn, 'end.replay');
     }
-    if (replayStatus) replayStatus.textContent = '';
+    if (replayStatus) setText(replayStatus);
 
     // Animation starten (im Partymodus zuerst die Auslosung der Zeit)
     beginMatchIntro();
@@ -454,7 +458,7 @@ socket.on('chatMessage', (msg) => {
 socket.on('opponentWantsReplay', () => {
     const status = document.getElementById('replayStatus');
     if (status) {
-        status.textContent = `${state.opponentName} möchte noch eine Runde spielen!`;
+        setText(status, 'end.opponentWantsReplay', { name: state.opponentName });
     }
 });
 
@@ -465,15 +469,15 @@ socket.on('opponentLeft', () => {
     // Gegner verlässt während der Auslosung oder des Münzwurfs -> Start abbrechen, zurück zur Lobby
     if (document.getElementById('partyScreen').classList.contains('active')) {
         clearTimeout(partyTimeout);
-        document.getElementById('partyTimeText').textContent = `${state.opponentName} hat das Spiel verlassen.`;
+        setText(document.getElementById('partyTimeText'), 'end.opponentLeft', { name: state.opponentName });
         setTimeout(leaveToLobby, 3000);
         return;
     }
     if (document.getElementById('coinTossScreen').classList.contains('active')) {
         clearTimeout(coinTossTimeout);
         clearInterval(countdownInterval);
-        document.getElementById('startPlayerText').textContent = `${state.opponentName} hat das Spiel verlassen.`;
-        document.getElementById('countdownText').textContent = '';
+        setText(document.getElementById('startPlayerText'), 'end.opponentLeft', { name: state.opponentName });
+        setText(document.getElementById('countdownText'));
         setTimeout(leaveToLobby, 3000);
         return;
     }
@@ -484,12 +488,12 @@ socket.on('opponentLeft', () => {
     }
 
     if (status) {
-        status.textContent = `${state.opponentName} hat das Spiel verlassen.`;
+        setText(status, 'end.opponentLeft', { name: state.opponentName });
     }
 
     if (btn) {
         btn.disabled = true;
-        btn.textContent = 'Gegner ist weg.';
+        setText(btn, 'end.opponentGone');
     }
 });
 
@@ -597,5 +601,5 @@ socket.on('disconnect', () => {
     clearInterval(countdownInterval);
 
     leaveToLobby();
-    showConfirm('Verbindung verloren', 'Die Verbindung zum Server ist abgebrochen. Die Partie wurde beendet.', 'OK');
+    showConfirm(t('error.disconnectedTitle'), t('error.disconnectedText'), t('common.ok'));
 });

@@ -12,13 +12,33 @@ const listeners = []; // Funktionen der anderen Module, die beim Sprachwechsel i
 
 /**
  * Text zum Schlüssel in der aktuellen Sprache. Platzhalter wie {name} werden durch params.name ersetzt.
+ * Ein Platzhalter kann selbst übersetzt werden: { variant: { key: 'variant.klassisch' } }.
  * Fehlt ein Text, steht der Schlüssel selbst da (so fällt eine fehlende Übersetzung sofort auf)
  */
 export function t(key, params = {}) {
     const text = TRANSLATIONS[language][key] ?? key;
-    return text.replace(/\{(\w+)\}/g, (placeholder, name) =>
-        Object.hasOwn(params, name) ? params[name] : placeholder
-    );
+    return text.replace(/\{(\w+)\}/g, (placeholder, name) => {
+        if (!Object.hasOwn(params, name)) return placeholder;
+        const value = params[name];
+        return typeof value === 'object' && value !== null ? t(value.key) : value;
+    });
+}
+
+/**
+ * Setzt einen Text, den JavaScript während des Spiels ändert (z.B. "Max möchte noch eine Runde spielen!").
+ * Schlüssel und Platzhalter werden am Element gemerkt, so wird der Text beim Sprachwechsel mit übersetzt.
+ * Ohne Schlüssel wird das Element geleert
+ */
+export function setText(element, key = null, params = {}) {
+    if (!key) {
+        delete element.dataset.i18n;
+        delete element.dataset.i18nParams;
+        element.textContent = '';
+        return;
+    }
+    element.dataset.i18n = key;
+    element.dataset.i18nParams = JSON.stringify(params);
+    element.textContent = t(key, params);
 }
 
 /**
@@ -43,7 +63,9 @@ function applyLanguage() {
     document.title = t('page.title');
 
     for (const element of document.querySelectorAll('[data-i18n]')) {
-        element.textContent = t(element.dataset.i18n);
+        // Platzhalter, die setText gemerkt hat (feste Texte im HTML haben keine)
+        const params = element.dataset.i18nParams ? JSON.parse(element.dataset.i18nParams) : {};
+        element.textContent = t(element.dataset.i18n, params);
     }
     for (const attribute of ATTRIBUTES) {
         for (const element of document.querySelectorAll(`[data-i18n-${attribute}]`)) {
