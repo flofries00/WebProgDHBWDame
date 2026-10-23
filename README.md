@@ -183,8 +183,9 @@ flowchart TB
 
 **Wichtige Entscheidungen:**
 
-- **Gemeinsame Spielregeln:** `rules.js` arbeitet nur mit Daten (8×8- bzw. 10x10-Array) und kennt kein HTML. Dadurch nutzen Browser und Server dieselbe Datei. Der Browser zeigt erlaubte Züge sofort an, der Server ist der Schiedsrichter und leitet nur erlaubte Züge weiter.
+- **Gemeinsame Spielregeln:** `rules.js` arbeitet nur mit Daten (8×8- bzw. 10×10-Array) und kennt kein HTML. Dadurch nutzen Browser und Server dieselbe Datei. Der Browser zeigt erlaubte Züge sofort an, der Server ist der Schiedsrichter und leitet nur erlaubte Züge weiter.
 - **Server führt pro Partie ein eigenes Brett** und weiß, wer am Zug ist. Ein manipulierter Browser kann weder für den Gegner ziehen noch Regeln brechen.
+- **Cheating-Schutz** ist oben in `server.js` als Liste [1]-[6] zusammengefasst und im Code an jeder Stelle mit "Cheating-Schutz [Nr.]" markiert.
 - **Computergegner läuft komplett im Browser**, dafür ist keine Serververbindung nötig.
 - **Bewusste Grenze:** Die Schachuhr läuft nur im Browser. Eine Server-Uhr wäre der nächste Schritt gegen Manipulation der Bedenkzeit.
 - **Kein Build-Schritt:** ES-Module laufen direkt im Browser, CSS-Layer ersetzen `!important`.

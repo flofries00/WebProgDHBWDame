@@ -1,3 +1,17 @@
+/**
+ * Server für Dame Online: liefert die Seite aus (HTTP und optional HTTPS), bringt Spieler mit gleicher Variante
+ * und Bedenkzeit zusammen, prüft jeden Zug und leitet Züge, Chat und Revanche-Wünsche an den Gegner weiter.
+ *
+ * Cheating-Schutz (im Code mit "Cheating-Schutz [Nr.]" markiert):
+ * [1] Name, Bedenkzeit und Variante werden auch hier geprüft, nicht nur im Browser
+ * [2] Farben und Partyzeit lost der Server aus, kein Browser kann sie sich aussuchen
+ * [3] Eigenes Brett pro Partie: Ein Zug zählt nur, wenn der Spieler am Zug ist und rules.js ihn erlaubt
+ * [4] Weitergeleitet werden nur die geprüften Werte, nie die Originalnachricht
+ * [5] Chat: nur Text, höchstens 200 Zeichen, nur an den eigenen Gegner (der Browser zeigt ihn nie als HTML an)
+ * [6] Nachrichten über 10 kB werden abgelehnt, ein Fehler bei einer Nachricht bringt den Server nicht zum Absturz
+ * Bewusste Grenze: Die Bedenkzeit läuft nur im Browser
+ */
+
 import express from 'express';
 import { createServer } from 'node:http';
 import { createServer as createSecureServer } from 'node:https';
@@ -13,7 +27,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 const http = createServer(app);
-const io = new Server(http, { maxHttpBufferSize: 1e4 }); // So werden Nachrichten über 10kB abgelehnt
+const io = new Server(http, { maxHttpBufferSize: 1e4 }); // Cheating-Schutz [6]: Nachrichten über 10kB werden abgelehnt
 
 // Sagt dem Server, dass er nur die Client-Dateien aus dem Ordner 'public' ausliefern soll
 // (sonst wären auch server.js, package.json und node_modules abrufbar)
@@ -37,7 +51,7 @@ function isValidCoord(value, size) {
 
 /**
  * Registriert einen Socket-Handler mit try/catch: Ein Fehler bei einem einzelnen Ereignis
- * wird protokolliert, bringt aber nicht den ganzen Server zum Absturz
+ * wird protokolliert, bringt aber nicht den ganzen Server zum Absturz (Cheating-Schutz [6])
  */
 function onSafe(socket, eventName, handler) {
     socket.on(eventName, (...args) => {
@@ -61,6 +75,7 @@ function leaveQueue(socket) {
  * führt ein eigenes Brett und informiert beide Spieler.
  */
 function startMatch(p1, p2) {
+    // Cheating-Schutz [2]: Farben und Partyzeit lost der Server aus, kein Browser kann sie sich aussuchen
     const p1White = Math.random() < 0.5;
 
     // Bedenkzeit: Im Partymodus lost der Server sie aus, damit beide garantiert dieselbe Zeit bekommen
@@ -109,7 +124,7 @@ function endMatch(socket) {
  * (so sieht man vor der Suche, mit welcher Bedenkzeit man sofort einen Gegner findet)
  */
 function broadcastQueueStatus() {
-    // Pro Variante und Bedenkzeit: 1 = dort wartet jemand, z.B. { klassisch: { '1': 0, '3': 1 }, international: {} }
+    // Pro Variante und Bedenkzeit: 1 = dort wartet jemand, z.B. { klassisch: { '1': 0, '3': 1 }, international: { ... } }
     const waitingPerSetting = Object.fromEntries(
         Object.keys(VARIANTS).map((variant) => [
             variant,
@@ -125,7 +140,7 @@ io.on('connection', (socket) => {
     broadcastQueueStatus(); // Neuer Spieler: Anzahl online hat sich geändert, er selbst bekommt den aktuellen Stand
 
     onSafe(socket, 'findMatch', (name, timeSetting = '5', variant = 'klassisch') => {
-        // Namen, Bedenkzeit und Variante auch serverseitig prüfen (Client-Prüfung lässt sich umgehen)
+        // Cheating-Schutz [1]: Namen, Bedenkzeit und Variante auch serverseitig prüfen (Client-Prüfung lässt sich umgehen)
         if (typeof name !== 'string' || !/^[a-zA-Z0-9äöüÄÖÜß]{2,16}$/.test(name)) return;
         if (!TIME_SETTINGS.includes(timeSetting)) return;
         if (typeof variant !== 'string' || !Object.hasOwn(VARIANTS, variant)) return;
@@ -155,7 +170,7 @@ io.on('connection', (socket) => {
         broadcastQueueStatus();
     });
 
-    // Wartet auf Züge, prüft sie mit den Spielregeln und schickt nur erlaubte Züge an den Gegner
+    // Cheating-Schutz [3]: Jeder Zug wird auf dem Server geprüft, nur erlaubte Züge gehen an den Gegner
     onSafe(socket, 'makeMove', (moveData) => {
         const game = socket.game;
         if (!socket.oppId || !game || !moveData) return;
@@ -192,11 +207,11 @@ io.on('connection', (socket) => {
             game.turn = opponentOf(game.turn);
         }
 
-        // Nur die vier geprüften Werte weiterleiten
+        // Cheating-Schutz [4]: Nur die vier geprüften Werte weiterleiten, nie die Originalnachricht
         socket.to(socket.oppId).emit('receiveMove', { fromR, fromC, toR, toC });
     });
 
-    // Wartet auf Chat-Nachrichten, bereinigt sie und schickt sie an den Gegner
+    // Cheating-Schutz [5]: Chat-Nachrichten nur als Text, gekürzt und nur an den eigenen Gegner
     onSafe(socket, 'chatMessage', (msg) => {
         if (!socket.oppId || typeof msg !== 'string') return;
 
@@ -226,6 +241,7 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Spieler verlässt die Partie (Aufgeben oder "Zurück zur Lobby"): Gegner informieren
     onSafe(socket, 'leaveMatch', () => {
         endMatch(socket);
     });

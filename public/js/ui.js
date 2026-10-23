@@ -413,7 +413,7 @@ function addChatMessage(sender, msg, isSelf) {
     p.className = 'chat-message';
 
     // Eigene Nachrichten farblich hervorheben (Farben stehen im CSS)
-    // textContent statt innerHTML, damit Nachrichten kein HTML/JS einschleusen können
+    // Cheating-Schutz [5]: textContent statt innerHTML, damit Nachrichten kein HTML/JS einschleusen können
     const strong = document.createElement('strong');
     strong.className = isSelf ? 'chat-sender self' : 'chat-sender';
     strong.textContent = `${sender}:`;
