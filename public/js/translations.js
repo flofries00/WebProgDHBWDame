@@ -1,4 +1,4 @@
-// Alle Texte der Oberfläche auf Deutsch und Englisch (Internationalisierung).
+// Alle Texte der Oberfläche auf Deutsch und Englisch (Internationalisierung, Bonuskriterium der Portfolioaufgabe).
 // Reine Daten ohne HTML: So kann ein Test prüfen, dass beide Sprachen dieselben Schlüssel haben.
 // Platzhalter in geschweiften Klammern, z.B. {name}, ersetzt t() in i18n.js durch den echten Wert
 

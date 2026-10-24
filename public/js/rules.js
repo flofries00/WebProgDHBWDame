@@ -19,8 +19,8 @@
  *   werden), und ein Stein wird nur zur Dame, wenn der ganze Zug auf der Grundlinie endet
  */
 export const VARIANTS = {
-    klassisch: { name: 'Klassisch', size: 8, pieceRows: 3, menCaptureBackwards: false, majorityCapture: false },
-    international: { name: 'International', size: 10, pieceRows: 4, menCaptureBackwards: true, majorityCapture: true },
+    klassisch: { size: 8, pieceRows: 3, menCaptureBackwards: false, majorityCapture: false },
+    international: { size: 10, pieceRows: 4, menCaptureBackwards: true, majorityCapture: true },
 };
 
 // Alle vier Diagonalen

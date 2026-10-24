@@ -27,6 +27,7 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
   wird im Browser gespeichert.
 - **Dark-Mode:** folgt automatisch der Einstellung des Betriebssystems, lässt sich per Button in der Kopfzeile umschalten. Die Wahl wird im Browser gespeichert
 - **Hilfe-Fenster** (?) mit Bedienung, Markierungen und Regeln.
+- **Zwei Sprachen:** Deutsch und Englisch, umschaltbar per Button in der Kopfzeile (er zeigt die Zielsprache: EN bzw. DE). Ohne eigene Wahl gilt die Sprache des Browsers, die Wahl wird im Browser gespeichert.
 - **Interaktives Tutorial** mit Übungsbrett: 6 Lektionen (Ziehen, Schlagen, Schlagzwang, Mehrfachsprung, Dame, Damenzug), danach optional 3 Lektionen für International auf 10×10 (Rückwärtsschlagen, Mehrheitsschlag, Dame erst am Zugende). Öffnet sich beim ersten Besuch, danach über die Startseite oder das Hilfe-Fenster
 - **Responsive** von 320px (Handy) bis zum großen Monitor, das Brett passt sich der Fensterhöhe an.
 - Töne für Züge, Münzwurf und Spielende, erzeugt per Web Audio API (abschaltbar).
@@ -101,9 +102,17 @@ Wie „Klassisch“, mit diesen Unterschieden (Regeln des Weltverbands FMJD):
 - **Schrift** überall mindestens 16px mit Zeilenabstand 1,5. Wer im Betriebssystem „Bewegung reduzieren“ eingestellt
   hat, bekommt kein Konfetti und keinen Regen.
 
+## Bonuskriterien
+
+| Kriterium                 | Umsetzung                                                                                                                                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Responsiveness**        | Von 320px (Handy) bis zum großen Monitor, das Brett passt sich der Fensterhöhe an                                                                                                     |
+| **Internationalisierung** | Deutsch und Englisch, umschaltbar in der Kopfzeile. Alle Texte in `public/js/translations.js`, die Logik in `public/js/i18n.js`, ein Test prüft, dass beide Sprachen vollständig sind |
+| **Cheatingprävention**    | Der Server prüft jeden Zug. Übersicht [1]–[6] oben in `server.js`, im Code mit „Cheating-Schutz [Nr.]“ markiert                                                                       |
+
 ## Qualitätssicherung
 
-- **Automatische Tests** mit `node:test` (`npm test`): Spielregeln, Farblogik und Kontrast sowie Integrationstests gegen
+- **Automatische Tests** mit `node:test` (`npm test`): Spielregeln, Farblogik und Kontrast, Übersetzungen sowie Integrationstests gegen
   den echten Server (Matchmaking, Zugprüfung, Chat, Nachrichten über 10kB, Revanche, Warteschlangen, HTTPS, Serverstart).
 - **ESLint** (`npm run lint`) und **Prettier** (`npm run format:check`) für einheitlichen, fehlerarmen Code.
 
@@ -128,12 +137,15 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
 │       ├── theme.js     Farben-Fenster: Vorlagen, eigene Farben, Vorschau, Speichern im Browser
 │       ├── colorMode.js    Dark-Mode: helles oder dunkles Design der Seite umschalten und merken
 │       ├── tutorial.js  Interaktives Tutorial: Lektionen auf einem Übungsbrett
+│       ├── i18n.js      Sprache (Deutsch/Englisch) wählen und merken, Texte übersetzen: t() und setText()
+│       ├── translations.js  Alle Texte der Oberfläche auf Deutsch und Englisch
 │       └── colors.js    Farbvorlagen und Kontrastprüfung nach WCAG ohne HTML (testbar wie rules.js)
 └── tests/
     ├── rules.test.js    Unit-Tests der Spielregeln
     ├── colors.test.js   Unit-Tests der Farblogik (Kontrast, Warnungen, Speicherstand)
     ├── server.test.js   Integrationstests gegen den echten Server
-    └── https.test.js    Integrationstests für HTTPS (HTTP- und HTTPS-Spieler in einer Partie)
+    ├── https.test.js    Integrationstests für HTTPS (HTTP- und HTTPS-Spieler in einer Partie)
+    └── translations.test.js  Beide Sprachen vollständig: gleiche Schlüssel, gleiche Platzhalter, Texte für alle Vorlagen
 ```
 
 ## Architektur
