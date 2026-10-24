@@ -23,6 +23,7 @@ let turnHistory = []; // Brett nach jedem vollständigen Zug zum Nachspielen
 let turnStart = null; // Startfeld des laufenden Zugs
 let turnEnd = null; // Zielfeld des letzten Sprungs im laufenden Zug
 let reviewIndex = 0; // Welcher Eintrag aus turnHistory gerade auf dem Endbrett zu sehen ist
+let titleBlink = null; // Lässt den Punkt im Tab-Titel blinken, solange man im Hintergrund am Zug ist
 let reviewBoard = null; // Brett im Endbildschirm, auf dem nachgespielt wird
 
 /**
@@ -617,6 +618,9 @@ export function endGame(winnerColor, reason = '') {
     // Zum Endbildschirm wechseln
     showScreen('endScreen');
 
+    // Das Spiel ist vorbei, "Du bist am Zug" gilt nicht mehr
+    updateTabTitle();
+
     // Konfetti und Fanfare zünden nur bei Gewinner, sonst Regen und Verlierermelodie
     if ((winnerColor === 'white' && state.playerGetsWhite) || (winnerColor === 'black' && !state.playerGetsWhite)) {
         fireConfetti();
@@ -916,7 +920,34 @@ function updateTurnIndicator() {
     const indicator = document.getElementById('turnIndicator');
     if (isMyTurn()) setText(indicator, 'game.yourTurn');
     else setText(indicator, 'game.opponentTurn', { name: state.opponentName });
+    updateTabTitle();
 }
+
+/**
+ * Ist der Tab im Hintergrund und man ist am Zug, steht das im Titel des Tabs "● Du bist am Zug".
+ * Der Punkt blinkt (● und ○ im Sekundentakt), der Text bleibt stehen.
+ * Browser bremsen Timer in Hintergrund-Tabs teils auf einmal pro Minute, so ist der Hinweis trotzdem immer zu sehen
+ */
+function updateTabTitle() {
+    clearInterval(titleBlink);
+    const playing = document.getElementById('gameScreen').classList.contains('active');
+    if (!(playing && document.hidden && isMyTurn())) {
+        document.title = t('page.title');
+        return;
+    }
+
+    let filled = true;
+    const blink = () => {
+        document.title = (filled ? '● ' : '○ ') + t('game.tabYourTurn');
+        filled = !filled;
+    };
+    blink();
+    titleBlink = setInterval(blink, 1000);
+}
+
+// Zurück im Tab: wieder der normale Titel. Beim Sprachwechsel neu setzen
+document.addEventListener('visibilitychange', updateTabTitle);
+onLanguageChange(updateTabTitle);
 
 /**
  * Schreibt einen Zug in den Spielverlauf und scrollt mit
@@ -1063,7 +1094,6 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * Server vor der Spielzeit am 29.10. einschalten (git pull, sudo systemctl enable --now dame)
  *
  * G) Optional, nur wenn Zeit bleibt
- * "Du bist am Zug" im Tab-Titel und Ton, wenn der Tab im Hintergrund ist
  * Bedenkzeit auf dem Server mitzählen (Cheating-Schutz [7])
  * Remis-Regel (z.B. 25 Züge nur mit Damen ohne Schlag)
  * Schutz gegen Chat-Spam (höchstens ein paar Nachrichten pro Sekunde)
