@@ -37,7 +37,7 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
 - Der Server führt für jede Partie ein eigenes Brett und **prüft jeden Zug** mit denselben Regeln wie der Browser
   (`rules.js`). Unerlaubte oder gefälschte Züge werden verworfen.
 - Namen, Bedenkzeit und Chatnachrichten werden auch serverseitig geprüft, Nachrichten werden nur als Text angezeigt.
-- Alle Maßnahmen gegen Cheating stehen als Liste [1]-[6] oben in `server.js` und sind im Code mit "Cheating-Schutz [Nr.]" markiert.
+- Alle Maßnahmen gegen Cheating stehen als Liste [1]-[7] oben in `server.js` und sind im Code mit "Cheating-Schutz [Nr.]" markiert.
 
 ## Spielregeln
 
@@ -108,12 +108,12 @@ Wie „Klassisch“, mit diesen Unterschieden (Regeln des Weltverbands FMJD):
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Responsiveness**        | Von 320px (Handy) bis zum großen Monitor, das Brett passt sich der Fensterhöhe an                                                                                                     |
 | **Internationalisierung** | Deutsch und Englisch, umschaltbar in der Kopfzeile. Alle Texte in `public/js/translations.js`, die Logik in `public/js/i18n.js`, ein Test prüft, dass beide Sprachen vollständig sind |
-| **Cheatingprävention**    | Der Server prüft jeden Zug. Übersicht [1]–[6] oben in `server.js`, im Code mit „Cheating-Schutz [Nr.]“ markiert                                                                       |
+| **Cheatingprävention**    | Der Server prüft jeden Zug. Übersicht [1]–[7] oben in `server.js`, im Code mit „Cheating-Schutz [Nr.]“ markiert                                                                       |
 
 ## Qualitätssicherung
 
 - **Automatische Tests** mit `node:test` (`npm test`): Spielregeln, Farblogik und Kontrast, Übersetzungen sowie Integrationstests gegen
-  den echten Server (Matchmaking, Zugprüfung, Chat, Nachrichten über 10kB, Revanche, Warteschlangen, HTTPS, Serverstart).
+  den echten Server (Matchmaking, Zugprüfung, Chat, Nachrichten über 10kB, Schutz gegen Chat-Spam, Revanche, Warteschlangen, HTTPS, Serverstart).
 - **ESLint** (`npm run lint`) und **Prettier** (`npm run format:check`) für einheitlichen, fehlerarmen Code.
 
 ## Dateistruktur
@@ -201,7 +201,7 @@ flowchart TB
 
 - **Gemeinsame Spielregeln:** `rules.js` arbeitet nur mit Daten (8×8- bzw. 10×10-Array) und kennt kein HTML. Dadurch nutzen Browser und Server dieselbe Datei. Der Browser zeigt erlaubte Züge sofort an, der Server ist der Schiedsrichter und leitet nur erlaubte Züge weiter.
 - **Server führt pro Partie ein eigenes Brett** und weiß, wer am Zug ist. Ein manipulierter Browser kann weder für den Gegner ziehen noch Regeln brechen.
-- **Cheating-Schutz** ist oben in `server.js` als Liste [1]-[6] zusammengefasst und im Code an jeder Stelle mit "Cheating-Schutz [Nr.]" markiert.
+- **Cheating-Schutz** ist oben in `server.js` als Liste [1]-[7] zusammengefasst und im Code an jeder Stelle mit "Cheating-Schutz [Nr.]" markiert.
 - **Computergegner läuft komplett im Browser**, dafür ist keine Serververbindung nötig.
 - **Bewusste Grenze:** Die Schachuhr läuft nur im Browser. Eine Server-Uhr wäre der nächste Schritt gegen Manipulation der Bedenkzeit.
 - **Kein Build-Schritt:** ES-Module laufen direkt im Browser, CSS-Layer ersetzen `!important`.

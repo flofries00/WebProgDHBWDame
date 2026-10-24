@@ -1096,7 +1096,6 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * G) Optional, nur wenn Zeit bleibt
  * Bedenkzeit auf dem Server mitzählen (Cheating-Schutz [7])
  * Remis-Regel (z.B. 25 Züge nur mit Damen ohne Schlag)
- * Schutz gegen Chat-Spam (höchstens ein paar Nachrichten pro Sekunde)
  * Private Räume
  * Zug rückgängig machen Option in vs. Computer
  */

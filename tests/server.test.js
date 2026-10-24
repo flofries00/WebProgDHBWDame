@@ -336,6 +336,21 @@ describe('Chat', () => {
         await expectNoEvent(black, 'chatMessage');
     });
 
+    // Cheating-Schutz [7]: höchstens 5 Nachrichten in 3 Sekunden, danach geht es normal weiter
+    it('leitet bei Spam nur 5 Nachrichten in 3 Sekunden weiter', async () => {
+        const { white, black } = await startGame();
+        const received = [];
+        black.on('chatMessage', (msg) => received.push(msg));
+        for (let i = 1; i <= 10; i++) white.emit('chatMessage', `Nachricht ${i}`);
+        await new Promise((resolve) => setTimeout(resolve, 3100));
+        assert.deepEqual(received, ['Nachricht 1', 'Nachricht 2', 'Nachricht 3', 'Nachricht 4', 'Nachricht 5']);
+
+        // Nach Ablauf der 3 Sekunden kommen Nachrichten wieder an
+        const later = waitFor(black, 'chatMessage');
+        white.emit('chatMessage', 'Später');
+        assert.equal(await later, 'Später');
+    });
+
     // Cheating-Schutz [6]: Socket.io lehnt Nachrichten über 10 kB ab und trennt den Absender
     it('trennt bei Nachrichten über 10 kB die Verbindung, der Server läuft weiter', async () => {
         const { white, black } = await startGame();

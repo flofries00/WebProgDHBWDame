@@ -9,6 +9,7 @@
  * [4] Weitergeleitet werden nur die geprüften Werte, nie die Originalnachricht
  * [5] Chat: nur Text, höchstens 200 Zeichen, nur an den eigenen Gegner (der Browser zeigt ihn nie als HTML an)
  * [6] Nachrichten über 10 kB werden abgelehnt, ein Fehler bei einer Nachricht bringt den Server nicht zum Absturz
+ * [7] Chat-Spam: Höchstens 5 Nachrichten in 3 Sekunden pro Spieler, weitere werden verworfen
  * Bewusste Grenze: Die Bedenkzeit läuft nur im Browser
  */
 
@@ -41,6 +42,8 @@ const waiting = new Map();
 
 // Grenzen für Eingaben vom Client
 const MAX_CHAT_LENGTH = 200;
+const CHAT_LIMIT = 5; // Cheating-Schutz [7]: höchstens so viele Chat-Nachrichten ...
+const CHAT_WINDOW_MS = 3000; // ... in diesem Zeitraum (Millisekunden)
 
 /**
  * Prüft, ob ein Wert eine gültige Brettkoordinate auf einem Brett dieser Größe ist
@@ -218,6 +221,12 @@ io.on('connection', (socket) => {
         // Leerzeichen am Rand entfernen und auf Maximallänge kürzen
         const cleanMsg = msg.trim().slice(0, MAX_CHAT_LENGTH);
         if (cleanMsg.length === 0) return; // Leere Nachrichten verwerfen
+
+        // Cheating-Schutz [7]: Zeitpunkte der letzten Nachrichten merken, bei zu vielen in kurzer Zeit verwerfen
+        const now = Date.now();
+        socket.chatTimes = (socket.chatTimes ?? []).filter((time) => now - time < CHAT_WINDOW_MS);
+        if (socket.chatTimes.length >= CHAT_LIMIT) return;
+        socket.chatTimes.push(now);
 
         // Leitet Nachricht nur an den verknüpften Gegner weiter
         socket.to(socket.oppId).emit('chatMessage', cleanMsg);
