@@ -3,37 +3,38 @@
 
 /**
  * Vorlagen fürs Brett, helle Felder, dunkle Felder und Rahmen
- * (die Beschriftung im Rahmen benutzt die Farbe der hellen Felder)
+ * (die Beschriftung im Rahmen benutzt die Farbe der hellen Felder).
+ * Die Namen der Vorlagen stehen in translations.js (presetBoard.holz usw.)
  */
 export const BOARD_PRESETS = {
-    holz: { name: 'Holz', light: '#deb887', dark: '#8b4513', frame: '#5c2e0e' },
-    gruen: { name: 'Turnier', light: '#eeeed2', dark: '#4e7837', frame: '#2f4a21' },
-    blau: { name: 'Eis', light: '#dee3e6', dark: '#4b6a7d', frame: '#2c3e4a' },
-    marmor: { name: 'Marmor', light: '#e6e6e6', dark: '#6e6e6e', frame: '#3a3a3a' },
-    sand: { name: 'Sand', light: '#f2e3c6', dark: '#8f6232', frame: '#5e3b1c' },
-    lavendel: { name: 'Lavendel', light: '#ece4f5', dark: '#6a4c93', frame: '#3e2a5c' },
-    dhbw: { name: 'DHBW', light: '#f6dcdc', dark: '#8e1b23', frame: '#4f0c12' },
-    kirsche: { name: 'Kirsche', light: '#f5e1d2', dark: '#a0412d', frame: '#5a1f14' },
-    mint: { name: 'Mint', light: '#e6f4ea', dark: '#2f7259', frame: '#173d2f' },
-    ozean: { name: 'Ozean', light: '#d8eef3', dark: '#1f6f8b', frame: '#0d3a4a' },
-    koralle: { name: 'Koralle', light: '#fde4d8', dark: '#b4472f', frame: '#5e2214' },
-    nacht: { name: 'Nacht', light: '#c9d1dc', dark: '#3b4a5e', frame: '#1b2330' },
-    kontrast: { name: 'Hoher Kontrast', light: '#ffffff', dark: '#3a3a3a', frame: '#000000' },
+    holz: { light: '#deb887', dark: '#8b4513', frame: '#5c2e0e' },
+    gruen: { light: '#eeeed2', dark: '#4e7837', frame: '#2f4a21' },
+    blau: { light: '#dee3e6', dark: '#4b6a7d', frame: '#2c3e4a' },
+    marmor: { light: '#e6e6e6', dark: '#6e6e6e', frame: '#3a3a3a' },
+    sand: { light: '#f2e3c6', dark: '#8f6232', frame: '#5e3b1c' },
+    lavendel: { light: '#ece4f5', dark: '#6a4c93', frame: '#3e2a5c' },
+    dhbw: { light: '#f6dcdc', dark: '#8e1b23', frame: '#4f0c12' },
+    kirsche: { light: '#f5e1d2', dark: '#a0412d', frame: '#5a1f14' },
+    mint: { light: '#e6f4ea', dark: '#2f7259', frame: '#173d2f' },
+    ozean: { light: '#d8eef3', dark: '#1f6f8b', frame: '#0d3a4a' },
+    koralle: { light: '#fde4d8', dark: '#b4472f', frame: '#5e2214' },
+    nacht: { light: '#c9d1dc', dark: '#3b4a5e', frame: '#1b2330' },
+    kontrast: { light: '#ffffff', dark: '#3a3a3a', frame: '#000000' },
 };
 
 /**
  * Vorlagen für die Steine: Grundfarbe der hellen (Weiß) und der dunklen Steine (Schwarz).
- * Verlauf und Glanz berechnet das CSS aus der Grundfarbe
+ * Verlauf und Glanz berechnet das CSS aus der Grundfarbe. Die Namen stehen in translations.js (presetPieces.gold usw.)
  */
 export const PIECE_PRESETS = {
-    klassisch: { name: 'Weiß / Schwarz', pieceLight: '#e0e0e0', pieceDark: '#222222' },
-    elfenbein: { name: 'Elfenbein / Braun', pieceLight: '#f2e8d0', pieceDark: '#4a2c12' },
-    marine: { name: 'Creme / Marineblau', pieceLight: '#fbf3df', pieceDark: '#1f3a68' },
-    gold: { name: 'Gold / Schwarz', pieceLight: '#e8c547', pieceDark: '#1a1a1a' },
-    rot: { name: 'Creme / Rot', pieceLight: '#f4ead5', pieceDark: '#9b1c1c' },
-    silber: { name: 'Silber / Anthrazit', pieceLight: '#c9ced3', pieceDark: '#2b2f33' },
-    ahorn: { name: 'Ahorn / Nussbaum', pieceLight: '#ecd5ad', pieceDark: '#3b2414' },
-    gruen: { name: 'Weiß / Dunkelgrün', pieceLight: '#f0f0f0', pieceDark: '#1e4d2b' },
+    klassisch: { pieceLight: '#e0e0e0', pieceDark: '#222222' },
+    elfenbein: { pieceLight: '#f2e8d0', pieceDark: '#4a2c12' },
+    marine: { pieceLight: '#fbf3df', pieceDark: '#1f3a68' },
+    gold: { pieceLight: '#e8c547', pieceDark: '#1a1a1a' },
+    rot: { pieceLight: '#f4ead5', pieceDark: '#9b1c1c' },
+    silber: { pieceLight: '#c9ced3', pieceDark: '#2b2f33' },
+    ahorn: { pieceLight: '#ecd5ad', pieceDark: '#3b2414' },
+    gruen: { pieceLight: '#f0f0f0', pieceDark: '#1e4d2b' },
 };
 
 /**
@@ -108,38 +109,39 @@ export function deriveColors(colors) {
 }
 
 /**
- * Formatiert ein Kontrastverhältnis für die Anzeige, z.B. 2.456 -> "2,5"
+ * Formatiert ein Kontrastverhältnis für die Anzeige, z.B. 2.456 -> "2,5" (Deutsch) bzw. "2.5" (Englisch)
  */
-export function formatRatio(ratio) {
-    return ratio.toFixed(1).replace('.', ',');
+export function formatRatio(ratio, language = 'de') {
+    const text = ratio.toFixed(1);
+    return language === 'de' ? text.replace('.', ',') : text;
 }
 
+// Regeln der Kontrastprüfung: [Farbe A, Farbe B, Mindestkontrast, Name der Warnung].
+// Die Farben sind Namen aus den fünf Farben bzw. aus deriveColors, die Texte stehen in translations.js (theme.warning.<Name>)
+const CONTRAST_RULES = [
+    ['pieceLight', 'dark', MIN_GRAPHIC_CONTRAST, 'lightPieces'],
+    ['darkPieceOutline', 'dark', MIN_GRAPHIC_CONTRAST, 'darkPieces'],
+    ['pieceLight', 'pieceDark', MIN_GRAPHIC_CONTRAST, 'similarPieces'],
+    ['crownOnLight', 'pieceLight', MIN_GRAPHIC_CONTRAST, 'crownOnLight'],
+    ['crownOnDark', 'pieceDark', MIN_GRAPHIC_CONTRAST, 'crownOnDark'],
+    ['light', 'frame', MIN_TEXT_CONTRAST, 'frameLabel'],
+    ['light', 'dark', MIN_FIELD_CONTRAST, 'similarFields'],
+];
+
+// Namen aller möglichen Warnungen (der Test prüft damit, dass es zu jeder einen Text gibt)
+export const WARNING_KEYS = CONTRAST_RULES.map((rule) => rule[3]);
+
 /**
- * Prüft eine Farbkombination und liefert verständliche Warnungen (leere Liste = alles in Ordnung)
+ * Prüft eine Farbkombination (leere Liste = alles in Ordnung). Jede Warnung ist ein Objekt
+ * { key, ratio, minimum }, den Text dazu baut theme.js in der gewählten Sprache
  */
 export function checkColors(colors) {
-    const { light, dark, frame, pieceLight, pieceDark } = colors;
-    const { darkPieceOutline, crownOnLight, crownOnDark } = deriveColors(colors);
-    const GRAPHIC = MIN_GRAPHIC_CONTRAST;
-
-    // Regeln: [Farbe A, Farbe B, Mindestkontrast, Warnung]
-    const rules = [
-        [pieceLight, dark, GRAPHIC, 'Helle Steine heben sich kaum von den dunklen Feldern ab'],
-        [darkPieceOutline, dark, GRAPHIC, 'Dunkle Steine heben sich kaum von den dunklen Feldern ab'],
-        [pieceLight, pieceDark, GRAPHIC, 'Helle und dunkle Steine sind schwer zu unterscheiden'],
-        [crownOnLight, pieceLight, GRAPHIC, 'Die Krone auf hellen Steinen ist schwer zu erkennen'],
-        [crownOnDark, pieceDark, GRAPHIC, 'Die Krone auf dunklen Steinen ist schwer zu erkennen'],
-        [light, frame, MIN_TEXT_CONTRAST, 'Die Beschriftung im Rahmen ist schwer lesbar'],
-        [light, dark, MIN_FIELD_CONTRAST, 'Helle und dunkle Felder sind schwer zu unterscheiden'],
-    ];
-
-    return rules
-        .map(([colorA, colorB, minimum, text]) => ({ ratio: contrastRatio(colorA, colorB), minimum, text }))
-        .filter(({ ratio, minimum }) => ratio < minimum)
-        .map(
-            ({ ratio, minimum, text }) =>
-                `${text} (Kontrast ${formatRatio(ratio)}:1, empfohlen ${formatRatio(minimum)}:1)`
-        );
+    const allColors = { ...colors, ...deriveColors(colors) };
+    return CONTRAST_RULES.map(([colorA, colorB, minimum, key]) => ({
+        key,
+        ratio: contrastRatio(allColors[colorA], allColors[colorB]),
+        minimum,
+    })).filter(({ ratio, minimum }) => ratio < minimum);
 }
 
 /**

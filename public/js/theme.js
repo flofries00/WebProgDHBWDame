@@ -1,6 +1,15 @@
 // Farbschema für Brett und Steine: Fenster mit den Vorlagen, Farben als CSS-Variablen anwenden und im Browser merken.
 // Die Vorlagen und die Kontrastprüfung stehen in colors.js
-import { BOARD_PRESETS, PIECE_PRESETS, DEFAULT_THEME, deriveColors, parseStoredTheme, checkColors } from './colors.js';
+import {
+    BOARD_PRESETS,
+    PIECE_PRESETS,
+    DEFAULT_THEME,
+    deriveColors,
+    parseStoredTheme,
+    checkColors,
+    formatRatio,
+} from './colors.js';
+import { t, getLanguage } from './i18n.js';
 
 const STORAGE_KEY = 'boardTheme';
 let currentTheme = DEFAULT_THEME; // Aktuelles Farbschema: { board, pieces, colors }
@@ -58,9 +67,11 @@ export function loadTheme() {
 }
 
 /**
- * Baut die Radiobuttons für eine Gruppe von Vorlagen, jeweils mit kleinen Farbfeldern davor
+ * Baut die Radiobuttons für eine Gruppe von Vorlagen, jeweils mit kleinen Farbfeldern davor.
+ * Der Name steht in translations.js, z.B. presetBoard.holz (Bretter und Steine haben eigene Schlüssel,
+ * weil es "gruen" bei beiden gibt)
  */
-function renderPresetList(listId, groupName, presets, swatchKeys) {
+function renderPresetList(listId, groupName, presets, swatchKeys, keyPrefix) {
     const options = Object.entries(presets).map(([id, preset]) => {
         const input = document.createElement('input');
         input.type = 'radio';
@@ -79,7 +90,7 @@ function renderPresetList(listId, groupName, presets, swatchKeys) {
 
         const label = document.createElement('label');
         label.className = 'preset-option';
-        label.append(input, swatches, preset.name);
+        label.append(input, swatches, t(`${keyPrefix}.${id}`));
         return label;
     });
     document.getElementById(listId).replaceChildren(...options);
@@ -151,18 +162,22 @@ function renderWarnings() {
     if (warnings.length === 0) {
         const ok = document.createElement('p');
         ok.className = 'theme-ok';
-        ok.textContent = 'Alle Kontraste sind in Ordnung.';
+        ok.textContent = t('theme.ok');
         box.replaceChildren(ok);
         return;
     }
 
     const intro = document.createElement('p');
-    intro.textContent = 'Hinweis: Diese Farben sind womöglich schwer zu erkennen.';
+    intro.textContent = t('theme.warningIntro');
     const list = document.createElement('ul');
     list.append(
-        ...warnings.map((text) => {
+        ...warnings.map(({ key, ratio, minimum }) => {
             const item = document.createElement('li');
-            item.textContent = text;
+            const language = getLanguage();
+            item.textContent = t(`theme.warning.${key}`, {
+                ratio: formatRatio(ratio, language),
+                minimum: formatRatio(minimum, language),
+            });
             return item;
         })
     );
@@ -189,8 +204,8 @@ function updateDialog() {
  */
 export function openThemeDialog() {
     draft = structuredClone(currentTheme);
-    renderPresetList('boardPresetList', 'boardPreset', BOARD_PRESETS, ['light', 'dark', 'frame']);
-    renderPresetList('piecePresetList', 'piecePreset', PIECE_PRESETS, ['pieceLight', 'pieceDark']);
+    renderPresetList('boardPresetList', 'boardPreset', BOARD_PRESETS, ['light', 'dark', 'frame'], 'presetBoard');
+    renderPresetList('piecePresetList', 'piecePreset', PIECE_PRESETS, ['pieceLight', 'pieceDark'], 'presetPieces');
     renderPreview();
     updateDialog();
 

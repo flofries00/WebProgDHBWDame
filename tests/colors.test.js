@@ -28,6 +28,7 @@ describe('Kontrast nach WCAG', () => {
     it('stimmt mit bekannten Werten überein', () => {
         // #767676 auf Weiß ist der bekannte Grenzwert für 4,5:1
         assert.equal(formatRatio(contrastRatio('#767676', '#ffffff')), '4,5');
+        assert.equal(formatRatio(contrastRatio('#767676', '#ffffff'), 'en'), '4.5');
     });
 
     it('wählt aus mehreren Farben die mit dem besten Kontrast', () => {
@@ -74,23 +75,24 @@ describe('Warnungen', () => {
 
     it('warnt, wenn helle Steine fast so dunkel sind wie die dunklen Felder', () => {
         const colors = { ...makeColors('holz', 'klassisch'), pieceLight: '#8b4513' };
-        assert.ok(checkColors(colors).some((warning) => warning.startsWith('Helle Steine heben sich kaum')));
+        assert.ok(checkColors(colors).some((warning) => warning.key === 'lightPieces'));
     });
 
     it('warnt, wenn beide Steinfarben fast gleich sind', () => {
         const colors = { ...makeColors('holz', 'klassisch'), pieceDark: '#dddddd' };
-        assert.ok(checkColors(colors).some((warning) => warning.startsWith('Helle und dunkle Steine')));
+        assert.ok(checkColors(colors).some((warning) => warning.key === 'similarPieces'));
     });
 
     it('warnt bei schlecht lesbarer Beschriftung und nennt den Kontrast', () => {
         const colors = { ...makeColors('holz', 'klassisch'), frame: '#c0a070' };
-        const warning = checkColors(colors).find((text) => text.startsWith('Die Beschriftung im Rahmen'));
-        assert.match(warning, /Kontrast \d,\d:1, empfohlen 4,5:1/);
+        const warning = checkColors(colors).find(({ key }) => key === 'frameLabel');
+        assert.equal(warning.minimum, 4.5);
+        assert.ok(warning.ratio < 4.5);
     });
 
     it('warnt, wenn helle und dunkle Felder kaum zu unterscheiden sind', () => {
         const colors = { ...makeColors('holz', 'klassisch'), light: '#8b4513' };
-        assert.ok(checkColors(colors).some((warning) => warning.startsWith('Helle und dunkle Felder')));
+        assert.ok(checkColors(colors).some((warning) => warning.key === 'similarFields'));
     });
 });
 

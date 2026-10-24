@@ -2,6 +2,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { TRANSLATIONS } from '../public/js/translations.js';
+import { BOARD_PRESETS, PIECE_PRESETS, WARNING_KEYS } from '../public/js/colors.js';
 
 /**
  * Platzhalter eines Textes, z.B. "Hallo {name}!" -> ['name']
@@ -34,6 +35,15 @@ describe('Übersetzungen', () => {
                 assert.ok(typeof text === 'string' && text.trim() !== '', `${language}: ${key} ist leer`);
             }
         }
+    });
+
+    it('haben einen Namen für jede Farbvorlage und einen Text für jede Kontrastwarnung', () => {
+        const keys = [
+            ...Object.keys(BOARD_PRESETS).map((id) => `presetBoard.${id}`),
+            ...Object.keys(PIECE_PRESETS).map((id) => `presetPieces.${id}`),
+            ...WARNING_KEYS.map((key) => `theme.warning.${key}`),
+        ];
+        for (const key of keys) assert.ok(Object.hasOwn(TRANSLATIONS.de, key), `Fehlt: ${key}`);
     });
 
     it('benutzen in beiden Sprachen dieselben Platzhalter', () => {

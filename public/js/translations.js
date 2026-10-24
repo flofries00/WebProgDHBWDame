@@ -84,6 +84,45 @@ export const TRANSLATIONS = {
         'theme.pieceDark': 'Dunkle Steine',
         'theme.apply': 'Übernehmen',
 
+        // Farben-Fenster: Namen der Vorlagen (die Farben stehen in colors.js) und Kontrastprüfung
+        'presetBoard.holz': 'Holz',
+        'presetBoard.gruen': 'Turnier',
+        'presetBoard.blau': 'Eis',
+        'presetBoard.marmor': 'Marmor',
+        'presetBoard.sand': 'Sand',
+        'presetBoard.lavendel': 'Lavendel',
+        'presetBoard.dhbw': 'DHBW',
+        'presetBoard.kirsche': 'Kirsche',
+        'presetBoard.mint': 'Mint',
+        'presetBoard.ozean': 'Ozean',
+        'presetBoard.koralle': 'Koralle',
+        'presetBoard.nacht': 'Nacht',
+        'presetBoard.kontrast': 'Hoher Kontrast',
+        'presetPieces.klassisch': 'Weiß / Schwarz',
+        'presetPieces.elfenbein': 'Elfenbein / Braun',
+        'presetPieces.marine': 'Creme / Marineblau',
+        'presetPieces.gold': 'Gold / Schwarz',
+        'presetPieces.rot': 'Creme / Rot',
+        'presetPieces.silber': 'Silber / Anthrazit',
+        'presetPieces.ahorn': 'Ahorn / Nussbaum',
+        'presetPieces.gruen': 'Weiß / Dunkelgrün',
+        'theme.ok': 'Alle Kontraste sind in Ordnung.',
+        'theme.warningIntro': 'Hinweis: Diese Farben sind womöglich schwer zu erkennen.',
+        'theme.warning.lightPieces':
+            'Helle Steine heben sich kaum von den dunklen Feldern ab (Kontrast {ratio}:1, empfohlen {minimum}:1)',
+        'theme.warning.darkPieces':
+            'Dunkle Steine heben sich kaum von den dunklen Feldern ab (Kontrast {ratio}:1, empfohlen {minimum}:1)',
+        'theme.warning.similarPieces':
+            'Helle und dunkle Steine sind schwer zu unterscheiden (Kontrast {ratio}:1, empfohlen {minimum}:1)',
+        'theme.warning.crownOnLight':
+            'Die Krone auf hellen Steinen ist schwer zu erkennen (Kontrast {ratio}:1, empfohlen {minimum}:1)',
+        'theme.warning.crownOnDark':
+            'Die Krone auf dunklen Steinen ist schwer zu erkennen (Kontrast {ratio}:1, empfohlen {minimum}:1)',
+        'theme.warning.frameLabel':
+            'Die Beschriftung im Rahmen ist schwer lesbar (Kontrast {ratio}:1, empfohlen {minimum}:1)',
+        'theme.warning.similarFields':
+            'Helle und dunkle Felder sind schwer zu unterscheiden (Kontrast {ratio}:1, empfohlen {minimum}:1)',
+
         // Tutorial
         'tutorial.boardLabel': 'Übungsbrett',
         'tutorial.skip': 'Überspringen',
@@ -235,6 +274,44 @@ export const TRANSLATIONS = {
         'theme.pieceLight': 'Light pieces',
         'theme.pieceDark': 'Dark pieces',
         'theme.apply': 'Apply',
+
+        'presetBoard.holz': 'Wood',
+        'presetBoard.gruen': 'Tournament',
+        'presetBoard.blau': 'Ice',
+        'presetBoard.marmor': 'Marble',
+        'presetBoard.sand': 'Sand',
+        'presetBoard.lavendel': 'Lavender',
+        'presetBoard.dhbw': 'DHBW',
+        'presetBoard.kirsche': 'Cherry',
+        'presetBoard.mint': 'Mint',
+        'presetBoard.ozean': 'Ocean',
+        'presetBoard.koralle': 'Coral',
+        'presetBoard.nacht': 'Night',
+        'presetBoard.kontrast': 'High contrast',
+        'presetPieces.klassisch': 'White / Black',
+        'presetPieces.elfenbein': 'Ivory / Brown',
+        'presetPieces.marine': 'Cream / Navy',
+        'presetPieces.gold': 'Gold / Black',
+        'presetPieces.rot': 'Cream / Red',
+        'presetPieces.silber': 'Silver / Anthracite',
+        'presetPieces.ahorn': 'Maple / Walnut',
+        'presetPieces.gruen': 'White / Dark green',
+        'theme.ok': 'All contrasts are fine.',
+        'theme.warningIntro': 'Note: These colors may be hard to see.',
+        'theme.warning.lightPieces':
+            'Light pieces barely stand out from the dark squares (contrast {ratio}:1, recommended {minimum}:1)',
+        'theme.warning.darkPieces':
+            'Dark pieces barely stand out from the dark squares (contrast {ratio}:1, recommended {minimum}:1)',
+        'theme.warning.similarPieces':
+            'Light and dark pieces are hard to tell apart (contrast {ratio}:1, recommended {minimum}:1)',
+        'theme.warning.crownOnLight':
+            'The crown on light pieces is hard to see (contrast {ratio}:1, recommended {minimum}:1)',
+        'theme.warning.crownOnDark':
+            'The crown on dark pieces is hard to see (contrast {ratio}:1, recommended {minimum}:1)',
+        'theme.warning.frameLabel':
+            'The labels on the frame are hard to read (contrast {ratio}:1, recommended {minimum}:1)',
+        'theme.warning.similarFields':
+            'Light and dark squares are hard to tell apart (contrast {ratio}:1, recommended {minimum}:1)',
 
         'tutorial.boardLabel': 'Practice board',
         'tutorial.skip': 'Skip',
