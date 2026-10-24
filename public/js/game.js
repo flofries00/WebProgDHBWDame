@@ -3,6 +3,7 @@ import { socket } from './socket.js';
 import { showScreen, leaveToLobby, fireConfetti, fireRain, showConfirm } from './ui.js';
 import { playSound } from './sound.js';
 import { createInitialBoard, getLegalMoves, findMove, applyMove, getWinner } from './rules.js';
+import { t, setText, onLanguageChange } from './i18n.js';
 
 const COLUMN_LETTERS = 'ABCDEFGHIJ'; // Spaltenbuchstaben, reichen bis zum 10x10 Brett
 
@@ -77,8 +78,8 @@ export function startGame() {
     startTurnTimer();
 
     // Farben der Spieler in der Kopfzeile (beim Münzwurf ausgelost)
-    document.getElementById('p1Color').textContent = state.playerGetsWhite ? '(Weiß)' : '(Schwarz)';
-    document.getElementById('compColor').textContent = state.playerGetsWhite ? '(Schwarz)' : '(Weiß)';
+    setText(document.getElementById('p1Color'), state.playerGetsWhite ? 'game.white' : 'game.black');
+    setText(document.getElementById('compColor'), state.playerGetsWhite ? 'game.black' : 'game.white');
 
     // Anzeigen, wer am Zug ist
     updateTurnIndicator();
@@ -104,15 +105,17 @@ export function startGame() {
     const chatBox = document.querySelector('.chat-messages');
 
     if (chatInput && chatBox) {
-        if (state.gameMode === 'online') {
-            chatInput.disabled = false;
-            chatInput.placeholder = 'Nachricht schreiben...';
-            chatBox.innerHTML = '<p class="sys-msg">Chat bereit. Sag Hallo!</p>';
-        } else {
-            chatInput.disabled = true;
-            chatInput.placeholder = 'Chat im Singleplayer deaktiviert.';
-            chatBox.innerHTML = '<p class="sys-msg">System offline.</p>';
-        }
+        const online = state.gameMode === 'online';
+        chatInput.disabled = !online;
+        // Schlüssel am Attribut merken, damit auch der Platzhalter beim Sprachwechsel übersetzt wird
+        const placeholderKey = online ? 'game.chatPlaceholder' : 'game.chatDisabled';
+        chatInput.setAttribute('data-i18n-placeholder', placeholderKey);
+        chatInput.placeholder = t(placeholderKey);
+
+        const systemMessage = document.createElement('p');
+        systemMessage.className = 'sys-msg';
+        setText(systemMessage, online ? 'game.chatReady' : 'game.chatOffline');
+        chatBox.replaceChildren(systemMessage);
     }
 
     // Hat der Computer Weiß, beginnt er (makeComputerMove prüft das selbst)
@@ -274,6 +277,11 @@ export function toSquareName(row, col, size) {
     return COLUMN_LETTERS[col] + (size - row);
 }
 
+// Beim Sprachwechsel die Felder neu beschriften (die Texte entstehen erst beim Zeichnen, nicht im HTML)
+onLanguageChange(() => {
+    if (board.length > 0) updateCellLabels();
+});
+
 /**
  * Beschriftet jedes Feld für Screenreader, z.B. "C3, weißer Stein, ausgewählt" oder "B4, leer, hierhin ziehen"
  */
@@ -287,17 +295,17 @@ function updateCellLabels() {
             const parts = [toSquareName(row, col, board.length)];
 
             if (cell.classList.contains('white-bg')) {
-                parts.push('helles Feld');
+                parts.push(t('board.lightSquare'));
             } else if (piece) {
-                const colorName = piece.color === 'white' ? 'weiß' : 'schwarz';
-                parts.push(piece.king ? `${colorName}e Dame` : `${colorName}er Stein`);
+                // Schlüssel z.B. 'board.whiteKing' oder 'board.blackPiece'
+                parts.push(t(`board.${piece.color}${piece.king ? 'King' : 'Piece'}`));
             } else {
-                parts.push('leer');
+                parts.push(t('board.empty'));
             }
 
-            if (cell.querySelector('.selected')) parts.push('ausgewählt');
-            if (cell.classList.contains('highlighted')) parts.push('hierhin ziehen');
-            if (cell.classList.contains('highlighted-capture')) parts.push('hierhin schlagen');
+            if (cell.querySelector('.selected')) parts.push(t('board.selected'));
+            if (cell.classList.contains('highlighted')) parts.push(t('board.moveHere'));
+            if (cell.classList.contains('highlighted-capture')) parts.push(t('board.captureHere'));
 
             cell.setAttribute('aria-label', parts.join(', '));
         });
@@ -569,11 +577,11 @@ export function endGame(winnerColor, reason = '') {
 
     const textEl = document.getElementById('winnerText');
     if (reason === 'timeout') {
-        textEl.textContent = `Zeit abgelaufen! ${winner} gewinnt!`;
+        setText(textEl, 'end.timeout', { winner });
     } else if (reason === 'opponentLeft') {
-        textEl.textContent = `${state.opponentName} hat das Spiel verlassen. ${winner} gewinnt!`;
+        setText(textEl, 'end.opponentLeftWin', { name: state.opponentName, winner });
     } else {
-        textEl.textContent = `${winner} hat in ${moveCount} ${moveCount === 1 ? 'Zug' : 'Zügen'} gewonnen!`;
+        setText(textEl, moveCount === 1 ? 'end.wonOne' : 'end.won', { winner, moves: moveCount });
     }
 
     // Spielverlauf in Endbildschirm kopieren
@@ -652,10 +660,10 @@ function showReviewStep(index) {
 
     // Überschrift: Startaufstellung, Zwischenstand oder Endstand
     const last = turnHistory.length - 1;
-    let title = `Nach Zug ${index} von ${last}`;
-    if (index === 0) title = 'Startaufstellung';
-    if (index === last) title = 'Endstand';
-    document.getElementById('reviewTitle').textContent = title;
+    const title = document.getElementById('reviewTitle');
+    if (index === last) setText(title, 'end.finalPosition');
+    else if (index === 0) setText(title, 'end.startPosition');
+    else setText(title, 'end.afterMove', { index, last });
 
     // Einträge dieses Zugs im Spielverlauf hervorheben (ein Mehrfachsprung hat mehrere Einträge)
     const firstEntry = index > 0 ? turnHistory[index - 1].logCount : 0;
@@ -687,13 +695,10 @@ export function moveReview(step) {
  * Online gewinnt dadurch automatisch der Gegner
  */
 export async function abortGame() {
-    const text =
-        state.gameMode === 'online'
-            ? 'Dein Gegner gewinnt dann automatisch.'
-            : 'Die aktuelle Partie ist damit beendet.';
+    const text = state.gameMode === 'online' ? t('game.resignOnline') : t('game.resignComputer');
 
     // Auf die Antwort in der Bestätigungs-Box warten
-    const confirmed = await showConfirm('Spiel wirklich aufgeben?', text, 'Aufgeben', 'Weiterspielen');
+    const confirmed = await showConfirm(t('game.resignTitle'), text, t('game.resignConfirm'), t('game.resignCancel'));
     if (!confirmed) return;
 
     // Uhr und ausstehenden Computerzug stoppen, sonst laufen sie im Hintergrund weiter
@@ -908,8 +913,9 @@ function handlePointerUp(event) {
  * Zeigt in der Kopfzeile, wer am Zug ist
  */
 function updateTurnIndicator() {
-    const text = isMyTurn() ? 'Du bist am Zug' : `${state.opponentName} ist am Zug`;
-    document.getElementById('turnIndicator').textContent = text;
+    const indicator = document.getElementById('turnIndicator');
+    if (isMyTurn()) setText(indicator, 'game.yourTurn');
+    else setText(indicator, 'game.opponentTurn', { name: state.opponentName });
 }
 
 /**
@@ -920,16 +926,23 @@ function addToLog(sRow, sCol, eRow, eCol, isCapture, getsPromoted = false) {
     const startStr = toSquareName(sRow, sCol, board.length);
     const endStr = toSquareName(eRow, eCol, board.length);
 
-    // "Du ziehst" bzw. "Computer zieht": Das Verb richtet sich nach der Person
-    const name = isMyTurn() ? 'Du' : state.opponentName;
-    const verbs = isMyTurn() ? { capture: 'schlägst', move: 'ziehst' } : { capture: 'schlägt', move: 'zieht' };
-    const verb = isCapture ? verbs.capture : verbs.move;
-    const promoText = getsPromoted ? ', der Stein wird zur Dame' : '';
+    // "Du ziehst" bzw. "Computer zieht": Das Verb richtet sich nach der Person, deshalb eigene Texte für beide
+    const strong = document.createElement('strong');
+    if (isMyTurn()) setText(strong, 'log.you');
+    else strong.textContent = state.opponentName; // Namen werden nicht übersetzt
+
+    const person = isMyTurn() ? 'you' : 'other';
+    const action = isCapture ? 'Capture' : 'Move';
+    const text = document.createElement('span');
+    setText(text, `log.${person}${action}`, { from: startStr, to: endStr }); // z.B. 'log.youCapture'
 
     const li = document.createElement('li');
-    const strong = document.createElement('strong');
-    strong.textContent = name;
-    li.append(strong, ` ${verb} von ${startStr} nach ${endStr}${promoText}`);
+    li.append(strong, ' ', text);
+    if (getsPromoted) {
+        const promotion = document.createElement('span');
+        setText(promotion, 'log.promoted');
+        li.append(promotion);
+    }
 
     const list = document.getElementById('logList');
     if (list) {
