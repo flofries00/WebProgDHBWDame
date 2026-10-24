@@ -73,6 +73,11 @@ function applyLanguage() {
         }
     }
 
+    // Längere Texte (Hilfe) stehen in beiden Sprachen im HTML: nur die passende Fassung zeigen
+    for (const element of document.querySelectorAll('[data-lang]')) {
+        element.hidden = element.dataset.lang !== language;
+    }
+
     // Der Button ist in der Sprache beschriftet, zu der er umschaltet
     document.getElementById('languageBtn').lang = language === 'de' ? 'en' : 'de';
 

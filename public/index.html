@@ -412,70 +412,132 @@
         <!-- Hilfe: Bedienung und Spielregeln (öffnet sich über den ?-Button in der Kopfzeile) -->
         <dialog id="helpDialog" class="confirm-dialog help-dialog" aria-labelledby="helpTitle">
             <form method="dialog">
-                <h3 id="helpTitle">Hilfe</h3>
+                <h3 id="helpTitle" data-i18n="header.help">Hilfe</h3>
 
-                <h4>Bedienung</h4>
-                <ul>
-                    <li>
-                        <strong>Maus oder Finger:</strong> Stein antippen und dann das Zielfeld, oder den Stein dorthin
-                        ziehen.
-                    </li>
-                    <li>
-                        <strong>Tastatur:</strong> Mit Tab aufs Brett, mit den Pfeiltasten bewegen, mit Enter oder
-                        Leertaste auswählen und ziehen, mit Escape die Auswahl aufheben.
-                    </li>
-                    <li>
-                        <strong>Schlagzwang:</strong> Rote Felder lassen sich direkt anklicken, wenn nur ein Stein
-                        dorthin schlagen kann.
-                    </li>
-                </ul>
+                <!-- Längere Texte mit Hervorhebungen stehen in beiden Sprachen im HTML, i18n.js zeigt nur die passende -->
+                <div lang="de" data-lang="de">
+                    <h4>Bedienung</h4>
+                    <ul>
+                        <li>
+                            <strong>Maus oder Finger:</strong> Stein antippen und dann das Zielfeld, oder den Stein
+                            dorthin ziehen.
+                        </li>
+                        <li>
+                            <strong>Tastatur:</strong> Mit Tab aufs Brett, mit den Pfeiltasten bewegen, mit Enter oder
+                            Leertaste auswählen und ziehen, mit Escape die Auswahl aufheben.
+                        </li>
+                        <li>
+                            <strong>Schlagzwang:</strong> Rote Felder lassen sich direkt anklicken, wenn nur ein Stein
+                            dorthin schlagen kann.
+                        </li>
+                    </ul>
 
-                <h4>Markierungen</h4>
-                <ul>
-                    <li>Grünes Feld mit <strong>Punkt</strong>: Hierhin kann der ausgewählte Stein ziehen.</li>
-                    <li>Rotes Feld mit <strong>Ring</strong>: Hier wird geschlagen.</li>
-                    <li>Stein mit <strong>Krone</strong>: eine Dame.</li>
-                </ul>
+                    <h4>Markierungen</h4>
+                    <ul>
+                        <li>Grünes Feld mit <strong>Punkt</strong>: Hierhin kann der ausgewählte Stein ziehen.</li>
+                        <li>Rotes Feld mit <strong>Ring</strong>: Hier wird geschlagen.</li>
+                        <li>Stein mit <strong>Krone</strong>: eine Dame.</li>
+                    </ul>
 
-                <h4>Regeln (Variante „Klassisch“)</h4>
-                <ul>
-                    <li>Gespielt wird auf den dunklen Feldern, Weiß beginnt.</li>
-                    <li>
-                        Steine ziehen ein Feld diagonal vorwärts und schlagen nur vorwärts, indem sie über einen Gegner
-                        springen.
-                    </li>
-                    <li>
-                        Es gilt <strong>Schlagzwang</strong>. Kann derselbe Stein danach erneut schlagen, muss er
-                        weiterschlagen.
-                    </li>
-                    <li>
-                        Wer die gegnerische Grundlinie erreicht, bekommt eine <strong>Dame</strong>. Sie zieht und
-                        schlägt beliebig weit in alle Richtungen.
-                    </li>
-                    <li>
-                        Gewonnen hat, wessen Gegner keine Steine oder keinen Zug mehr hat, die Zeit überschreitet oder
-                        aufgibt.
-                    </li>
-                </ul>
+                    <h4>Regeln (Variante „Klassisch“)</h4>
+                    <ul>
+                        <li>Gespielt wird auf den dunklen Feldern, Weiß beginnt.</li>
+                        <li>
+                            Steine ziehen ein Feld diagonal vorwärts und schlagen nur vorwärts, indem sie über einen
+                            Gegner springen.
+                        </li>
+                        <li>
+                            Es gilt <strong>Schlagzwang</strong>. Kann derselbe Stein danach erneut schlagen, muss er
+                            weiterschlagen.
+                        </li>
+                        <li>
+                            Wer die gegnerische Grundlinie erreicht, bekommt eine <strong>Dame</strong>. Sie zieht und
+                            schlägt beliebig weit in alle Richtungen.
+                        </li>
+                        <li>
+                            Gewonnen hat, wessen Gegner keine Steine oder keinen Zug mehr hat, die Zeit überschreitet
+                            oder aufgibt.
+                        </li>
+                    </ul>
 
-                <h4>Unterschiede in der Variante "International"</h4>
-                <ul>
-                    <li>Brett mit 10x10 Feldern, jede Seite beginnt mit 20 Steinen</li>
-                    <li>Normale Steine schlagen auch <strong>rückwärts</strong> (ziehen aber nur vorwärts)</li>
-                    <li>
-                        <strong>Mehrheitsschlag:</strong> Gibt es mehrere Schläge, muss der gewählt werden, mit dem man
-                        die meisten Steine schlägt
-                    </li>
-                    <li>
-                        Geschlagene Steine bleiben bis zum Ende des Zugs halb durchsichtig liegen und dürfen nicht
-                        zweimal übersprungen werden
-                    </li>
-                    <li>Ein Stein wird nur zur Dame, wenn sein Zug auf der gegnerischen Grundlinie endet</li>
-                </ul>
+                    <h4>Unterschiede in der Variante "International"</h4>
+                    <ul>
+                        <li>Brett mit 10x10 Feldern, jede Seite beginnt mit 20 Steinen</li>
+                        <li>Normale Steine schlagen auch <strong>rückwärts</strong> (ziehen aber nur vorwärts)</li>
+                        <li>
+                            <strong>Mehrheitsschlag:</strong> Gibt es mehrere Schläge, muss der gewählt werden, mit dem
+                            man die meisten Steine schlägt
+                        </li>
+                        <li>
+                            Geschlagene Steine bleiben bis zum Ende des Zugs halb durchsichtig liegen und dürfen nicht
+                            zweimal übersprungen werden
+                        </li>
+                        <li>Ein Stein wird nur zur Dame, wenn sein Zug auf der gegnerischen Grundlinie endet</li>
+                    </ul>
+                </div>
+                <div lang="en" data-lang="en" hidden>
+                    <h4>Controls</h4>
+                    <ul>
+                        <li>
+                            <strong>Mouse or finger:</strong> Tap a piece and then the target square, or drag the piece
+                            there.
+                        </li>
+                        <li>
+                            <strong>Keyboard:</strong> Tab to the board, move with the arrow keys, select and move with
+                            Enter or Space, cancel the selection with Escape.
+                        </li>
+                        <li>
+                            <strong>Mandatory capture:</strong> Red squares can be clicked directly if only one piece
+                            can capture there.
+                        </li>
+                    </ul>
+
+                    <h4>Highlights</h4>
+                    <ul>
+                        <li>Green square with a <strong>dot</strong>: The selected piece can move here.</li>
+                        <li>Red square with a <strong>ring</strong>: A capture happens here.</li>
+                        <li>Piece with a <strong>crown</strong>: a king.</li>
+                    </ul>
+
+                    <h4>Rules (variant "Classic")</h4>
+                    <ul>
+                        <li>The game is played on the dark squares, White moves first.</li>
+                        <li>
+                            Pieces move one square diagonally forward and only capture forward by jumping over an
+                            opponent.
+                        </li>
+                        <li>
+                            Capturing is <strong>mandatory</strong>. If the same piece can capture again afterwards, it
+                            must keep jumping.
+                        </li>
+                        <li>
+                            A piece that reaches the opponent's back row becomes a <strong>king</strong>. Kings move and
+                            capture any distance in all directions.
+                        </li>
+                        <li>You win if your opponent has no pieces or no moves left, runs out of time or resigns.</li>
+                    </ul>
+
+                    <h4>Differences in the variant "International"</h4>
+                    <ul>
+                        <li>Board with 10×10 squares, each side starts with 20 pieces</li>
+                        <li>Normal pieces also capture <strong>backwards</strong> (but only move forward)</li>
+                        <li>
+                            <strong>Majority capture:</strong> If there are several captures, you must take the one that
+                            captures the most pieces
+                        </li>
+                        <li>
+                            Captured pieces stay on the board, half transparent, until the move ends and may not be
+                            jumped twice
+                        </li>
+                        <li>A piece only becomes a king if its move ends on the opponent's back row</li>
+                    </ul>
+                </div>
 
                 <div class="dialog-buttons">
-                    <button type="button" id="helpTutorialBtn" class="secondary-btn">Tutorial starten</button>
-                    <button value="close">Schließen</button>
+                    <button type="button" id="helpTutorialBtn" class="secondary-btn" data-i18n="help.startTutorial">
+                        Tutorial starten
+                    </button>
+                    <button value="close" data-i18n="common.close">Schließen</button>
                 </div>
             </form>
         </dialog>

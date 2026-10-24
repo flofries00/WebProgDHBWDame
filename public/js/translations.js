@@ -129,6 +129,55 @@ export const TRANSLATIONS = {
         'tutorial.retry': 'Nochmal',
         'tutorial.international': 'International lernen',
 
+        // Tutorial (Lektionen in tutorial.js, hier ihre Texte)
+        'tutorial.heading': '{name} ({number}/{total}): {lesson}',
+        'tutorial.name': 'Tutorial',
+        'tutorial.nameInternational': 'Tutorial International',
+        'tutorial.letsGo': 'Los gehts!',
+        'tutorial.continueJump': 'Weiter! Derselbe Stein muss noch einmal schlagen.',
+        'tutorial.notThisCapture': 'Dieser Stein darf nicht schlagen: Ein anderer Schlag nimmt mehr Steine.',
+        'tutorial.notThisPiece': 'Dieser Stein darf gerade nicht ziehen: Ein anderer Stein kann schlagen.',
+        'tutorial.move.title': 'Ziehen',
+        'tutorial.move.text':
+            'Steine ziehen ein Feld schräg nach vorne. Tippe einen weißen Stein an und dann ein grünes Feld.',
+        'tutorial.move.success': 'Richtig! So ziehst du einen Stein.',
+        'tutorial.capture.title': 'Schlagen',
+        'tutorial.capture.text':
+            'Steht ein Gegner schräg vor dir und dahinter ist frei, springst du über ihn. Das rote Feld zeigt den Schlag.',
+        'tutorial.capture.success': 'Geschlagen! Der schwarze Stein ist vom Brett.',
+        'tutorial.mustCapture.title': 'Schlagzwang',
+        'tutorial.mustCapture.text': 'Kannst du schlagen, musst du schlagen. Versuch mal, den rechten Stein zu ziehen.',
+        'tutorial.mustCapture.success': 'Genau: Wer schlagen kann, muss schlagen.',
+        'tutorial.multiJump.title': 'Mehrfachsprung',
+        'tutorial.multiJump.text':
+            'Kann derselbe Stein nach einem Schlag noch einmal schlagen, muss er weiterspringen. Schlage beide Steine.',
+        'tutorial.multiJump.success': 'Doppelt geschlagen!',
+        'tutorial.king.title': 'Dame',
+        'tutorial.king.text': 'Erreicht ein Stein die gegnerische Grundlinie, wird er zur Dame und bekommt eine Krone.',
+        'tutorial.king.success': 'Dein Stein ist jetzt eine Dame!',
+        'tutorial.kingCapture.title': 'Die Dame schlägt',
+        'tutorial.kingCapture.text':
+            'Die Dame zieht und schlägt beliebig weit in alle Richtungen, auch aus der Ferne. Schlage den Stein.',
+        'tutorial.kingCapture.success':
+            'Geschafft! Jetzt kennst du alle Regeln der klassischen Variante! Viel Spaß beim Spielen!',
+        'tutorial.backward.title': 'Rückwärts schlagen',
+        'tutorial.backward.text':
+            'International ist das Brett 10×10 groß. Steine ziehen weiter nur nach vorne, dürfen aber auch rückwärts schlagen. Schlage den Stein hinter dir.',
+        'tutorial.backward.success': 'Richtig! Schlagen geht in alle vier Richtungen.',
+        'tutorial.majority.title': 'Mehrheitsschlag',
+        'tutorial.majority.text':
+            'Hast du mehrere Schläge zur Wahl, musst du den nehmen, der die meisten Steine schlägt. Geschlagene Steine bleiben bis zum Ende des Zugs liegen.',
+        'tutorial.majority.success': 'Genau: Es zählt immer der Schlag mit den meisten Steinen.',
+        'tutorial.promotionAtEnd.title': 'Dame erst am Ende',
+        'tutorial.promotionAtEnd.text':
+            'Ein Stein wird nur zur Dame, wenn sein Zug auf der Grundlinie endet. Kann er dort weiterschlagen, muss er weiter. Schlage beide Steine.',
+        'tutorial.promotionAtEnd.success':
+            'Geschafft! Keine Dame, weil der Zug nicht auf der Grundlinie endete. Jetzt kennst du auch International!',
+
+        // Hilfe-Fenster (die Texte selbst stehen in index.html)
+        'help.startTutorial': 'Tutorial starten',
+        'common.close': 'Schließen',
+
         // Namen der Varianten (z.B. im Wartebildschirm)
         'variant.klassisch': 'Klassisch',
         'variant.international': 'International',
@@ -317,6 +366,51 @@ export const TRANSLATIONS = {
         'tutorial.skip': 'Skip',
         'tutorial.retry': 'Try again',
         'tutorial.international': 'Learn International',
+
+        'tutorial.heading': '{name} ({number}/{total}): {lesson}',
+        'tutorial.name': 'Tutorial',
+        'tutorial.nameInternational': 'Tutorial International',
+        'tutorial.letsGo': "Let's go!",
+        'tutorial.continueJump': 'Keep going! The same piece must capture again.',
+        'tutorial.notThisCapture': 'This piece may not capture: Another capture takes more pieces.',
+        'tutorial.notThisPiece': 'This piece may not move right now: Another piece can capture.',
+        'tutorial.move.title': 'Moving',
+        'tutorial.move.text': 'Pieces move one square diagonally forward. Tap a white piece and then a green square.',
+        'tutorial.move.success': 'Correct! That is how you move a piece.',
+        'tutorial.capture.title': 'Capturing',
+        'tutorial.capture.text':
+            'If an opponent is diagonally in front of you and the square behind it is free, you jump over it. The red square shows the capture.',
+        'tutorial.capture.success': 'Captured! The black piece is off the board.',
+        'tutorial.mustCapture.title': 'Mandatory capture',
+        'tutorial.mustCapture.text': 'If you can capture, you must capture. Try moving the piece on the right.',
+        'tutorial.mustCapture.success': 'Exactly: If you can capture, you must.',
+        'tutorial.multiJump.title': 'Multiple jumps',
+        'tutorial.multiJump.text':
+            'If the same piece can capture again after a capture, it must keep jumping. Capture both pieces.',
+        'tutorial.multiJump.success': 'Double capture!',
+        'tutorial.king.title': 'King',
+        'tutorial.king.text': "A piece that reaches the opponent's back row becomes a king and gets a crown.",
+        'tutorial.king.success': 'Your piece is now a king!',
+        'tutorial.kingCapture.title': 'The king captures',
+        'tutorial.kingCapture.text':
+            'The king moves and captures any distance in all directions, even from afar. Capture the piece.',
+        'tutorial.kingCapture.success': 'Done! Now you know all the rules of the classic variant! Have fun playing!',
+        'tutorial.backward.title': 'Capturing backwards',
+        'tutorial.backward.text':
+            'In International the board has 10×10 squares. Pieces still only move forward, but may also capture backwards. Capture the piece behind you.',
+        'tutorial.backward.success': 'Correct! Capturing works in all four directions.',
+        'tutorial.majority.title': 'Majority capture',
+        'tutorial.majority.text':
+            'If you can choose between several captures, you must take the one that captures the most pieces. Captured pieces stay on the board until the move ends.',
+        'tutorial.majority.success': 'Exactly: The capture with the most pieces always counts.',
+        'tutorial.promotionAtEnd.title': 'King only at the end',
+        'tutorial.promotionAtEnd.text':
+            'A piece only becomes a king if its move ends on the back row. If it can capture on from there, it has to. Capture both pieces.',
+        'tutorial.promotionAtEnd.success':
+            'Done! No king, because the move did not end on the back row. Now you know International as well!',
+
+        'help.startTutorial': 'Start tutorial',
+        'common.close': 'Close',
 
         'variant.klassisch': 'Classic',
         'variant.international': 'International',

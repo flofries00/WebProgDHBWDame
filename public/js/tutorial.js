@@ -3,54 +3,42 @@
 import { getLegalMoves, getPieceMoves, applyMove } from './rules.js';
 import { createPieceElement, toSquareName } from './game.js';
 import { playSound } from './sound.js';
+import { t } from './i18n.js';
 
 const STORAGE_KEY = 'tutorialSeen';
 
 // Die Lektionen. Das Brett steht als Text da: w/b = weißer/schwarzer Stein, W = weiße Dame, . = leer.
 // Die Aufstellungen sind so gewählt, dass jeder erlaubte Zug das Ziel der Lektion erfüllt
 // Zuerst die klassischen Lektionen (8x8), danach optional die Lektionen für International (10x10)
+// Titel, Aufgabe und Erfolgsmeldung jeder Lektion stehen in translations.js (z.B. tutorial.move.title)
 const LESSONS = [
     {
-        title: 'Ziehen',
-        text: 'Steine ziehen ein Feld schräg nach vorne. Tippe einen weißen Stein an und dann ein grünes Feld.',
-        success: 'Richtig! So ziehst du einen Stein.',
+        id: 'move',
         layout: ['........', '........', '........', '........', '........', 'w.w.w.w.', '........', '........'],
     },
     {
-        title: 'Schlagen',
-        text: 'Steht ein Gegner schräg vor dir und dahinter ist frei, springst du über ihn. Das rote Feld zeigt den Schlag.',
-        success: 'Geschlagen! Der schwarze Stein ist vom Brett.',
+        id: 'capture',
         layout: ['........', '........', '........', '........', '...b....', '..w.....', '........', '........'],
     },
     {
-        title: 'Schlagzwang',
-        text: 'Kannst du schlagen, musst du schlagen. Versuch mal, den rechten Stein zu ziehen.',
-        success: 'Genau: Wer schlagen kann, muss schlagen.',
+        id: 'mustCapture',
         layout: ['........', '........', '........', '........', '...b....', '..w...w.', '........', '........'],
     },
     {
-        title: 'Mehrfachsprung',
-        text: 'Kann derselbe Stein nach einem Schlag noch einmal schlagen, muss er weiterspringen. Schlage beide Steine.',
-        success: 'Doppelt geschlagen!',
+        id: 'multiJump',
         layout: ['........', '........', '........', '....b...', '........', '..b.....', '.w......', '........'],
     },
     {
-        title: 'Dame',
-        text: 'Erreicht ein Stein die gegnerische Grundlinie, wird er zur Dame und bekommt eine Krone.',
-        success: 'Dein Stein ist jetzt eine Dame!',
+        id: 'king',
         layout: ['........', '..w.....', '........', '........', '........', '........', '........', '........'],
     },
     {
-        title: 'Die Dame schlägt',
-        text: 'Die Dame zieht und schlägt beliebig weit in alle Richtungen, auch aus der Ferne. Schlage den Stein.',
-        success: 'Geschafft! Jetzt kennst du alle Regeln der klassischen Variante! Viel Spaß beim Spielen!',
+        id: 'kingCapture',
         layout: ['........', '........', '........', '....b...', '........', '........', '.W......', '........'],
     },
     {
         variant: 'international',
-        title: 'Rückwärts schlagen',
-        text: 'International ist das Brett 10×10 groß. Steine ziehen weiter nur nach vorne, dürfen aber auch rückwärts schlagen. Schlage den Stein hinter dir.',
-        success: 'Richtig! Schlagen geht in alle vier Richtungen.',
+        id: 'backward',
         layout: [
             '..........',
             '..........',
@@ -66,9 +54,7 @@ const LESSONS = [
     },
     {
         variant: 'international',
-        title: 'Mehrheitsschlag',
-        text: 'Hast du mehrere Schläge zur Wahl, musst du den nehmen, der die meisten Steine schlägt. Geschlagene Steine bleiben bis zum Ende des Zugs liegen.',
-        success: 'Genau: Es zählt immer der Schlag mit den meisten Steinen.',
+        id: 'majority',
         layout: [
             '..........',
             '..........',
@@ -84,10 +70,7 @@ const LESSONS = [
     },
     {
         variant: 'international',
-        title: 'Dame erst am Ende',
-        text: 'Ein Stein wird nur zur Dame, wenn sein Zug auf der Grundlinie endet. Kann er dort weiterschlagen, muss er weiter. Schlage beide Steine.',
-        success:
-            'Geschafft! Keine Dame, weil der Zug nicht auf der Grundlinie endete. Jetzt kennst du auch International!',
+        id: 'promotionAtEnd',
         layout: [
             '..........',
             '....b.b...',
@@ -174,11 +157,11 @@ function renderBoard() {
                 element.classList.toggle('selected', isSelected);
                 element.classList.toggle('locked', piece.color !== 'white' || solved);
                 cell.append(element);
-                const colorName = piece.color === 'white' ? 'weiß' : 'schwarz';
-                label.push(piece.king ? `${colorName}e Dame` : `${colorName}er Stein`);
-                if (isSelected) label.push('ausgewählt');
+                // Dieselben Texte wie auf dem echten Brett (game.js), z.B. 'board.whitePiece'
+                label.push(t(`board.${piece.color}${piece.king ? 'King' : 'Piece'}`));
+                if (isSelected) label.push(t('board.selected'));
             }
-            if (target) label.push(target.captured ? 'hierhin schlagen' : 'hierhin ziehen');
+            if (target) label.push(t(target.captured ? 'board.captureHere' : 'board.moveHere'));
             cell.setAttribute('aria-label', label.join(', '));
 
             cell.disabled = solved || !(target || piece?.color === 'white');
@@ -192,11 +175,11 @@ function renderBoard() {
 }
 
 /**
- * Zeigt den Hinweis unter dem Brett (wird vorgelesen)
+ * Zeigt den Hinweis unter dem Brett (wird vorgelesen). Ohne Schlüssel wird er geleert
  */
-function setFeedback(text, isSuccess = false) {
+function setFeedback(key = null, isSuccess = false) {
     const feedback = document.getElementById('tutorialFeedback');
-    feedback.textContent = text;
+    feedback.textContent = key ? (isSuccess ? '✓ ' : '') + t(key) : '';
     feedback.classList.toggle('success', isSuccess);
 }
 
@@ -213,15 +196,19 @@ function startLesson(index) {
 
     // Nummer innerhalb der Variante, z.B. "Tutorial (2/6)" oder "Tutorial International (1/3)"
     const sameVariant = LESSONS.filter((other) => variantOf(other) === variantOf(lesson));
-    const name = variantOf(lesson) === 'klassisch' ? 'Tutorial' : 'Tutorial International';
-    document.getElementById('tutorialTitle').textContent =
-        `${name} (${sameVariant.indexOf(lesson) + 1}/${sameVariant.length}): ${lesson.title}`;
-    document.getElementById('tutorialText').textContent = lesson.text;
-    setFeedback('');
+    const name = variantOf(lesson) === 'klassisch' ? 'tutorial.name' : 'tutorial.nameInternational';
+    document.getElementById('tutorialTitle').textContent = t('tutorial.heading', {
+        name: { key: name },
+        number: sameVariant.indexOf(lesson) + 1,
+        total: sameVariant.length,
+        lesson: { key: `tutorial.${lesson.id}.title` },
+    });
+    document.getElementById('tutorialText').textContent = t(`tutorial.${lesson.id}.text`);
+    setFeedback();
 
     const nextBtn = document.getElementById('tutorialNextBtn');
     nextBtn.disabled = true;
-    nextBtn.textContent = isLastOfVariant(index) ? 'Los gehts!' : 'Weiter';
+    nextBtn.textContent = isLastOfVariant(index) ? t('tutorial.letsGo') : t('common.next');
     document.getElementById('tutorialInternationalBtn').hidden = true;
     renderBoard();
 }
@@ -239,7 +226,7 @@ function makeMove(move) {
         // Derselbe Stein muss weiterschlagen
         jumpingFrom = { row: move.toRow, col: move.toCol };
         selected = jumpingFrom;
-        setFeedback('Weiter! Derselbe Stein muss noch einmal schlagen.');
+        setFeedback('tutorial.continueJump');
         renderBoard();
         return;
     }
@@ -247,7 +234,7 @@ function makeMove(move) {
     selected = null;
     jumpingFrom = null;
     solved = true;
-    setFeedback('✓ ' + LESSONS[lessonIndex].success, true);
+    setFeedback(`tutorial.${LESSONS[lessonIndex].id}.success`, true);
     renderBoard();
 
     const nextBtn = document.getElementById('tutorialNextBtn');
@@ -280,9 +267,9 @@ export function handleTutorialClick(event) {
             (move) => move.captured
         );
         selected = canMove ? { row, col } : null;
-        if (canMove) setFeedback('');
-        else if (canCapture) setFeedback('Dieser Stein darf nicht schlagen: Ein anderer Schlag nimmt mehr Steine.');
-        else setFeedback('Dieser Stein darf gerade nicht ziehen: Ein anderer Stein kann schlagen.');
+        if (canMove) setFeedback();
+        else if (canCapture) setFeedback('tutorial.notThisCapture');
+        else setFeedback('tutorial.notThisPiece');
         renderBoard();
     }
 
