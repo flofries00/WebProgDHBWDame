@@ -11,6 +11,7 @@
  * [6] Nachrichten über 10 kB werden abgelehnt, ein Fehler bei einer Nachricht bringt den Server nicht zum Absturz
  * [7] Chat-Spam: Höchstens 5 Nachrichten in 3 Sekunden pro Spieler, weitere werden verworfen
  * [8] Bedenkzeit: Der Server zählt die Zeit beider Spieler, meldet das Ende (timeUp) und nimmt danach keine Züge mehr an
+ * [9] Private Räume: Codes erzeugt der Server zufällig, Beitreten nur mit gültigem Code, Raten wird gebremst
  */
 
 import express from 'express';
@@ -20,6 +21,7 @@ import { Server } from 'socket.io';
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { randomInt } from 'node:crypto';
 // Dieselben Spielregeln wie im Browser: So kann der Server jeden Zug selbst prüfen (Schutz gegen Cheating)
 import {
     VARIANTS,
@@ -55,6 +57,13 @@ const MAX_CHAT_LENGTH = 200;
 const CHAT_LIMIT = 5; // Cheating-Schutz [7]: höchstens so viele Chat-Nachrichten ...
 const CHAT_WINDOW_MS = 3000; // ... in diesem Zeitraum (Millisekunden)
 
+// Private Räume: Raumcode -> wartender Ersteller. Die Codes haben keine Zeichen, die man leicht verwechselt (0/O, 1/I/L)
+const rooms = new Map();
+const ROOM_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const ROOM_CODE_LENGTH = 5;
+const JOIN_LIMIT = 5; // Cheating-Schutz [9]: höchstens so viele Beitrittsversuche...
+const JOIN_WINDOW_MS = 3000; // ... in diesem Zeitraum (ms), damit niemand Codes durchprobieren kann
+
 // Cheating-Schutz [8]: Die Bedenkzeit zählt der Server. SECOND_MS ist die Länge einer Sekunde in Millisekunden,
 // nur die Tests verstellen sie (schnellere Uhr), sonst gilt 1000
 const SECOND_MS = Number(process.env.SECOND_MS) > 0 ? Number(process.env.SECOND_MS) : 1000;
@@ -66,6 +75,48 @@ const GRACE_MS = 1 * SECOND_MS; // Spielraum für die Übertragung: Ein Zug, der
  */
 function isValidCoord(value, size) {
     return Number.isInteger(value) && value >= 0 && value < size;
+}
+
+/**
+ * Cheating-Schutz [1]: Ist der Spielername erlaubt? (2 bis 16 Buchstaben oder Ziffern, wie im Browser)
+ */
+function isValidName(name) {
+    return typeof name === 'string' && /^[a-zA-Z0-9äöüÄÖÜß]{2,16}$/.test(name);
+}
+
+/**
+ * Cheating-Schutz [1]: Sind Name, Bedenkzeit und Variante erlaubt? (für die Suche und für private Räume)
+ */
+function isValidSetup(name, timeSetting, variant) {
+    return (
+        isValidName(name) &&
+        TIME_SETTINGS.includes(timeSetting) &&
+        typeof variant === 'string' &&
+        Object.hasOwn(VARIANTS, variant)
+    );
+}
+
+/**
+ * Merkt sich die Zeitpunkte der letzten Anfragen eines Spielers (z.B. Chat-Nachrichten) und meldet true, wenn es
+ * im Zeitraum schon zu viele waren. Die Anfrage zählt dann nicht mit
+ */
+function isTooFrequent(socket, name, limit, windowMs) {
+    const now = Date.now();
+    socket[name] = (socket[name] ?? []).filter((time) => now - time < windowMs);
+    if (socket[name].length >= limit) return true;
+    socket[name].push(now);
+    return false;
+}
+
+/**
+ * Erzeugt einen neuen, noch freien Raumcode wie "K7QXM" (randomInt ist ein sicherer, nicht erratbarer Zufall)
+ */
+function createRoomCode() {
+    let code;
+    do {
+        code = Array.from({ length: ROOM_CODE_LENGTH }, () => ROOM_ALPHABET[randomInt(ROOM_ALPHABET.length)]).join('');
+    } while (rooms.has(code));
+    return code;
 }
 
 /**
@@ -87,6 +138,14 @@ function onSafe(socket, eventName, handler) {
  */
 function leaveQueue(socket) {
     if (waiting.get(socket.queueKey) === socket) waiting.delete(socket.queueKey);
+}
+
+/**
+ * Löscht den privaten Raum eines Spielers (falls er einen erstellt hat und noch wartet)
+ */
+function leaveRoom(socket) {
+    if (rooms.get(socket.roomCode) === socket) rooms.delete(socket.roomCode);
+    socket.roomCode = null;
 }
 
 /**
@@ -194,11 +253,10 @@ io.on('connection', (socket) => {
 
     onSafe(socket, 'findMatch', (name, timeSetting = '5', variant = 'klassisch') => {
         // Cheating-Schutz [1]: Namen, Bedenkzeit und Variante auch serverseitig prüfen (Client-Prüfung lässt sich umgehen)
-        if (typeof name !== 'string' || !/^[a-zA-Z0-9äöüÄÖÜß]{2,16}$/.test(name)) return;
-        if (!TIME_SETTINGS.includes(timeSetting)) return;
-        if (typeof variant !== 'string' || !Object.hasOwn(VARIANTS, variant)) return;
+        if (!isValidSetup(name, timeSetting, variant)) return;
 
         leaveQueue(socket); // Falls der Spieler noch mit einer anderen Einstellung wartet
+        leaveRoom(socket); // ... oder in einem eigenen Raum
         socket.name = name; // Namen speichern, wichtig für Revanche
         socket.timeSetting = timeSetting; // Bedenkzeit merken, gilt auch für die Revanche
         socket.variant = variant; // Variante ebenso
@@ -217,9 +275,56 @@ io.on('connection', (socket) => {
         broadcastQueueStatus();
     });
 
-    // Spieler bricht die Suche ab
+    // Spieler bricht die Suche ab (oder das Warten im eigenen Raum)
     onSafe(socket, 'cancelSearch', () => {
         leaveQueue(socket);
+        leaveRoom(socket);
+        broadcastQueueStatus();
+    });
+
+    // Privates Spiel: Raum mit eigener Variante und Bedenkzeit erstellen, der Server schickt den Code zurück
+    onSafe(socket, 'createRoom', (name, timeSetting = '5', variant = 'klassisch') => {
+        if (!isValidSetup(name, timeSetting, variant)) return; // Cheating-Schutz [1] wie bei der Suche
+
+        leaveQueue(socket);
+        leaveRoom(socket); // Nur ein Raum pro Spieler
+        socket.name = name;
+        socket.timeSetting = timeSetting;
+        socket.variant = variant;
+        socket.wantsReplay = false;
+        socket.roomCode = createRoomCode();
+        rooms.set(socket.roomCode, socket);
+        socket.emit('roomCreated', { code: socket.roomCode });
+        broadcastQueueStatus(); // Falls der Spieler vorher in der Warteschlange stand
+    });
+
+    // Privates Spiel beitreten: Die Partie startet mit Variante und Bedenkzeit des Erstellers
+    onSafe(socket, 'joinRoom', (name, code) => {
+        // Cheating-Schutz [9]: Name und Code prüfen, das Durchprobieren von Codes bremsen
+        if (!isValidName(name) || typeof code !== 'string') return;
+        if (isTooFrequent(socket, 'joinTimes', JOIN_LIMIT, JOIN_WINDOW_MS)) {
+            socket.emit('roomError', { reason: 'tooFast' });
+            return;
+        }
+
+        const host = rooms.get(code.trim().toUpperCase()); // Kleinbuchstaben und Leerzeichen sind beim Abtippen erlaubt
+        if (!host) {
+            socket.emit('roomError', { reason: 'notFound' });
+            return;
+        }
+        if (host === socket) {
+            socket.emit('roomError', { reason: 'ownRoom' });
+            return;
+        }
+
+        leaveRoom(host); // Der Raum ist jetzt voll und wird gelöscht
+        leaveQueue(socket);
+        leaveRoom(socket);
+        socket.name = name;
+        socket.timeSetting = host.timeSetting; // Gilt auch für die Revanche
+        socket.variant = host.variant;
+        socket.wantsReplay = false;
+        startMatch(host, socket); // Der Ersteller zuerst: Seine Einstellungen gelten
         broadcastQueueStatus();
     });
 
@@ -302,11 +407,8 @@ io.on('connection', (socket) => {
         const cleanMsg = msg.trim().slice(0, MAX_CHAT_LENGTH);
         if (cleanMsg.length === 0) return; // Leere Nachrichten verwerfen
 
-        // Cheating-Schutz [7]: Zeitpunkte der letzten Nachrichten merken, bei zu vielen in kurzer Zeit verwerfen
-        const now = Date.now();
-        socket.chatTimes = (socket.chatTimes ?? []).filter((time) => now - time < CHAT_WINDOW_MS);
-        if (socket.chatTimes.length >= CHAT_LIMIT) return;
-        socket.chatTimes.push(now);
+        // Cheating-Schutz [7]: bei zu vielen Nachrichten in kurzer Zeit verwerfen
+        if (isTooFrequent(socket, 'chatTimes', CHAT_LIMIT, CHAT_WINDOW_MS)) return;
 
         // Leitet Nachricht nur an den verknüpften Gegner weiter
         socket.to(socket.oppId).emit('chatMessage', cleanMsg);
@@ -338,6 +440,7 @@ io.on('connection', (socket) => {
     // Wenn ein Spieler den Tab schließt oder die Verbindung abbricht
     onSafe(socket, 'disconnect', () => {
         leaveQueue(socket);
+        leaveRoom(socket);
         endMatch(socket);
         broadcastQueueStatus();
     });
