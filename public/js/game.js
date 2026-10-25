@@ -3,6 +3,7 @@ import { socket } from './socket.js';
 import { showScreen, leaveToLobby, showConfirm } from './ui.js';
 import { fireConfetti, fireRain } from './effects.js';
 import { resetChat } from './chat.js';
+import { startHistory, noteMove, recordTurn, showReview } from './review.js';
 import { playSound } from './sound.js';
 import {
     createInitialBoard,
@@ -32,12 +33,7 @@ let timerInterval = null;
 let isMultiJumping = false; // Läuft ein Mehrfachsprung? Dann darf nur der springende Stein weiterziehen
 let computerMoveTimeout = null; // Ausstehender Computerzug (damit er abgebrochen werden kann)
 let drag = null; // Laufendes Ziehen eines Steins: { piece, pointerId, startX, startY, bounds, moved }
-let turnHistory = []; // Brett nach jedem vollständigen Zug zum Nachspielen
-let turnStart = null; // Startfeld des laufenden Zugs
-let turnEnd = null; // Zielfeld des letzten Sprungs im laufenden Zug
-let reviewIndex = 0; // Welcher Eintrag aus turnHistory gerade auf dem Endbrett zu sehen ist
 let titleBlink = null; // Lässt den Punkt im Tab-Titel blinken, solange man im Hintergrund am Zug ist
-let reviewBoard = null; // Brett im Endbildschirm, auf dem nachgespielt wird
 
 /**
  * Liefert ein Feld des ECHTEN Spielbretts (nicht der Kopie im Endbildschirm)
@@ -132,7 +128,7 @@ function generateBoard() {
     const size = board.length;
 
     // Nachspielen beginnt mit der Startaufstellung
-    turnHistory = [{ board, from: null, to: null, logCount: 0 }];
+    startHistory(board);
 
     const boardElement = document.getElementById('board');
     boardElement.innerHTML = ''; // Brett komplett leeren, bevor es neu gebaut wird
@@ -366,9 +362,8 @@ function handleBoardClick(event) {
     }
     turnCaptured ||= isCapture;
 
-    // Für das Nachspielen: Startfeld des Zug und aktuelles Zielfeld
-    if (!isMultiJumping) turnStart = { row: move.fromRow, col: move.fromCol };
-    turnEnd = { row: move.toRow, col: move.toCol };
+    // Für das Nachspielen: Startfeld des Zugs und aktuelles Zielfeld
+    noteMove(move, isMultiJumping);
 
     // 2. Zug in den Brett-Daten ausführen (rules.js liefert auch Beförderung und Mehrfachsprung)
     const result = applyMove(board, move, state.variant);
@@ -487,7 +482,7 @@ function handleBoardClick(event) {
     quietKingTurns = countQuietKingTurns(quietKingTurns, turnByKing, turnCaptured);
 
     // Brett nach dem vollständigen Zug für das Nachspielen merken
-    recordTurn();
+    recordTurn(board);
 
     // Spieler wechseln
     currentTurn = currentTurn === 'white' ? 'black' : 'white';
@@ -576,7 +571,7 @@ function checkWinCondition() {
  */
 export function endGame(winnerColor, reason = '') {
     // Endet das Spiel mitten in einem Zug (z.B. Zeit abgelaufen beim Mehrfachsprung), diesen Stand auch merken
-    recordTurn();
+    recordTurn(board);
 
     // Uhr anhalten
     clearInterval(timerInterval);
@@ -626,9 +621,8 @@ export function endGame(winnerColor, reason = '') {
         // Die Kopie ist nur ein Bild: inert nimmt ihre Felder aus der Tab-Reihenfolge und vor dem Screenreader
         clonedBoard.inert = true;
         endBoardCont.appendChild(clonedBoard);
-        // Auf dem Brett der Kopie wird die Partie nachgespielt, los gehts beim Endstand
-        reviewBoard = clonedBoard.querySelector('.board');
-        showReviewStep(turnHistory.length - 1);
+        // Auf dem Brett der Kopie wird die Partie nachgespielt (review.js)
+        showReview(clonedBoard.querySelector('.board'));
     }
 
     // Zum Endbildschirm wechseln
@@ -655,64 +649,6 @@ export function endGame(winnerColor, reason = '') {
     if (endLogList) {
         endLogList.scrollTop = endLogList.scrollHeight;
     }
-}
-
-/**
- * Merkt sich das Brett nach einem Zug für das Nachspielen (nur, wenn sich seit dem letzten Eintrag etwas geändert hat)
- */
-function recordTurn() {
-    if (turnHistory.at(-1).board === board) return;
-    const logCount = document.getElementById('logList').children.length;
-    turnHistory.push({ board, from: turnStart, to: turnEnd, logCount });
-}
-
-/**
- * Zeigt auf dem Endbrett den Stand nach Zug "index" (0 = Startaufstellung) und markiert den Zug im Spielverlauf
- */
-function showReviewStep(index) {
-    reviewIndex = index;
-    const { board: snapshot, from, to } = turnHistory[index];
-    const isAt = (square, row, col) => square?.row === row && square?.col === col;
-
-    // Steine laut gemerktem Brett setzen, Start- und Zielfeld des Zugs markieren
-    reviewBoard.querySelectorAll('.cell').forEach((cell) => {
-        const { row, col } = getPosition(cell);
-        const piece = snapshot[row][col];
-        cell.replaceChildren(...(piece ? [createPieceElement(piece)] : []));
-        cell.classList.toggle('review-from', isAt(from, row, col));
-        cell.classList.toggle('review-to', isAt(to, row, col));
-    });
-
-    // Überschrift: Startaufstellung, Zwischenstand oder Endstand
-    const last = turnHistory.length - 1;
-    const title = document.getElementById('reviewTitle');
-    if (index === last) setText(title, 'end.finalPosition');
-    else if (index === 0) setText(title, 'end.startPosition');
-    else setText(title, 'end.afterMove', { index, last });
-
-    // Einträge dieses Zugs im Spielverlauf hervorheben (ein Mehrfachsprung hat mehrere Einträge)
-    const firstEntry = index > 0 ? turnHistory[index - 1].logCount : 0;
-    const lastEntry = turnHistory[index].logCount;
-    [...document.getElementById('endLogList').children].forEach((li, i) => {
-        li.classList.toggle('review-current', i >= firstEntry && i < lastEntry);
-    });
-    // Nur die Liste scrollen: scrollIntoView würde auf schmalen Bildschirmen die ganze Seite mitscrollen
-    // und die Buttons unter dem Finger wegschieben. Der aktuelle Zug landet in der Mitte der Liste
-    const list = document.getElementById('endLogList');
-    const current = list.querySelector('.review-current');
-    if (current) {
-        const offset = current.getBoundingClientRect().top - list.getBoundingClientRect().top;
-        list.scrollTop += offset - list.clientHeight / 2 + current.offsetHeight / 2;
-    }
-}
-
-/**
- * Buttons unter dem Endbrett: 'start', 'prev', 'next' oder 'end'
- */
-export function moveReview(step) {
-    const last = turnHistory.length - 1;
-    const targets = { start: 0, prev: reviewIndex - 1, next: reviewIndex + 1, end: last };
-    showReviewStep(Math.min(Math.max(targets[step], 0), last));
 }
 
 /**

@@ -10,7 +10,8 @@ import {
     leaveToLobby,
     renderQueueStatus,
 } from './ui.js';
-import { abortGame, moveReview } from './game.js';
+import { abortGame } from './game.js';
+import { moveReview } from './review.js';
 import { toggleSound } from './sound.js';
 import { loadTheme, openThemeDialog, handleThemeInput, handleThemeDialogClose } from './theme.js';
 import { loadColorMode, toggleColorMode } from './colorMode.js';
