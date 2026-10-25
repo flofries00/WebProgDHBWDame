@@ -144,6 +144,7 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
 │       ├── pictures.js  Bilder für Variante und Bedenkzeit: Brett, Uhr, Partyhut (Setup und Raum-Vorschau)
 │       ├── effects.js   Konfetti und Regen am Spielende
 │       ├── chat.js      Chat der Online-Partie: senden, empfangen, anzeigen
+│       ├── rooms.js     Private Räume: Code und Link teilen, Vorschau vor dem Beitreten
 │       ├── i18n.js      Sprache (Deutsch/Englisch) wählen und merken, Texte übersetzen: t() und setText()
 │       ├── translations.js  Alle Texte der Oberfläche auf Deutsch und Englisch
 │       └── colors.js    Farbvorlagen und Kontrastprüfung nach WCAG ohne HTML (testbar wie rules.js)
@@ -179,6 +180,7 @@ flowchart TB
         Pictures["pictures.js<br/>Brett, Uhr, Partyhut"]
         Effects["effects.js<br/>Konfetti und Regen"]
         Chat["chat.js<br/>Chat der Online-Partie"]
+        Rooms["rooms.js<br/>Private Räume"]
         HTML --> Main
         Main --> UI
         Main --> Game
@@ -198,12 +200,15 @@ flowchart TB
         Game --> SocketC
         Main --> I18n
         Main --> Pictures
-        UI --> Pictures
         Pictures --> RulesC
         Game --> Effects
         Main --> Chat
         Game --> Chat
         Chat --> SocketC
+        Main --> Rooms
+        UI <--> Rooms
+        Rooms --> Pictures
+        Rooms --> SocketC
     end
 
     subgraph Server["Node.js-Server (server.js)"]

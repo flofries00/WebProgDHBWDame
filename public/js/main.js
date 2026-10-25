@@ -9,9 +9,6 @@ import {
     requestReplay,
     leaveToLobby,
     renderQueueStatus,
-    joinRoom,
-    copyRoomLink,
-    openRoomLink,
 } from './ui.js';
 import { abortGame, moveReview } from './game.js';
 import { toggleSound } from './sound.js';
@@ -20,6 +17,7 @@ import { loadColorMode, toggleColorMode } from './colorMode.js';
 import { loadLanguage, toggleLanguage } from './i18n.js';
 import { renderSetupPictures } from './pictures.js';
 import { handleChatSubmit } from './chat.js';
+import { joinRoom, copyRoomLink, openRoomLink } from './rooms.js';
 import {
     openTutorial,
     openTutorialOnFirstVisit,
