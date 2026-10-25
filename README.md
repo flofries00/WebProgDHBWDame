@@ -37,7 +37,7 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
 - Der Server führt für jede Partie ein eigenes Brett und **prüft jeden Zug** mit denselben Regeln wie der Browser
   (`rules.js`). Unerlaubte oder gefälschte Züge werden verworfen.
 - Namen, Bedenkzeit und Chatnachrichten werden auch serverseitig geprüft, Nachrichten werden nur als Text angezeigt.
-- Alle Maßnahmen gegen Cheating stehen als Liste [1]-[7] oben in `server.js` und sind im Code mit "Cheating-Schutz [Nr.]" markiert.
+- Alle Maßnahmen gegen Cheating stehen als Liste [1]-[8] oben in `server.js` und sind im Code mit "Cheating-Schutz [Nr.]" markiert.
 
 ## Spielregeln
 
@@ -108,12 +108,12 @@ Wie „Klassisch“, mit diesen Unterschieden (Regeln des Weltverbands FMJD):
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Responsiveness**        | Von 320px (Handy) bis zum großen Monitor, das Brett passt sich der Fensterhöhe an                                                                                                     |
 | **Internationalisierung** | Deutsch und Englisch, umschaltbar in der Kopfzeile. Alle Texte in `public/js/translations.js`, die Logik in `public/js/i18n.js`, ein Test prüft, dass beide Sprachen vollständig sind |
-| **Cheatingprävention**    | Der Server prüft jeden Zug. Übersicht [1]–[7] oben in `server.js`, im Code mit „Cheating-Schutz [Nr.]“ markiert                                                                       |
+| **Cheatingprävention**    | Der Server prüft jeden Zug. Übersicht [1]–[8] oben in `server.js`, im Code mit „Cheating-Schutz [Nr.]“ markiert                                                                       |
 
 ## Qualitätssicherung
 
 - **Automatische Tests** mit `node:test` (`npm test`): Spielregeln, Farblogik und Kontrast, Übersetzungen sowie Integrationstests gegen
-  den echten Server (Matchmaking, Zugprüfung, Chat, Nachrichten über 10kB, Schutz gegen Chat-Spam, Revanche, Warteschlangen, HTTPS, Serverstart).
+  den echten Server (Matchmaking, Zugprüfung, Chat, Nachrichten über 10kB, Schutz gegen Chat-Spam, Revanche, Warteschlangen, Bedenkzeit, HTTPS, Serverstart).
 - **ESLint** (`npm run lint`) und **Prettier** (`npm run format:check`) für einheitlichen, fehlerarmen Code.
 
 ## Dateistruktur
@@ -145,6 +145,7 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
     ├── colors.test.js   Unit-Tests der Farblogik (Kontrast, Warnungen, Speicherstand)
     ├── server.test.js   Integrationstests gegen den echten Server
     ├── https.test.js    Integrationstests für HTTPS (HTTP- und HTTPS-Spieler in einer Partie)
+    ├── clock.test.js    Bedenkzeit auf dem Server mit schneller Test-Uhr (Ablauf, Zeitabzug, keine Züge danach)
     └── translations.test.js  Beide Sprachen vollständig: gleiche Schlüssel, gleiche Platzhalter, Texte für alle Vorlagen
 ```
 
@@ -201,9 +202,9 @@ flowchart TB
 
 - **Gemeinsame Spielregeln:** `rules.js` arbeitet nur mit Daten (8×8- bzw. 10×10-Array) und kennt kein HTML. Dadurch nutzen Browser und Server dieselbe Datei. Der Browser zeigt erlaubte Züge sofort an, der Server ist der Schiedsrichter und leitet nur erlaubte Züge weiter.
 - **Server führt pro Partie ein eigenes Brett** und weiß, wer am Zug ist. Ein manipulierter Browser kann weder für den Gegner ziehen noch Regeln brechen.
-- **Cheating-Schutz** ist oben in `server.js` als Liste [1]-[7] zusammengefasst und im Code an jeder Stelle mit "Cheating-Schutz [Nr.]" markiert.
+- **Cheating-Schutz** ist oben in `server.js` als Liste [1]-[8] zusammengefasst und im Code an jeder Stelle mit "Cheating-Schutz [Nr.]" markiert.
 - **Computergegner läuft komplett im Browser**, dafür ist keine Serververbindung nötig.
-- **Bewusste Grenze:** Die Schachuhr läuft nur im Browser. Eine Server-Uhr wäre der nächste Schritt gegen Manipulation der Bedenkzeit.
+- **Bedenkzeit auf dem Server:** Der Server zählt die Zeit beider Spieler selbst (Cheating-Schutz [8]). Die Uhr im Browser ist nur Anzeige und wird nach jedem Zug auf den Stand des Servers gesetzt. Bei 0:00 entscheidet der Server.
 - **Kein Build-Schritt:** ES-Module laufen direkt im Browser, CSS-Layer ersetzen `!important`.
 
 ## Kommunikationsablauf (Online-Partie)
@@ -257,8 +258,10 @@ sequenceDiagram
 | `cancelSearch`        | Browser → Server | –                                                          | –                                                                                                                                                                         |
 | `matchFound`          | Server → Browser | `oppName`, `isWhite`, `timeMinutes`                        | –                                                                                                                                                                         |
 | `queueStatus`         | Server → Browser | `waiting` (pro Variante und Bedenkzeit 0 oder 1), `online` | – (wird bei jeder Änderung an alle geschickt)                                                                                                                             |
-| `makeMove`            | Browser → Server | `fromR`, `fromC`, `toR`, `toC`                             | ganze Zahlen auf dem Brett (0-7 bzw. 0-9), Spieler ist am Zug, Zug laut `rules.js` erlaubt                                                                                |
+| `makeMove`            | Browser → Server | `fromR`, `fromC`, `toR`, `toC`                             | ganze Zahlen auf dem Brett (0-7 bzw. 0-9), Spieler ist am Zug, Zug laut `rules.js` erlaubt, Bedenkzeit nicht abgelaufen                                                   |
 | `receiveMove`         | Server → Browser | `fromR`, `fromC`, `toR`, `toC`                             | nur geprüfte Züge werden weitergeleitet                                                                                                                                   |
+| `clockSync`           | Server → Browser | Restzeit `white`, `black` in Millisekunden                 | – (nach jedem fertigen Zug an beide, die Anzeige übernimmt sie)                                                                                                           |
+| `timeUp`              | Server → Browser | `winner`                                                   | – (der Server zählt die Bedenkzeit und meldet beiden das Ende)                                                                                                            |
 | `chatMessage`         | beide Richtungen | Text                                                       | muss Text sein, wird gekürzt (max. 200 Zeichen), leere werden verworfen                                                                                                   |
 | `requestReplay`       | Browser → Server | –                                                          | –                                                                                                                                                                         |
 | `opponentWantsReplay` | Server → Browser | –                                                          | –                                                                                                                                                                         |

@@ -1126,7 +1126,6 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * Server vor der Spielzeit am 29.10. einschalten (git pull, sudo systemctl enable --now dame)
  *
  * G) Optional, nur wenn Zeit bleibt
- * Bedenkzeit auf dem Server mitzählen (Cheating-Schutz [7])
  * Remis-Regel (z.B. 25 Züge nur mit Damen ohne Schlag)
  * Private Räume
  * Zug rückgängig machen Option in vs. Computer

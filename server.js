@@ -10,7 +10,7 @@
  * [5] Chat: nur Text, höchstens 200 Zeichen, nur an den eigenen Gegner (der Browser zeigt ihn nie als HTML an)
  * [6] Nachrichten über 10 kB werden abgelehnt, ein Fehler bei einer Nachricht bringt den Server nicht zum Absturz
  * [7] Chat-Spam: Höchstens 5 Nachrichten in 3 Sekunden pro Spieler, weitere werden verworfen
- * Bewusste Grenze: Die Bedenkzeit läuft nur im Browser
+ * [8] Bedenkzeit: Der Server zählt die Zeit beider Spieler, meldet das Ende (timeUp) und nimmt danach keine Züge mehr an
  */
 
 import express from 'express';
