@@ -92,6 +92,62 @@
         }
     }
 
+    /* ---------- Spiel einrichten: privates Spiel mit Code ---------- */
+    .private-room {
+        margin: 1.5625rem 0 0;
+        padding: 0.75rem 1.25rem;
+        text-align: start;
+        border: 2px solid var(--color-border);
+        border-radius: var(--radius-medium);
+
+        & summary {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        & .private-room-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.625rem;
+            margin-block-start: 0.75rem;
+        }
+
+        & .input-hint {
+            margin: 0;
+        }
+
+        & button {
+            margin: 0;
+        }
+
+        /* Eingabefeld und "Beitreten" nebeneinander, auf schmalen Handys untereinander */
+        & .room-join {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        & input[type='text'] {
+            width: 7em;
+            margin: 0;
+            font-family: var(--font-mono);
+            letter-spacing: 0.15em;
+            text-transform: uppercase; /* Nur die Anzeige, der Server wandelt den Code selbst um */
+        }
+
+        & .error-text {
+            margin: 0;
+        }
+    }
+
+    /* Raumcode im Wartebildschirm: groß und gut abzulesen */
+    .room-code {
+        font-family: var(--font-mono);
+        font-size: 1.75rem;
+        letter-spacing: 0.2em;
+    }
+
     /* Hinweis: "1 wartet" neben einer Bedenkzeit (nur online, leer = unsichtbar) */
     .queue-badge {
         margin-inline-start: 0.5rem;

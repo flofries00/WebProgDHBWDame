@@ -173,6 +173,34 @@
                         ← Zurück
                     </button>
                     <button type="submit" id="setupStartBtn" data-i18n="setup.findOpponent">Gegner suchen</button>
+                    <!-- Privates Spiel (nur online, ui.js blendet den Bereich ein): aufklappbar, damit der Bildschirm nicht zu hoch wird -->
+                    <details id="privateRoom" class="private-room" hidden>
+                        <summary data-i18n="room.heading">Mit Freunden spielen</summary>
+                        <div class="private-room-body">
+                            <button type="button" id="createRoomBtn" class="secondary-btn" data-i18n="room.create">
+                                Privaten Raum erstellen
+                            </button>
+                            <span class="input-hint" data-i18n="room.createHint"
+                                >mit der oben gewählten Variante und Bedenkzeit</span
+                            >
+                            <label for="roomCodeInput" data-i18n="room.codeLabel">Code eines Raums:</label>
+                            <div class="room-join">
+                                <input
+                                    type="text"
+                                    id="roomCodeInput"
+                                    maxlength="5"
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                    placeholder="K7QXM"
+                                    aria-describedby="roomError"
+                                />
+                                <button type="button" id="joinRoomBtn" class="secondary-btn" data-i18n="room.join">
+                                    Beitreten
+                                </button>
+                            </div>
+                            <p id="roomError" class="error-text" role="alert"></p>
+                        </div>
+                    </details>
                 </form>
             </section>
 
@@ -199,6 +227,18 @@
                     <div class="wait-piece">
                         <span class="wait-face light"></span><span class="wait-face dark"></span>
                     </div>
+                </div>
+                <!-- Nur im privaten Raum: Code und Link zum Weitergeben -->
+                <div id="roomInfo" class="room-info" hidden>
+                    <p>
+                        <span data-i18n="room.yourCode">Dein Raumcode:</span>
+                        <strong id="roomCode" class="room-code"></strong>
+                    </p>
+                    <p class="input-hint" data-i18n="room.share">Schick deinem Gegner den Code oder den Link.</p>
+                    <button type="button" id="copyRoomLinkBtn" class="secondary-btn" data-i18n="room.copyLink">
+                        Link kopieren
+                    </button>
+                    <p id="copyStatus" class="input-hint" role="status"></p>
                 </div>
                 <button id="cancelWaitBtn" data-i18n="wait.cancel">Warten abbrechen</button>
             </section>

@@ -46,6 +46,16 @@ export const TRANSLATIONS = {
         'setup.party': 'Partymodus',
         'setup.partyHint': '1 bis 10 Minuten per Zufall, für beide gleich',
 
+        // Private Räume
+        'room.heading': 'Mit Freunden spielen',
+        'room.create': 'Privaten Raum erstellen',
+        'room.createHint': 'mit der oben gewählten Variante und Bedenkzeit',
+        'room.codeLabel': 'Code eines Raums:',
+        'room.join': 'Beitreten',
+        'room.yourCode': 'Dein Raumcode:',
+        'room.share': 'Schick deinem Gegner den Code oder den Link.',
+        'room.copyLink': 'Link kopieren',
+
         // Warten, Partymodus und Münzwurf
         'wait.hello': 'Hallo,',
         'wait.searching': 'Warte auf Gegner...',
@@ -291,6 +301,15 @@ export const TRANSLATIONS = {
         'setup.minutes10': '10 minutes',
         'setup.party': 'Party mode',
         'setup.partyHint': '1 to 10 minutes at random, the same for both',
+
+        'room.heading': 'Play with friends',
+        'room.create': 'Create private room',
+        'room.createHint': 'with the variant and time selected above',
+        'room.codeLabel': 'Room code:',
+        'room.join': 'Join',
+        'room.yourCode': 'Your room code:',
+        'room.share': 'Send your opponent the code or the link.',
+        'room.copyLink': 'Copy link',
 
         'wait.hello': 'Hello,',
         'wait.searching': 'Waiting for an opponent...',
