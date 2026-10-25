@@ -142,6 +142,7 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
 │       ├── colorMode.js    Dark-Mode: helles oder dunkles Design der Seite umschalten und merken
 │       ├── tutorial.js  Interaktives Tutorial: Lektionen auf einem Übungsbrett
 │       ├── pictures.js  Bilder für Variante und Bedenkzeit: Brett, Uhr, Partyhut (Setup und Raum-Vorschau)
+│       ├── effects.js   Konfetti und Regen am Spielende
 │       ├── i18n.js      Sprache (Deutsch/Englisch) wählen und merken, Texte übersetzen: t() und setText()
 │       ├── translations.js  Alle Texte der Oberfläche auf Deutsch und Englisch
 │       └── colors.js    Farbvorlagen und Kontrastprüfung nach WCAG ohne HTML (testbar wie rules.js)
@@ -175,6 +176,7 @@ flowchart TB
         SocketC["socket.js<br/>Serververbindung"]
         I18n["i18n.js + translations.js<br/>Deutsch und Englisch"]
         Pictures["pictures.js<br/>Brett, Uhr, Partyhut"]
+        Effects["effects.js<br/>Konfetti und Regen"]
         HTML --> Main
         Main --> UI
         Main --> Game
@@ -196,6 +198,7 @@ flowchart TB
         Main --> Pictures
         UI --> Pictures
         Pictures --> RulesC
+        Game --> Effects
     end
 
     subgraph Server["Node.js-Server (server.js)"]

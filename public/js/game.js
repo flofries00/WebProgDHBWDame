@@ -1,6 +1,7 @@
 import { state } from './state.js';
 import { socket } from './socket.js';
-import { showScreen, leaveToLobby, fireConfetti, fireRain, showConfirm } from './ui.js';
+import { showScreen, leaveToLobby, showConfirm } from './ui.js';
+import { fireConfetti, fireRain } from './effects.js';
 import { playSound } from './sound.js';
 import {
     createInitialBoard,
