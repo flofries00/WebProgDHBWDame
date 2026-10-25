@@ -736,21 +736,32 @@ function startTurnTimer() {
             whiteTime--;
             if (whiteTime <= 0) {
                 whiteTime = 0;
-                updateTimerDisplays();
-                endGame('black', 'timeout');
+                timeExpired('black');
                 return;
             }
         } else {
             blackTime--;
             if (blackTime <= 0) {
                 blackTime = 0;
-                updateTimerDisplays();
-                endGame('white', 'timeout');
+                timeExpired('white');
                 return;
             }
         }
         updateTimerDisplays();
     }, 1000);
+}
+
+/**
+ * Die Anzeige steht bei 0:00. Gegen den Computer ist das Spiel damit vorbei.
+ * Online entscheidet der Server (Cheating-Schutz [8]): Die Anzeige wartet bei 0:00 auf seine Meldung "timeUp"
+ */
+function timeExpired(winner) {
+    updateTimerDisplays();
+    if (state.gameMode === 'online') {
+        clearInterval(timerInterval);
+        return;
+    }
+    endGame(winner, 'timeout');
 }
 
 /**
@@ -816,6 +827,27 @@ function updateActiveTimerStyle() {
         p1El.classList.remove('active-timer');
     }
 }
+
+/**
+ * Läuft gerade eine Partie? (Nachrichten des Servers zur Uhr können auch nach dem Spielende noch ankommen)
+ */
+const isPlaying = () => document.getElementById('gameScreen').classList.contains('active');
+
+// Cheating-Schutz [8]: Nach jedem Zug schickt der Server den Stand seiner Uhr (in ms), die Anzeige
+// übernimmt ihn. Die Uhr läuft danach weiter, auch wenn sie vorher bei 0:00 gewartet hat
+socket.on('clockSync', (clock) => {
+    if (!isPlaying() || !Number.isFinite(clock?.white) || !Number.isFinite(clock?.black)) return;
+    whiteTime = Math.max(Math.ceil(clock.white / 1000), 0);
+    blackTime = Math.max(Math.ceil(clock.black / 1000), 0);
+    updateTimerDisplays();
+    startTurnTimer();
+});
+
+// Cheating-Schutz [8]: Der Server meldet, dass die Zeit abgelaufen ist, und wer gewonnen hat
+socket.on('timeUp', ({ winner }) => {
+    if (!isPlaying()) return;
+    endGame(winner === 'white' ? 'white' : 'black', 'timeout');
+});
 
 /**
  * Zug des Online-Gegners (vom Server geprüft) mit simulierten Klicks auf dem Brett nachspielen
