@@ -132,7 +132,7 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
 │   ├── css/             Styles, aufgeteilt in CSS-Layer (main.css legt die Reihenfolge fest)
 │   └── js/
 │       ├── main.js      Einstiegspunkt: verbindet Buttons und Formulare mit den Funktionen
-│       ├── ui.js        Bildschirmwechsel, Suche, Münzwurf, Chat, Dialoge
+│       ├── ui.js        Bildschirmwechsel, Suche, Münzwurf, Dialoge
 │       ├── game.js      Brett anzeigen, Züge ausführen, Uhr, Computergegner
 │       ├── rules.js     Spielregeln ohne HTML (wird auch vom Server genutzt)
 │       ├── state.js     Gemeinsamer Zustand (Spielmodus, Namen, Farbe, Bedenkzeit)
@@ -143,6 +143,7 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
 │       ├── tutorial.js  Interaktives Tutorial: Lektionen auf einem Übungsbrett
 │       ├── pictures.js  Bilder für Variante und Bedenkzeit: Brett, Uhr, Partyhut (Setup und Raum-Vorschau)
 │       ├── effects.js   Konfetti und Regen am Spielende
+│       ├── chat.js      Chat der Online-Partie: senden, empfangen, anzeigen
 │       ├── i18n.js      Sprache (Deutsch/Englisch) wählen und merken, Texte übersetzen: t() und setText()
 │       ├── translations.js  Alle Texte der Oberfläche auf Deutsch und Englisch
 │       └── colors.js    Farbvorlagen und Kontrastprüfung nach WCAG ohne HTML (testbar wie rules.js)
@@ -164,7 +165,7 @@ flowchart TB
         direction LR
         HTML["index.html + css/"]
         Main["main.js<br/>verbindet Buttons mit Funktionen"]
-        UI["ui.js<br/>Bildschirme, Suche, Münzwurf, Chat"]
+        UI["ui.js<br/>Bildschirme, Suche, Münzwurf"]
         Game["game.js<br/>Brett, Uhr, Computergegner"]
         RulesC["rules.js<br/>Spielregeln"]
         Sound["sound.js<br/>Töne"]
@@ -177,6 +178,7 @@ flowchart TB
         I18n["i18n.js + translations.js<br/>Deutsch und Englisch"]
         Pictures["pictures.js<br/>Brett, Uhr, Partyhut"]
         Effects["effects.js<br/>Konfetti und Regen"]
+        Chat["chat.js<br/>Chat der Online-Partie"]
         HTML --> Main
         Main --> UI
         Main --> Game
@@ -199,6 +201,9 @@ flowchart TB
         UI --> Pictures
         Pictures --> RulesC
         Game --> Effects
+        Main --> Chat
+        Game --> Chat
+        Chat --> SocketC
     end
 
     subgraph Server["Node.js-Server (server.js)"]

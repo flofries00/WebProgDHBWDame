@@ -8,7 +8,6 @@ import {
     cancelWait,
     requestReplay,
     leaveToLobby,
-    handleChatSubmit,
     renderQueueStatus,
     joinRoom,
     copyRoomLink,
@@ -20,6 +19,7 @@ import { loadTheme, openThemeDialog, handleThemeInput, handleThemeDialogClose } 
 import { loadColorMode, toggleColorMode } from './colorMode.js';
 import { loadLanguage, toggleLanguage } from './i18n.js';
 import { renderSetupPictures } from './pictures.js';
+import { handleChatSubmit } from './chat.js';
 import {
     openTutorial,
     openTutorialOnFirstVisit,

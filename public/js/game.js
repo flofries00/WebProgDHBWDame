@@ -2,6 +2,7 @@ import { state } from './state.js';
 import { socket } from './socket.js';
 import { showScreen, leaveToLobby, showConfirm } from './ui.js';
 import { fireConfetti, fireRain } from './effects.js';
+import { resetChat } from './chat.js';
 import { playSound } from './sound.js';
 import {
     createInitialBoard,
@@ -114,23 +115,8 @@ export function startGame() {
     // Steine sperren, die gerade nicht ziehen dürfen
     updatePieceCursors();
 
-    // Chatbox nur im Multiplayer aktivieren
-    const chatInput = document.getElementById('chatInput');
-    const chatBox = document.querySelector('.chat-messages');
-
-    if (chatInput && chatBox) {
-        const online = state.gameMode === 'online';
-        chatInput.disabled = !online;
-        // Schlüssel am Attribut merken, damit auch der Platzhalter beim Sprachwechsel übersetzt wird
-        const placeholderKey = online ? 'game.chatPlaceholder' : 'game.chatDisabled';
-        chatInput.setAttribute('data-i18n-placeholder', placeholderKey);
-        chatInput.placeholder = t(placeholderKey);
-
-        const systemMessage = document.createElement('p');
-        systemMessage.className = 'sys-msg';
-        setText(systemMessage, online ? 'game.chatReady' : 'game.chatOffline');
-        chatBox.replaceChildren(systemMessage);
-    }
+    // Chat leeren, nur im Multiplayer aktiv
+    resetChat(state.gameMode === 'online');
 
     // Hat der Computer Weiß, beginnt er (makeComputerMove prüft das selbst)
     if (state.gameMode === 'computer') {
