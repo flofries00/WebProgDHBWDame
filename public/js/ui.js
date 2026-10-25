@@ -1,8 +1,9 @@
 import { state } from './state.js';
 import { socket } from './socket.js';
-import { startGame, endGame, stopGame } from './game.js';
+import { startGame, endGame, stopGame, createPieceElement } from './game.js';
 import { playSound } from './sound.js';
 import { t, setText } from './i18n.js';
+import { VARIANTS, createInitialBoard } from './rules.js';
 
 // Globale Variablen für den Spielablauf
 
@@ -11,6 +12,7 @@ let coinTossTimeout; // Timer bis zur Landung der Münze
 let countdownInterval; // Countdown bis Spielstart
 let partyTimeout; // Nächster Schritt der Zeit-Auslosung im Partymodus
 let waitInterval; // Sekundentakt der Wartezeit-Anzeige
+let pendingRoomCode = null; // Raumcode aus einem geteilten Link (?raum=K7QXM), wird nach der Namenseingabe eingetragen
 let queueStatus = null; // Letzter Stand der Warteschlangen vom Server: { waiting: { klassisch: { '1': 0, ...}, ...}, online }
 
 /**
@@ -96,6 +98,16 @@ export function showSetup() {
         state.gameMode === 'online' ? 'setup.findOpponent' : 'setup.startGame'
     );
     renderQueueStatus();
+
+    // Private Räume gibt es nur online. Kam man über einen Link, ist der Code schon eingetragen
+    const privateRoom = document.getElementById('privateRoom');
+    privateRoom.hidden = state.gameMode !== 'online';
+    setText(document.getElementById('roomError'));
+    if (pendingRoomCode && state.gameMode === 'online') {
+        document.getElementById('roomCodeInput').value = pendingRoomCode;
+        privateRoom.open = true;
+        pendingRoomCode = null;
+    }
     showScreen('setupScreen');
 }
 
@@ -128,9 +140,9 @@ socket.on('queueStatus', (status) => {
 
 /**
  * Wird aufgerufen, wenn man auf "Gegner suchen" bzw. "Spiel starten" klickt.
- * Wechselt in den Wartebildschirm.
+ * Wechselt in den Wartebildschirm. Mit mode 'room' wird statt der Suche ein privater Raum erstellt
  */
-export function startSearch() {
+export function startSearch(mode = 'search') {
     // Schutz vor Doppelauslösung: nur suchen, wenn der Setup-Bildschirm wirklich angezeigt wird
     if (!document.getElementById('setupScreen').classList.contains('active')) return;
 
@@ -152,12 +164,16 @@ export function startSearch() {
     document.getElementById('waitName').textContent = state.currentPlayerName;
     document.getElementById('p1Name').textContent = state.currentPlayerName;
 
-    // Wechsel zum Wartebildschirm
+    // Wechsel zum Wartebildschirm (Code und Link erscheinen erst, wenn der Server den Raum erstellt hat)
+    document.getElementById('roomInfo').hidden = true;
     showScreen('waitingScreen');
 
     startWaitClock();
 
-    if (state.gameMode === 'online') {
+    if (state.gameMode === 'online' && mode === 'room') {
+        // Privates Spiel: Der Server erstellt einen Raum und schickt den Code (roomCreated)
+        socket.emit('createRoom', state.currentPlayerName, state.timeSetting, state.variant);
+    } else if (state.gameMode === 'online') {
         // Echter Multiplayer: Server um Match mit gleicher Variante und Bedenkzeit bitten
         socket.emit('findMatch', state.currentPlayerName, state.timeSetting, state.variant);
     } else {
@@ -189,6 +205,135 @@ function startWaitClock() {
     update();
     waitInterval = setInterval(update, 1000);
 }
+
+/**
+ * Privates Spiel: einem Raum mit dem eingegebenen Code beitreten. Variante und Bedenkzeit kommen vom Ersteller
+ */
+export function joinRoom() {
+    const code = document.getElementById('roomCodeInput').value.trim();
+    const error = document.getElementById('roomError');
+    if (code.length !== 5) {
+        setText(error, 'room.error.empty');
+        return;
+    }
+    if (!socket.connected) {
+        showConfirm(t('error.noConnectionTitle'), t('error.noConnectionText'), t('common.ok'));
+        return;
+    }
+    setText(error);
+    socket.emit('checkRoom', code); // Erst nachsehen, wessen Raum es ist. Antwort: roomPreview oder roomError
+}
+
+// Vorschau des Raums: Wer hat ihn erstellt, was wird gespielt? Erst nach "Raum beitreten" geht es los
+socket.on('roomPreview', (preview) => {
+    if (!document.getElementById('setupScreen').classList.contains('active')) return;
+    if (!Object.hasOwn(VARIANTS, preview.variant) || typeof preview.hostName !== 'string') return;
+
+    if (!['1', '3', '5', '10', 'party'].includes(preview.timeSetting)) return;
+
+    // Titel "Raum von [Hostname]" mit fettem Namen. Die Wörter um {name} kommen aus der Übersetzung
+    // so stimmt die Wortstellung in jeder Sprache. Der Name bleibt reiner Text
+    const name = document.createElement('strong');
+    name.textContent = preview.hostName;
+    const [before, after] = t('room.previewTitle').split('{name}');
+    document.getElementById('roomPreviewTitle').replaceChildren(before, name, after);
+
+    // Variante als kleines Brett in der Startaufstellung (gleiche Felder und Steine wie im Spiel)
+    const board = createInitialBoard(preview.variant);
+    const cells = board.flatMap((row, r) =>
+        row.map((piece, c) => {
+            const cell = document.createElement('span');
+            cell.className = 'cell ' + ((r + c) % 2 !== 0 ? 'black-bg' : 'white-bg');
+            if (piece) cell.append(createPieceElement(piece));
+            return cell;
+        })
+    );
+    const boardElement = document.getElementById('roomPreviewBoard');
+    boardElement.style.setProperty('--tutorial-size', board.length);
+    boardElement.replaceChildren(...cells);
+    setText(
+        document.getElementById('roomPreviewVariant'),
+        preview.variant === 'klassisch' ? 'setup.classic' : 'setup.international'
+    );
+
+    // Bedenkzeit als Uhr (im Partymodus als Partyhut)
+    const party = preview.timeSetting === 'party';
+    // toggleAttribute statt .hidden: SVG-Elemente kennen die Eigenschaft hidden nicht
+    document.getElementById('roomPreviewClock').toggleAttribute('hidden', party);
+    document.getElementById('roomPreviewHat').toggleAttribute('hidden', !party);
+    if (!party) drawClockSector(Number(preview.timeSetting));
+    setText(document.getElementById('roomPreviewTime'), party ? 'setup.party' : `setup.minutes${preview.timeSetting}`);
+
+    // Fenster öffnen, erst bei "Raum beitreten" geht es los
+    const dialog = document.getElementById('roomPreviewDialog');
+    dialog.returnValue = '';
+    dialog.showModal();
+    dialog.addEventListener(
+        'close',
+        () => {
+            if (dialog.returnValue !== 'join') return;
+            document.getElementById('p1Name').textContent = state.currentPlayerName;
+            socket.emit('joinRoom', state.currentPlayerName, preview.code); // Antwort: matchFound oder roomError
+        },
+        { once: true }
+    );
+});
+
+/**
+ * Zeichnet auf der Uhr der Raum-Vorschau den roten Ausschnitt: Das ganze Ziffernblatt sind 10 Minuten.
+ * 5 Minuten sind also ein halber Kreis. Der Ausschnitt beginnt oben bei 12 Uhr
+ */
+function drawClockSector(minutes) {
+    const angle = Math.min(minutes / 10, 0.999) * 2 * Math.PI; // Ein voller Kreis ließe sich nicht als Bogen zeichnen
+    const x = 32 + 28 * Math.sin(angle);
+    const y = 32 - 28 * Math.cos(angle);
+    const largeArc = angle > Math.PI ? 1 : 0; // Mehr als ein halber Kreis: der große Bogen
+    document
+        .getElementById('roomPreviewSector')
+        .setAttribute('d', `M32 32 L32 4 A28 28 0 ${largeArc} 1 ${x.toFixed(2)} ${y.toFixed(2)} Z`);
+}
+
+/**
+ * Kopiert den Link zum eigenen Raum. Ohne Zugriff auf die Zwischenablage (z.B. ohne HTTPS) steht der Link da
+ */
+export async function copyRoomLink() {
+    const code = document.getElementById('roomCode').textContent;
+    const url = `${location.origin}${location.pathname}?raum=${code}`;
+    const status = document.getElementById('copyStatus');
+    try {
+        await navigator.clipboard.writeText(url);
+        setText(status, 'room.copied');
+    } catch {
+        setText(status, 'room.copyFailed', { url });
+    }
+}
+
+/**
+ * Beim Start: Wurde die Seite über einen geteilten Link geöffnet (?raum=K7QXM), geht es direkt zu "Gegen Mensch".
+ * Der Code wird nach der Namenseingabe eingetragen
+ */
+
+export function openRoomLink() {
+    const code = new URLSearchParams(location.search).get('raum');
+    if (!code || !/^[A-Za-z0-9]{5}$/.test(code)) return;
+    pendingRoomCode = code.toUpperCase();
+    history.replaceState(null, '', location.pathname); // Beim Neuladen nicht erneut beitreten
+    selectMode('online');
+}
+
+// Der Server hat den privaten Raum erstellt: Code anzeigen
+socket.on('roomCreated', ({ code }) => {
+    if (!document.getElementById('waitingScreen').classList.contains('active')) return;
+    document.getElementById('roomCode').textContent = code;
+    setText(document.getElementById('copyStatus'));
+    document.getElementById('roomInfo').hidden = false;
+});
+
+// Beitreten hat nicht geklappt (Code unbekannt, eigener Raum oder zu viele Versuche)
+socket.on('roomError', ({ reason }) => {
+    if (!['notFound', 'ownRoom', 'tooFast'].includes(reason)) return;
+    setText(document.getElementById('roomError'), `room.error.${reason}`);
+});
 
 /**
  * Bricht die Suche ab und geht zurück zum Setup-Bildschirm
@@ -362,6 +507,10 @@ socket.on('matchFound', (data) => {
     state.opponentName = data.oppName;
     state.playerGetsWhite = data.isWhite;
     state.timeMinutes = data.timeMinutes;
+
+    // Variante und Bedenkzeit vom Server übernehmen (im privaten Raum hat sie der Ersteller gewählt)
+    if (Object.hasOwn(VARIANTS, data.variant)) state.variant = data.variant;
+    if (['1', '3', '5', '10', 'party'].includes(data.timeSetting)) state.timeSetting = data.timeSetting;
 
     // Namen in HTML eintragen
     const oppDisp = document.getElementById('opponentNameDisplay');

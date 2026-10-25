@@ -109,6 +109,8 @@ describe('Private Räume', () => {
         assert.equal(infoGuest.oppName, 'Anna');
         assert.equal(infoHost.timeMinutes, 3);
         assert.equal(infoGuest.timeMinutes, 3);
+        assert.equal(infoGuest.variant, 'international'); // Der Gast hat selbst nichts ausgewählt
+        assert.equal(infoGuest.timeSetting, '3');
         assert.notEqual(infoHost.isWhite, infoGuest.isWhite);
 
         // Variante International: Der Server nimmt einen Zug auf dem 10x10-Brett an
@@ -116,6 +118,32 @@ describe('Private Räume', () => {
         const received = waitFor(black, 'receiveMove');
         white.emit('makeMove', { fromR: 6, fromC: 1, toR: 5, toC: 2 });
         await received;
+    });
+
+    it('zeigt vor dem Beitreten Ersteller, Variante und Bedenkzeit, ohne die Partie zu starten', async () => {
+        const { host, code } = await createRoom('Anna', 'party', 'international');
+        const guest = await connectClient();
+        const preview = waitFor(guest, 'roomPreview');
+        guest.emit('checkRoom', code.toLowerCase());
+        assert.deepEqual(await preview, { code, hostName: 'Anna', variant: 'international', timeSetting: 'party' });
+        await expectNoEvent(host, 'matchFound'); // Nur nachgesehen, noch nicht beigetreten
+
+        // Danach kann der Gast mit dem Code aus der Vorschau beitreten
+        const match = waitFor(host, 'matchFound');
+        guest.emit('joinRoom', 'Bernd', code);
+        assert.equal((await match).oppName, 'Bernd');
+    });
+
+    it('meldet beim Nachsehen unbekannte Codes und den eigenen Raum', async () => {
+        const { host, code } = await createRoom();
+        const own = waitFor(host, 'roomError');
+        host.emit('checkRoom', code);
+        assert.deepEqual(await own, { reason: 'ownRoom' });
+
+        const guest = await connectClient();
+        const unknown = waitFor(guest, 'roomError');
+        guest.emit('checkRoom', 'ZZZZZ');
+        assert.deepEqual(await unknown, { reason: 'notFound' });
     });
 
     it('meldet einen unbekannten Code', async () => {

@@ -141,6 +141,72 @@
         }
     }
 
+    /* ---------- Vorschau eines privaten Raums: Brett und Uhr nebeneinander ---------- */
+    /* Titel in normaler Schrift, damit der fette Name des Erstellers auffällt */
+    #roomPreviewTitle {
+        font-weight: normal;
+    }
+
+    .room-preview-details {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-block: 1rem 1.5rem;
+
+        & figure {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0;
+        }
+    }
+
+    /* Kleiner als das Übungsbrett im Tutorial (steht hier im späteren Layer "screens" und gewinnt deshalb) */
+    .room-preview-board {
+        width: 8rem;
+        margin: 0;
+        border-width: 0.3rem;
+    }
+
+    .room-preview-icon {
+        width: 8rem;
+        height: 8rem;
+
+        /* Der Browser blendet nur HTML-Elemente mit hidden aus, SVG nicht von selbst */
+        &[hidden] {
+            display: none;
+        }
+
+        & .clock-face {
+            fill: var(--color-surface-alt);
+            stroke: var(--color-text);
+            stroke-width: 3;
+        }
+
+        & .clock-sector {
+            fill: var(--color-primary);
+        }
+
+        & .clock-center {
+            fill: var(--color-text);
+        }
+
+        & .hat-cone {
+            fill: var(--color-primary);
+        }
+
+        & .hat-stripes {
+            stroke: var(--color-surface);
+            stroke-width: 4;
+        }
+
+        & .hat-pompom {
+            fill: #f2c94c;
+        }
+    }
+
     /* Raumcode im Wartebildschirm: groß und gut abzulesen */
     .room-code {
         font-family: var(--font-mono);

@@ -449,6 +449,44 @@
                 </div>
             </form>
         </dialog>
+
+        <!-- Vorschau eines privaten Raums: wessen Raum, Variante als Brett, Bedenkzeit als Uhr (füllt ui.js) -->
+        <dialog id="roomPreviewDialog" class="confirm-dialog room-preview" aria-labelledby="roomPreviewTitle">
+            <form method="dialog">
+                <h3 id="roomPreviewTitle"></h3>
+                <div class="room-preview-details">
+                    <figure>
+                        <div id="roomPreviewBoard" class="tutorial-board room-preview-board" aria-hidden="true"></div>
+                        <figcaption id="roomPreviewVariant"></figcaption>
+                    </figure>
+                    <figure>
+                        <!-- Uhr: Der rote Ausschnitt zeigt die Bedenkzeit, das ganze Zifferblatt sind 10 Minuten -->
+                        <svg id="roomPreviewClock" class="room-preview-icon" viewBox="0 0 64 64" aria-hidden="true">
+                            <circle cx="32" cy="32" r="28" class="clock-face" />
+                            <path id="roomPreviewSector" class="clock-sector" />
+                            <circle cx="32" cy="32" r="3" class="clock-center" />
+                        </svg>
+                        <!-- Partymodus: Partyhut statt Uhr -->
+                        <svg
+                            id="roomPreviewHat"
+                            class="room-preview-icon"
+                            viewBox="0 0 64 64"
+                            aria-hidden="true"
+                            hidden
+                        >
+                            <path d="M32 8 L52 58 H12 Z" class="hat-cone" />
+                            <path d="M24.3 28 H39.7 M18.2 44 H45.8" class="hat-stripes" />
+                            <circle cx="32" cy="8" r="5" class="hat-pompom" />
+                        </svg>
+                        <figcaption id="roomPreviewTime"></figcaption>
+                    </figure>
+                </div>
+                <div class="dialog-buttons">
+                    <button class="secondary-btn" value="cancel" data-i18n="common.cancel">Abbrechen</button>
+                    <button value="join" data-i18n="room.joinConfirm">Raum beitreten</button>
+                </div>
+            </form>
+        </dialog>
         <!-- Hilfe: Bedienung und Spielregeln (öffnet sich über den ?-Button in der Kopfzeile) -->
         <dialog id="helpDialog" class="confirm-dialog help-dialog" aria-labelledby="helpTitle">
             <form method="dialog">

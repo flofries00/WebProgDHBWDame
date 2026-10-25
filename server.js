@@ -141,6 +141,30 @@ function leaveQueue(socket) {
 }
 
 /**
+ * Sucht den Raum zu einem Code (für die Vorschau und das Beitreten). Gibt den wartenden Ersteller zurück
+ * sonst null und meldet dem Spieler den Grund (roomError)
+ */
+function findRoom(socket, code) {
+    // Cheating-Schutz [9]: Code prüfen, das Durchprobieren von Codes bremsen
+    if (typeof code !== 'string') return null;
+    if (isTooFrequent(socket, 'joinTimes', JOIN_LIMIT, JOIN_WINDOW_MS)) {
+        socket.emit('roomError', { reason: 'tooFast' });
+        return null;
+    }
+
+    const host = rooms.get(code.trim().toUpperCase()); // Kleinbuchstaben und Leerzeichen sind beim Abtippen erlaubt
+    if (!host) {
+        socket.emit('roomError', { reason: 'notFound' });
+        return null;
+    }
+    if (host === socket) {
+        socket.emit('roomError', { reason: 'ownRoom' });
+        return null;
+    }
+    return host;
+}
+
+/**
  * Löscht den privaten Raum eines Spielers (falls er einen erstellt hat und noch wartet)
  */
 function leaveRoom(socket) {
@@ -185,8 +209,10 @@ function startMatch(p1, p2) {
     p1.oppId = p2.id;
     p2.oppId = p1.id;
 
-    p1.emit('matchFound', { oppName: p2.name || 'Gegner', isWhite: p1White, timeMinutes });
-    p2.emit('matchFound', { oppName: p1.name || 'Gegner', isWhite: !p1White, timeMinutes });
+    // Variante und Bedenkzeit mitschicken: Wer einem privaten Raum beitritt, kennt sie sonst nicht
+    const settings = { timeMinutes, variant: game.variant, timeSetting: p1.timeSetting };
+    p1.emit('matchFound', { oppName: p2.name || 'Gegner', isWhite: p1White, ...settings });
+    p2.emit('matchFound', { oppName: p1.name || 'Gegner', isWhite: !p1White, ...settings });
 }
 
 /**
@@ -298,24 +324,23 @@ io.on('connection', (socket) => {
         broadcastQueueStatus(); // Falls der Spieler vorher in der Warteschlange stand
     });
 
+    // Privates Spiel: Vor dem Beitreten zeigen, wessen Raum es ist und was gespielt wird (startet noch nichts)
+    onSafe(socket, 'checkRoom', (code) => {
+        const host = findRoom(socket, code);
+        if (!host) return;
+        socket.emit('roomPreview', {
+            code: host.roomCode,
+            hostName: host.name,
+            variant: host.variant,
+            timeSetting: host.timeSetting,
+        });
+    });
+
     // Privates Spiel beitreten: Die Partie startet mit Variante und Bedenkzeit des Erstellers
     onSafe(socket, 'joinRoom', (name, code) => {
-        // Cheating-Schutz [9]: Name und Code prüfen, das Durchprobieren von Codes bremsen
-        if (!isValidName(name) || typeof code !== 'string') return;
-        if (isTooFrequent(socket, 'joinTimes', JOIN_LIMIT, JOIN_WINDOW_MS)) {
-            socket.emit('roomError', { reason: 'tooFast' });
-            return;
-        }
-
-        const host = rooms.get(code.trim().toUpperCase()); // Kleinbuchstaben und Leerzeichen sind beim Abtippen erlaubt
-        if (!host) {
-            socket.emit('roomError', { reason: 'notFound' });
-            return;
-        }
-        if (host === socket) {
-            socket.emit('roomError', { reason: 'ownRoom' });
-            return;
-        }
+        if (!isValidName(name)) return; // Cheating-Schutz [1]
+        const host = findRoom(socket, code);
+        if (!host) return;
 
         leaveRoom(host); // Der Raum ist jetzt voll und wird gelöscht
         leaveQueue(socket);

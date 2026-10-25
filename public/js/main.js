@@ -10,6 +10,9 @@ import {
     leaveToLobby,
     handleChatSubmit,
     renderQueueStatus,
+    joinRoom,
+    copyRoomLink,
+    openRoomLink,
 } from './ui.js';
 import { abortGame, moveReview } from './game.js';
 import { toggleSound } from './sound.js';
@@ -79,6 +82,17 @@ document.getElementById('setupForm').addEventListener('submit', (event) => {
 });
 document.getElementById('setupForm').addEventListener('change', renderQueueStatus); // Andere Variante gewählt
 onClick('setupBackBtn', () => showScreen('loginScreen'));
+
+// Private Räume: erstellen, mit Code beitreten (Enter im Feld tritt bei, statt öffentlich zu suchen), Link kopieren
+onClick('createRoomBtn', () => startSearch('room'));
+onClick('joinRoomBtn', joinRoom);
+document.getElementById('roomCodeInput').addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    joinRoom();
+});
+onClick('copyRoomLinkBtn', copyRoomLink);
+openRoomLink();
 
 // Wartebildschirm
 onClick('cancelWaitBtn', cancelWait);
