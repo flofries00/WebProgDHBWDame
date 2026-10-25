@@ -5,7 +5,8 @@
  * Cheating-Schutz (im Code mit "Cheating-Schutz [Nr.]" markiert):
  * [1] Name, Bedenkzeit und Variante werden auch hier geprüft, nicht nur im Browser
  * [2] Farben und Partyzeit lost der Server aus, kein Browser kann sie sich aussuchen
- * [3] Eigenes Brett pro Partie: Ein Zug zählt nur, wenn der Spieler am Zug ist und rules.js ihn erlaubt
+ * [3] Eigenes Brett pro Partie: Ein Zug zählt nur, wenn der Spieler am Zug ist und rules.js ihn erlaubt.
+ *     Wer eine neue Partie sucht, wird von der laufenden getrennt (nie in zwei Partien gleichzeitig)
  * [4] Weitergeleitet werden nur die geprüften Werte, nie die Originalnachricht
  * [5] Chat: nur Text, höchstens 200 Zeichen, nur an den eigenen Gegner (der Browser zeigt ihn nie als HTML an)
  * [6] Nachrichten über 10 kB werden abgelehnt, ein Fehler bei einer Nachricht bringt den Server nicht zum Absturz
@@ -281,6 +282,9 @@ io.on('connection', (socket) => {
         // Cheating-Schutz [1]: Namen, Bedenkzeit und Variante auch serverseitig prüfen (Client-Prüfung lässt sich umgehen)
         if (!isValidSetup(name, timeSetting, variant)) return;
 
+        // Cheating-Schutz [3]: Eine laufende Partie zuerst beenden, der Gegner erfährt es (opponentLeft).
+        // Ein normaler Browser hat sie schon verlassen, ein manipulierter wäre sonst in zwei Partien
+        endMatch(socket);
         leaveQueue(socket); // Falls der Spieler noch mit einer anderen Einstellung wartet
         leaveRoom(socket); // ... oder in einem eigenen Raum
         socket.name = name; // Namen speichern, wichtig für Revanche
@@ -312,6 +316,7 @@ io.on('connection', (socket) => {
     onSafe(socket, 'createRoom', (name, timeSetting = '5', variant = 'klassisch') => {
         if (!isValidSetup(name, timeSetting, variant)) return; // Cheating-Schutz [1] wie bei der Suche
 
+        endMatch(socket); // Cheating-Schutz [3] wie bei der Suche
         leaveQueue(socket);
         leaveRoom(socket); // Nur ein Raum pro Spieler
         socket.name = name;
@@ -343,6 +348,7 @@ io.on('connection', (socket) => {
         if (!host) return;
 
         leaveRoom(host); // Der Raum ist jetzt voll und wird gelöscht
+        endMatch(socket); // Cheating-Schutz [3] wie bei der Suche
         leaveQueue(socket);
         leaveRoom(socket);
         socket.name = name;

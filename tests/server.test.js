@@ -379,6 +379,19 @@ describe('Partie verlassen', () => {
         await left;
     });
 
+    it('trennt die laufende Partie, wenn ein Spieler mittendrin eine neue sucht', async () => {
+        const { white, black } = await startGame();
+        const left = waitFor(black, 'opponentLeft');
+        white.emit('findMatch', 'Anna', '3', 'klassisch');
+        await left;
+
+        // Der alte Gegner erreicht den Spieler danach nicht mehr
+        const noChat = expectNoEvent(white, 'chatMessage');
+        black.emit('chatMessage', 'Hallo');
+        await noChat;
+        white.emit('cancelSearch');
+    });
+
     it('startet die Revanche erst, wenn beide sie wollen', async () => {
         const { white, black } = await startGame();
         const informed = waitFor(black, 'opponentWantsReplay');
