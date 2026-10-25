@@ -232,6 +232,25 @@ export function applyMove(board, move, variant = 'klassisch') {
     return { board: next, promoted, mustContinue };
 }
 
+// Remis: Ziehen beide Seiten 25 Züge hintereinander nur mit Damen, ohne dass geschlagen wird, endet die Partie
+// unentschieden (Regel des Weltverbands FMJD, hier für beide Varianten). 25 Züge je Seite = 50 Züge insgesamt
+export const DRAW_AFTER_TURNS = 50;
+
+/**
+ * Zählt die Züge für die Remis-Regel weiter. turnByKing: Der Zug begann mit einer Dame,
+ * turnCaptured: Im Zug wurde geschlagen. Ein Damenzug ohne Schlag erhöht den Zähler, sonst beginnt er bei 0
+ */
+export function countQuietKingTurns(count, turnByKing, turnCaptured) {
+    return turnByKing && !turnCaptured ? count + 1 : 0;
+}
+
+/**
+ * Ist die Partie nach der Remis-Regel unentschieden?
+ */
+export function isDraw(quietKingTurns) {
+    return quietKingTurns >= DRAW_AFTER_TURNS;
+}
+
 /**
  * Prüft, ob das Spiel entschieden ist: Hat die Farbe am Zug keinen erlaubten Zug mehr
  * (auch wenn sie keine Steine mehr hat), gewinnt der Gegner. Sonst null.

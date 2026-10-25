@@ -9,6 +9,9 @@ import {
     applyMove,
     getWinner,
     opponentOf,
+    DRAW_AFTER_TURNS,
+    countQuietKingTurns,
+    isDraw,
 } from '../public/js/rules.js';
 
 // Hilfsfunktionen, um eigene Stellungen aufzubauen (8x8 für Klassisch, 10x10 für International)
@@ -182,6 +185,27 @@ describe('Zug ausführen und suchen', () => {
 
     it('findet keinen Zug, der nicht erlaubt ist', () => {
         assert.equal(findMove(getLegalMoves(createInitialBoard(), 'white'), 5, 0, 3, 0), null);
+    });
+});
+
+describe('Remis-Regel', () => {
+    it('zählt Damenzüge ohne Schlag', () => {
+        assert.equal(countQuietKingTurns(0, true, false), 1);
+        assert.equal(countQuietKingTurns(7, true, false), 8);
+    });
+
+    it('beginnt nach einem Schlag oder einem Zug eines normalen Steins wieder bei 0', () => {
+        assert.equal(countQuietKingTurns(30, true, true), 0); // Dame schlägt
+        assert.equal(countQuietKingTurns(30, false, false), 0); // normaler Stein zieht
+        assert.equal(countQuietKingTurns(30, false, true), 0); // normaler Stein schlägt
+    });
+
+    it('ist erst nach 25 Zügen je Seite unentschieden', () => {
+        assert.equal(DRAW_AFTER_TURNS, 50);
+        let count = 0;
+        for (let turn = 1; turn < DRAW_AFTER_TURNS; turn++) count = countQuietKingTurns(count, true, false);
+        assert.equal(isDraw(count), false); // 49 Züge
+        assert.equal(isDraw(countQuietKingTurns(count, true, false)), true); // 50 Züge
     });
 });
 

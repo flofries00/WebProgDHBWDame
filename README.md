@@ -12,7 +12,7 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
 
 - **Zwei Modi:** gegen den Computer oder online gegen einen anderen Menschen, mit Chat und Revanche.
 - **Zwei Varianten mit vollständigen Spielregeln** (siehe [Spielregeln](#spielregeln)): „Klassisch“ (8×8) und
-  „International“ (10×10, Rückwärtsschlagen und Mehrheitsschlag). Schlagzwang, Mehrfachsprung, fliegende Dame.
+  „International“ (10×10, Rückwärtsschlagen und Mehrheitsschlag). Schlagzwang, Mehrfachsprung, fliegende Dame, Remis-Regel.
   Pflichtschläge werden automatisch rot markiert und lassen sich direkt anklicken.
 - **Bedenkzeit wählbar:** 1, 3, 5 oder 10 Minuten pro Spieler oder Partymodus (für beide dieselbe Zufallszeit von 1 bis
   10 Minuten, mit eigener Auslosung). Online spielen nur Spieler mit derselben Variante und Bedenkzeit gegeneinander,
@@ -75,6 +75,7 @@ Es gibt zwei Varianten, ausgewählt wird im Setup-Bildschirm vor der Partie. Die
 - Gewonnen hat, wessen Gegner keine Steine mehr hat **oder** keinen gültigen Zug mehr ausführen kann.
 - Jede Seite hat dieselbe Bedenkzeit (1, 3, 5 oder 10 Minuten, im Partymodus ausgelost), es gilt das Schachuhr-Prinzip. Wer die Zeit überschreitet, verliert.
 - Wer aufgibt oder eine Online-Partie verlässt, verliert.
+- **Remis:** Ziehen beide Seiten 25 Züge nacheinander nur mit Damen und ohne zu schlagen, endet die Partie unentschieden.
 
 ### Variante „International“
 

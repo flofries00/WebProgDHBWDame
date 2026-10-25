@@ -2,7 +2,15 @@ import { state } from './state.js';
 import { socket } from './socket.js';
 import { showScreen, leaveToLobby, fireConfetti, fireRain, showConfirm } from './ui.js';
 import { playSound } from './sound.js';
-import { createInitialBoard, getLegalMoves, findMove, applyMove, getWinner } from './rules.js';
+import {
+    createInitialBoard,
+    getLegalMoves,
+    findMove,
+    applyMove,
+    getWinner,
+    countQuietKingTurns,
+    isDraw,
+} from './rules.js';
 import { t, setText, onLanguageChange } from './i18n.js';
 
 const COLUMN_LETTERS = 'ABCDEFGHIJ'; // Spaltenbuchstaben, reichen bis zum 10x10 Brett
@@ -12,6 +20,9 @@ let board = []; // Spielbrett als Daten
 let currentTurn = 'white'; // Weiß hat nach den bekannten Dame-Regeln immer den ersten Zug
 let selectedPiece = null; // HTML-Element des aktuell ausgewählten Steins
 let moveCount = 0; // Anzahl der abgeschlossenen Züge (für den Endbildschirm)
+let quietKingTurns = 0; // Remis-Regel: Damenzüge ohne Schlag hintereinander
+let turnByKing = false; // Remis-Regel: Begann der laufende Zug mit einer Dame?
+let turnCaptured = false; // Remis-Regel: Wurde im laufenden Zug (auch im Mehrfachsprung) geschlagen?
 let startTime = 300; // Bedenkzeit pro Spieler in Sekunden (wird bei Spielstart aus der Einstellung gesetzt)
 let whiteTime = startTime; // Restzeit Weiß in Sekunden
 let blackTime = startTime; // Restzeit Schwarz in Sekunden
@@ -64,6 +75,7 @@ export function startGame() {
     // Spielstand und geschlagene Steine (Trophäen) zurücksetzen
     currentTurn = 'white';
     moveCount = 0;
+    quietKingTurns = 0;
     isMultiJumping = false;
     selectedPiece = null;
     clearTimeout(computerMoveTimeout);
@@ -360,6 +372,13 @@ function handleBoardClick(event) {
     const isCapture = move.captured !== null;
     const victimColor = isCapture ? board[move.captured.row][move.captured.col].color : null;
 
+    // Für die Remis-Regel: Wer zieht (Dame oder Stein) und wurde geschlagen?
+    if (!isMultiJumping) {
+        turnByKing = board[move.fromRow][move.fromCol].king;
+        turnCaptured = false;
+    }
+    turnCaptured ||= isCapture;
+
     // Für das Nachspielen: Startfeld des Zug und aktuelles Zielfeld
     if (!isMultiJumping) turnStart = { row: move.fromRow, col: move.fromCol };
     turnEnd = { row: move.toRow, col: move.toCol };
@@ -476,8 +495,9 @@ function handleBoardClick(event) {
     // Markierungen aufheben
     clearSelection();
 
-    // Zugzähler erhöhen
+    // Zugzähler erhöhen (und den Zähler für die Remis-Regel)
     moveCount++;
+    quietKingTurns = countQuietKingTurns(quietKingTurns, turnByKing, turnCaptured);
 
     // Brett nach dem vollständigen Zug für das Nachspielen merken
     recordTurn();
@@ -554,11 +574,18 @@ function checkWinCondition() {
         endGame(winner);
         return true;
     }
+
+    // 25 Züge je Seite nur mit Damen und ohne Schlag: unentschieden
+    if (isDraw(quietKingTurns)) {
+        endGame(null, 'draw');
+        return true;
+    }
     return false;
 }
 
 /**
- * Beendet das Spiel und zeigt den Endbildschirm. reason: '' (normales Ende), 'timeout' oder 'opponentLeft'
+ * Beendet das Spiel und zeigt den Endbildschirm. reason: '' (normales Ende), 'timeout', 'opponentLeft' oder 'draw'
+ * (bei 'draw' ist winnerColor null)
  */
 export function endGame(winnerColor, reason = '') {
     // Endet das Spiel mitten in einem Zug (z.B. Zeit abgelaufen beim Mehrfachsprung), diesen Stand auch merken
@@ -577,7 +604,9 @@ export function endGame(winnerColor, reason = '') {
     const winner = (winnerColor === 'white') === state.playerGetsWhite ? state.currentPlayerName : state.opponentName;
 
     const textEl = document.getElementById('winnerText');
-    if (reason === 'timeout') {
+    if (reason === 'draw') {
+        setText(textEl, 'end.draw');
+    } else if (reason === 'timeout') {
         setText(textEl, 'end.timeout', { winner });
     } else if (reason === 'opponentLeft') {
         setText(textEl, 'end.opponentLeftWin', { name: state.opponentName, winner });
@@ -621,8 +650,13 @@ export function endGame(winnerColor, reason = '') {
     // Das Spiel ist vorbei, "Du bist am Zug" gilt nicht mehr
     updateTabTitle();
 
-    // Konfetti und Fanfare zünden nur bei Gewinner, sonst Regen und Verlierermelodie
-    if ((winnerColor === 'white' && state.playerGetsWhite) || (winnerColor === 'black' && !state.playerGetsWhite)) {
+    // Konfetti und Fanfare zünden nur bei Gewinner, sonst Regen und Verlierermelodie (bei Remis beides nicht)
+    if (reason === 'draw') {
+        playSound('coinLand');
+    } else if (
+        (winnerColor === 'white' && state.playerGetsWhite) ||
+        (winnerColor === 'black' && !state.playerGetsWhite)
+    ) {
         fireConfetti();
         playSound('win');
     } else {
@@ -1126,7 +1160,6 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * Server vor der Spielzeit am 29.10. einschalten (git pull, sudo systemctl enable --now dame)
  *
  * G) Optional, nur wenn Zeit bleibt
- * Remis-Regel (z.B. 25 Züge nur mit Damen ohne Schlag)
  * Private Räume
  * Zug rückgängig machen Option in vs. Computer
  */

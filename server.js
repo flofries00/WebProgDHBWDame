@@ -29,6 +29,8 @@ import {
     applyMove,
     opponentOf,
     getWinner,
+    countQuietKingTurns,
+    isDraw,
 } from './public/js/rules.js';
 
 // In ES-Modulen gibt es __dirname nicht automatisch, daher aus der Adresse dieser Datei berechnen
@@ -112,6 +114,7 @@ function startMatch(p1, p2) {
         clock: { white: timeMinutes * 60 * SECOND_MS, black: timeMinutes * 60 * SECOND_MS },
         turnStartedAt: Date.now() + INTRO_MS,
         clockTimer: null,
+        quietKingTurns: 0, // Für die Remis-Regel: Damenzüge ohne Schlag hintereinander
     };
     startClock(game);
     p1.game = game;
@@ -249,6 +252,13 @@ io.on('connection', (socket) => {
             return;
         }
 
+        // Für die Remis-Regel merken: Begann der Zug mit einer Dame, und wurde (auch im Mehrfachsprung) geschlagen?
+        if (!game.multiJumpFrom) {
+            game.turnByKing = game.board[fromR][fromC].king;
+            game.turnCaptured = false;
+        }
+        game.turnCaptured ||= Boolean(move.captured);
+
         // Zug auf dem Server-Brett ausführen
         const result = applyMove(game.board, move, game.variant);
         game.board = result.board;
@@ -264,9 +274,10 @@ io.on('connection', (socket) => {
             game.clock[game.turn] -= Math.max(now - game.turnStartedAt, 0);
             game.turn = opponentOf(game.turn);
             game.turnStartedAt = now;
+            game.quietKingTurns = countQuietKingTurns(game.quietKingTurns, game.turnByKing, game.turnCaptured);
 
-            // Partie entschieden: Wecker aus, keine Züge mehr. Sonst läuft der Wecker für den Gegner
-            if (getWinner(game.board, game.turn, game.variant)) {
+            // Partie entschieden (Sieg oder Remis): Wecker aus, keine Züge mehr. Sonst läuft der Wecker für den Gegner
+            if (getWinner(game.board, game.turn, game.variant) || isDraw(game.quietKingTurns)) {
                 clearTimeout(game.clockTimer);
                 game.turn = null;
             } else {
