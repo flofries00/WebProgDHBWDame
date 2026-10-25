@@ -1160,6 +1160,5 @@ document.getElementById('board').addEventListener('focusin', handleBoardFocus);
  * Server vor der Spielzeit am 29.10. einschalten (git pull, sudo systemctl enable --now dame)
  *
  * G) Optional, nur wenn Zeit bleibt
- * Private Räume
  * Zug rückgängig machen Option in vs. Computer
  */

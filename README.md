@@ -17,6 +17,8 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
 - **Bedenkzeit wählbar:** 1, 3, 5 oder 10 Minuten pro Spieler oder Partymodus (für beide dieselbe Zufallszeit von 1 bis
   10 Minuten, mit eigener Auslosung). Online spielen nur Spieler mit derselben Variante und Bedenkzeit gegeneinander,
   der Setup-Bildschirm zeigt, wo gerade jemand wartet.
+- **Private Räume:** Wer mit einem bestimmten Gegner spielen will, erstellt einen Raum und schickt ihm den Code oder
+  den Link. Vor dem Beitreten zeigt eine Vorschau, wessen Raum es ist, die Variante als Brett und die Bedenkzeit als Uhr.
 - **Münzwurf** um die Farbe, Countdown bis zum Start, Konfetti oder Regen am Ende, Spielverlauf und Endstand.
 - **Warte-Bildschirm** mit Wartezeit und fünf Steinen im gewählten Design, die sich nacheinander umdrehen.
 
@@ -37,7 +39,7 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
 - Der Server führt für jede Partie ein eigenes Brett und **prüft jeden Zug** mit denselben Regeln wie der Browser
   (`rules.js`). Unerlaubte oder gefälschte Züge werden verworfen.
 - Namen, Bedenkzeit und Chatnachrichten werden auch serverseitig geprüft, Nachrichten werden nur als Text angezeigt.
-- Alle Maßnahmen gegen Cheating stehen als Liste [1]-[8] oben in `server.js` und sind im Code mit "Cheating-Schutz [Nr.]" markiert.
+- Alle Maßnahmen gegen Cheating stehen als Liste [1]-[9] oben in `server.js` und sind im Code mit "Cheating-Schutz [Nr.]" markiert.
 
 ## Spielregeln
 
@@ -109,12 +111,12 @@ Wie „Klassisch“, mit diesen Unterschieden (Regeln des Weltverbands FMJD):
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Responsiveness**        | Von 320px (Handy) bis zum großen Monitor, das Brett passt sich der Fensterhöhe an                                                                                                     |
 | **Internationalisierung** | Deutsch und Englisch, umschaltbar in der Kopfzeile. Alle Texte in `public/js/translations.js`, die Logik in `public/js/i18n.js`, ein Test prüft, dass beide Sprachen vollständig sind |
-| **Cheatingprävention**    | Der Server prüft jeden Zug. Übersicht [1]–[8] oben in `server.js`, im Code mit „Cheating-Schutz [Nr.]“ markiert                                                                       |
+| **Cheatingprävention**    | Der Server prüft jeden Zug. Übersicht [1]–[9] oben in `server.js`, im Code mit „Cheating-Schutz [Nr.]“ markiert                                                                       |
 
 ## Qualitätssicherung
 
 - **Automatische Tests** mit `node:test` (`npm test`): Spielregeln, Farblogik und Kontrast, Übersetzungen sowie Integrationstests gegen
-  den echten Server (Matchmaking, Zugprüfung, Chat, Nachrichten über 10kB, Schutz gegen Chat-Spam, Revanche, Warteschlangen, Bedenkzeit, HTTPS, Serverstart).
+  den echten Server (Matchmaking, Zugprüfung, Chat, Nachrichten über 10kB, Schutz gegen Chat-Spam, Revanche, private Räume, Warteschlangen, Bedenkzeit, HTTPS, Serverstart).
 - **ESLint** (`npm run lint`) und **Prettier** (`npm run format:check`) für einheitlichen, fehlerarmen Code.
 
 ## Dateistruktur
@@ -147,6 +149,7 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
     ├── server.test.js   Integrationstests gegen den echten Server
     ├── https.test.js    Integrationstests für HTTPS (HTTP- und HTTPS-Spieler in einer Partie)
     ├── clock.test.js    Bedenkzeit auf dem Server mit schneller Test-Uhr (Ablauf, Zeitabzug, keine Züge danach)
+    ├── rooms.test.js    Private Räume: erstellen, Vorschau, beitreten, Fehlerfälle, Raten bremsen
     └── translations.test.js  Beide Sprachen vollständig: gleiche Schlüssel, gleiche Platzhalter, Texte für alle Vorlagen
 ```
 
@@ -203,7 +206,7 @@ flowchart TB
 
 - **Gemeinsame Spielregeln:** `rules.js` arbeitet nur mit Daten (8×8- bzw. 10×10-Array) und kennt kein HTML. Dadurch nutzen Browser und Server dieselbe Datei. Der Browser zeigt erlaubte Züge sofort an, der Server ist der Schiedsrichter und leitet nur erlaubte Züge weiter.
 - **Server führt pro Partie ein eigenes Brett** und weiß, wer am Zug ist. Ein manipulierter Browser kann weder für den Gegner ziehen noch Regeln brechen.
-- **Cheating-Schutz** ist oben in `server.js` als Liste [1]-[8] zusammengefasst und im Code an jeder Stelle mit "Cheating-Schutz [Nr.]" markiert.
+- **Cheating-Schutz** ist oben in `server.js` als Liste [1]-[9] zusammengefasst und im Code an jeder Stelle mit "Cheating-Schutz [Nr.]" markiert.
 - **Computergegner läuft komplett im Browser**, dafür ist keine Serververbindung nötig.
 - **Bedenkzeit auf dem Server:** Der Server zählt die Zeit beider Spieler selbst (Cheating-Schutz [8]). Die Uhr im Browser ist nur Anzeige und wird nach jedem Zug auf den Stand des Servers gesetzt. Bei 0:00 entscheidet der Server.
 - **Kein Build-Schritt:** ES-Module laufen direkt im Browser, CSS-Layer ersetzen `!important`.
@@ -253,21 +256,27 @@ sequenceDiagram
 
 ## Socket.io-Ereignisse
 
-| Ereignis              | Richtung         | Daten                                                      | Prüfung auf dem Server                                                                                                                                                    |
-| --------------------- | ---------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `findMatch`           | Browser → Server | Spielername, Bedenkzeit, Variante                          | Name: 2–16 Zeichen, nur Buchstaben und Ziffern; Zeit: `1`, `3`, `5`, `10` oder `party` (Standard `5`); Variante: `klassisch` oder `international` (Standard: `klassisch`) |
-| `cancelSearch`        | Browser → Server | –                                                          | –                                                                                                                                                                         |
-| `matchFound`          | Server → Browser | `oppName`, `isWhite`, `timeMinutes`                        | –                                                                                                                                                                         |
-| `queueStatus`         | Server → Browser | `waiting` (pro Variante und Bedenkzeit 0 oder 1), `online` | – (wird bei jeder Änderung an alle geschickt)                                                                                                                             |
-| `makeMove`            | Browser → Server | `fromR`, `fromC`, `toR`, `toC`                             | ganze Zahlen auf dem Brett (0-7 bzw. 0-9), Spieler ist am Zug, Zug laut `rules.js` erlaubt, Bedenkzeit nicht abgelaufen                                                   |
-| `receiveMove`         | Server → Browser | `fromR`, `fromC`, `toR`, `toC`                             | nur geprüfte Züge werden weitergeleitet                                                                                                                                   |
-| `clockSync`           | Server → Browser | Restzeit `white`, `black` in Millisekunden                 | – (nach jedem fertigen Zug an beide, die Anzeige übernimmt sie)                                                                                                           |
-| `timeUp`              | Server → Browser | `winner`                                                   | – (der Server zählt die Bedenkzeit und meldet beiden das Ende)                                                                                                            |
-| `chatMessage`         | beide Richtungen | Text                                                       | muss Text sein, wird gekürzt (max. 200 Zeichen), leere werden verworfen                                                                                                   |
-| `requestReplay`       | Browser → Server | –                                                          | –                                                                                                                                                                         |
-| `opponentWantsReplay` | Server → Browser | –                                                          | –                                                                                                                                                                         |
-| `leaveMatch`          | Browser → Server | –                                                          | –                                                                                                                                                                         |
-| `opponentLeft`        | Server → Browser | –                                                          | –                                                                                                                                                                         |
+| Ereignis              | Richtung         | Daten                                                         | Prüfung auf dem Server                                                                                                                                                    |
+| --------------------- | ---------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `findMatch`           | Browser → Server | Spielername, Bedenkzeit, Variante                             | Name: 2–16 Zeichen, nur Buchstaben und Ziffern; Zeit: `1`, `3`, `5`, `10` oder `party` (Standard `5`); Variante: `klassisch` oder `international` (Standard: `klassisch`) |
+| `cancelSearch`        | Browser → Server | –                                                             | –                                                                                                                                                                         |
+| `createRoom`          | Browser → Server | Spielername, Bedenkzeit, Variante                             | wie `findMatch`; der Server erzeugt einen zufälligen Code                                                                                                                 |
+| `roomCreated`         | Server → Browser | `code` (5 Zeichen)                                            | –                                                                                                                                                                         |
+| `checkRoom`           | Browser → Server | Code                                                          | Code muss existieren, nicht der eigene Raum, höchstens 5 Versuche in 3 Sekunden                                                                                           |
+| `roomPreview`         | Server → Browser | `code`, `hostName`, `variant`, `timeSetting`                  | – (startet noch keine Partie)                                                                                                                                             |
+| `joinRoom`            | Browser → Server | Spielername, Code                                             | Name wie bei `findMatch`, Code wie bei `checkRoom`; Variante und Bedenkzeit kommen vom Ersteller                                                                          |
+| `roomError`           | Server → Browser | `reason`: `notFound`, `ownRoom` oder `tooFast`                | –                                                                                                                                                                         |
+| `matchFound`          | Server → Browser | `oppName`, `isWhite`, `timeMinutes`, `variant`, `timeSetting` | –                                                                                                                                                                         |
+| `queueStatus`         | Server → Browser | `waiting` (pro Variante und Bedenkzeit 0 oder 1), `online`    | – (wird bei jeder Änderung an alle geschickt)                                                                                                                             |
+| `makeMove`            | Browser → Server | `fromR`, `fromC`, `toR`, `toC`                                | ganze Zahlen auf dem Brett (0-7 bzw. 0-9), Spieler ist am Zug, Zug laut `rules.js` erlaubt, Bedenkzeit nicht abgelaufen                                                   |
+| `receiveMove`         | Server → Browser | `fromR`, `fromC`, `toR`, `toC`                                | nur geprüfte Züge werden weitergeleitet                                                                                                                                   |
+| `clockSync`           | Server → Browser | Restzeit `white`, `black` in Millisekunden                    | – (nach jedem fertigen Zug an beide, die Anzeige übernimmt sie)                                                                                                           |
+| `timeUp`              | Server → Browser | `winner`                                                      | – (der Server zählt die Bedenkzeit und meldet beiden das Ende)                                                                                                            |
+| `chatMessage`         | beide Richtungen | Text                                                          | muss Text sein, wird gekürzt (max. 200 Zeichen), leere werden verworfen                                                                                                   |
+| `requestReplay`       | Browser → Server | –                                                             | –                                                                                                                                                                         |
+| `opponentWantsReplay` | Server → Browser | –                                                             | –                                                                                                                                                                         |
+| `leaveMatch`          | Browser → Server | –                                                             | –                                                                                                                                                                         |
+| `opponentLeft`        | Server → Browser | –                                                             | –                                                                                                                                                                         |
 
 Zusätzlich gilt: Nachrichten über 10 KB lehnt Socket.io ab, und jeder Handler läuft in `try/catch` (`onSafe`). Ein fehlerhaftes Ereignis bringt den Server also nicht zum Absturz.
 
