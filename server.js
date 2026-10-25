@@ -212,8 +212,8 @@ function startMatch(p1, p2) {
 
     // Variante und Bedenkzeit mitschicken: Wer einem privaten Raum beitritt, kennt sie sonst nicht
     const settings = { timeMinutes, variant: game.variant, timeSetting: p1.timeSetting };
-    p1.emit('matchFound', { oppName: p2.name || 'Gegner', isWhite: p1White, ...settings });
-    p2.emit('matchFound', { oppName: p1.name || 'Gegner', isWhite: !p1White, ...settings });
+    p1.emit('matchFound', { oppName: p2.name, isWhite: p1White, ...settings });
+    p2.emit('matchFound', { oppName: p1.name, isWhite: !p1White, ...settings });
 }
 
 /**

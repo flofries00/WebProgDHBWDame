@@ -43,8 +43,8 @@ export const PIECE_PRESETS = {
 export const DEFAULT_THEME = { board: 'holz', pieces: 'klassisch', colors: makeColors('holz', 'klassisch') };
 
 // Mindestkontraste nach WCAG 2.1: Grafiken (1.4.11) und normaler Text (1.4.3)
-export const MIN_GRAPHIC_CONTRAST = 3;
-export const MIN_TEXT_CONTRAST = 4.5;
+const MIN_GRAPHIC_CONTRAST = 3;
+const MIN_TEXT_CONTRAST = 4.5;
 
 // Helle und dunkle Felder müssen sich nicht nach WCAG unterscheiden, sollten aber erkennbar verschieden sein
 const MIN_FIELD_CONTRAST = 1.5;

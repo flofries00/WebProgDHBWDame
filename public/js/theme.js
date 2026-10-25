@@ -22,7 +22,7 @@ const BOARD_COLOR_KEYS = ['light', 'dark', 'frame'];
  * Schreibt die Farben als CSS-Variablen auf ein Element.
  * Auf <html> gelten sie für die ganze Seite, auf einem anderen Element nur darin (z.B. für eine Vorschau).
  */
-export function applyColors(element, colors) {
+function applyColors(element, colors) {
     const { darkPieceOutline, crownOnLight, crownOnDark } = deriveColors(colors);
     const variables = {
         '--color-board-light': colors.light,

@@ -383,7 +383,7 @@ function showPartyDraw() {
 /**
  * Münzwurf: Die Münze zeigt die eigene Farbe, danach läuft der Countdown bis zum Spielstart
  */
-export function simulateCoinToss() {
+function simulateCoinToss() {
     // Evtl. noch laufende Timer einer vorherigen Auslosung stoppen
     clearTimeout(coinTossTimeout);
     clearInterval(countdownInterval);
@@ -451,6 +451,16 @@ export function requestReplay() {
 }
 
 /**
+ * Setzt Revanche-Button und -Hinweis für die nächste Partie zurück
+ */
+function resetReplay() {
+    const btn = document.getElementById('replayBtn');
+    btn.disabled = false;
+    setText(btn, 'end.replay');
+    setText(document.getElementById('replayStatus'));
+}
+
+/**
  * Verlässt die Partie und kehrt zur Modusauswahl zurück
  */
 export function leaveToLobby() {
@@ -462,15 +472,7 @@ export function leaveToLobby() {
     document.getElementById('playerName').value = '';
     checkInput();
 
-    const btn = document.getElementById('replayBtn');
-    if (btn) {
-        btn.disabled = false;
-        setText(btn, 'end.replay');
-    }
-
-    const status = document.getElementById('replayStatus');
-    if (status) setText(status);
-
+    resetReplay();
     showScreen('modeScreen');
 }
 
@@ -492,13 +494,7 @@ socket.on('matchFound', (data) => {
     oppHead.textContent = state.opponentName;
 
     // Revanche-Anzeige für die nächste Runde zurücksetzen
-    const replayBtn = document.getElementById('replayBtn');
-    const replayStatus = document.getElementById('replayStatus');
-    if (replayBtn) {
-        replayBtn.disabled = false;
-        setText(replayBtn, 'end.replay');
-    }
-    if (replayStatus) setText(replayStatus);
+    resetReplay();
 
     // Animation starten (im Partymodus zuerst die Auslosung der Zeit)
     beginMatchIntro();
@@ -509,7 +505,6 @@ socket.on('matchFound', (data) => {
  */
 function updateRealTimeClock() {
     const clockEl = document.getElementById('realTimeClock');
-    if (!clockEl) return;
 
     const now = new Date();
     // Zeit formatieren zu HH:MM
@@ -577,10 +572,7 @@ socket.on('chatMessage', (msg) => {
 
 // Socket-Ereignisse für die Revanche
 socket.on('opponentWantsReplay', () => {
-    const status = document.getElementById('replayStatus');
-    if (status) {
-        setText(status, 'end.opponentWantsReplay', { name: state.opponentName });
-    }
+    setText(document.getElementById('replayStatus'), 'end.opponentWantsReplay', { name: state.opponentName });
 });
 
 socket.on('opponentLeft', () => {
@@ -608,14 +600,9 @@ socket.on('opponentLeft', () => {
         endGame(state.playerGetsWhite ? 'white' : 'black', 'opponentLeft');
     }
 
-    if (status) {
-        setText(status, 'end.opponentLeft', { name: state.opponentName });
-    }
-
-    if (btn) {
-        btn.disabled = true;
-        setText(btn, 'end.opponentGone');
-    }
+    setText(status, 'end.opponentLeft', { name: state.opponentName });
+    btn.disabled = true;
+    setText(btn, 'end.opponentGone');
 });
 
 /**

@@ -56,7 +56,7 @@ export function createInitialBoard(variant = 'klassisch') {
 /**
  * Prüft, ob Koordinaten auf dem Brett liegen
  */
-export function isOnBoard(board, row, col) {
+function isOnBoard(board, row, col) {
     return row >= 0 && row < board.length && col >= 0 && col < board.length;
 }
 
