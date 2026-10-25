@@ -21,7 +21,15 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 // Dieselben Spielregeln wie im Browser: So kann der Server jeden Zug selbst prüfen (Schutz gegen Cheating)
-import { VARIANTS, createInitialBoard, getLegalMoves, findMove, applyMove, opponentOf } from './public/js/rules.js';
+import {
+    VARIANTS,
+    createInitialBoard,
+    getLegalMoves,
+    findMove,
+    applyMove,
+    opponentOf,
+    getWinner,
+} from './public/js/rules.js';
 
 // In ES-Modulen gibt es __dirname nicht automatisch, daher aus der Adresse dieser Datei berechnen
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -44,6 +52,12 @@ const waiting = new Map();
 const MAX_CHAT_LENGTH = 200;
 const CHAT_LIMIT = 5; // Cheating-Schutz [7]: höchstens so viele Chat-Nachrichten ...
 const CHAT_WINDOW_MS = 3000; // ... in diesem Zeitraum (Millisekunden)
+
+// Cheating-Schutz [8]: Die Bedenkzeit zählt der Server. SECOND_MS ist die Länge einer Sekunde in Millisekunden,
+// nur die Tests verstellen sie (schnellere Uhr), sonst gilt 1000
+const SECOND_MS = Number(process.env.SECOND_MS) > 0 ? Number(process.env.SECOND_MS) : 1000;
+const INTRO_MS = 12 * SECOND_MS; // Vor dem ersten Zug laufen im Browser Münzwurf, Countdown und ggf. die Auslosung
+const GRACE_MS = 1 * SECOND_MS; // Spielraum für die Übertragung: Ein Zug, der bei 0:00 unterwegs war, zählt noch
 
 /**
  * Prüft, ob ein Wert eine gültige Brettkoordinate auf einem Brett dieser Größe ist
@@ -78,6 +92,9 @@ function leaveQueue(socket) {
  * führt ein eigenes Brett und informiert beide Spieler.
  */
 function startMatch(p1, p2) {
+    // Bei einer Revanche den Wecker der alten Partie abstellen
+    clearTimeout(p1.game?.clockTimer);
+
     // Cheating-Schutz [2]: Farben und Partyzeit lost der Server aus, kein Browser kann sie sich aussuchen
     const p1White = Math.random() < 0.5;
 
@@ -90,7 +107,13 @@ function startMatch(p1, p2) {
         board: createInitialBoard(p1.variant),
         turn: 'white', // Weiß beginnt
         multiJumpFrom: null, // Während eines Mehrfachsprungs: Position des springenden Steins
+        players: [p1, p2],
+        // Cheating-Schutz [8]: Restzeit beider Spieler in Millisekunden, die Uhr von Weiß läuft erst nach dem Münzwurf
+        clock: { white: timeMinutes * 60 * SECOND_MS, black: timeMinutes * 60 * SECOND_MS },
+        turnStartedAt: Date.now() + INTRO_MS,
+        clockTimer: null,
     };
+    startClock(game);
     p1.game = game;
     p2.game = game;
     p1.color = p1White ? 'white' : 'black';
@@ -105,9 +128,33 @@ function startMatch(p1, p2) {
 }
 
 /**
+ * Ab wann ist die Zeit des Spielers am Zug abgelaufen? (Zeitpunkt in Millisekunden, mit Spielraum)
+ */
+function timeUpAt(game) {
+    return game.turnStartedAt + game.clock[game.turn] + GRACE_MS;
+}
+
+/**
+ * Stellt den Wecker für den Spieler am Zug: Klingelt er, ist dessen Zeit abgelaufen
+ */
+function startClock(game) {
+    clearTimeout(game.clockTimer);
+    game.clockTimer = setTimeout(
+        () => {
+            // Zeit abgelaufen: Danach nimmt der Server keine Züge mehr an, beide erfahren den Gewinner
+            const winner = opponentOf(game.turn);
+            game.turn = null;
+            game.players.forEach((player) => player.emit('timeUp', { winner }));
+        },
+        Math.max(timeUpAt(game) - Date.now(), 0)
+    );
+}
+
+/**
  * Trennt einen Spieler von seinem Gegner (beim Verlassen oder Verbindungsabbruch)
  */
 function endMatch(socket) {
+    clearTimeout(socket.game?.clockTimer); // Die Partie ist vorbei, der Wecker wird nicht mehr gebraucht
     socket.wantsReplay = false;
     socket.game = null;
     if (!socket.oppId) return;
@@ -190,6 +237,10 @@ io.on('connection', (socket) => {
             return;
         }
 
+        // Cheating-Schutz [8]: Ist die Zeit schon abgelaufen? Dann zählt der Zug nicht mehr. Meist hat der Wecker
+        // das Spiel dann schon beendet (game.turn ist null), dies fängt einen Zug kurz vor dem Klingeln ab
+        if (Date.now() > timeUpAt(game)) return;
+
         // Ist der Zug laut Regeln erlaubt? (Schlagzwang und Mehrfachsprung prüft rules.js)
         const legalMoves = getLegalMoves(game.board, game.turn, game.multiJumpFrom, game.variant);
         const move = findMove(legalMoves, fromR, fromC, toR, toC);
@@ -207,11 +258,29 @@ io.on('connection', (socket) => {
             game.multiJumpFrom = { row: toR, col: toC };
         } else {
             game.multiJumpFrom = null;
+
+            // Verbrauchte Zeit abziehen (vor dem Münzwurf-Ende zählt nichts), dann läuft die Uhr des Gegners
+            const now = Date.now();
+            game.clock[game.turn] -= Math.max(now - game.turnStartedAt, 0);
             game.turn = opponentOf(game.turn);
+            game.turnStartedAt = now;
+
+            // Partie entschieden: Wecker aus, keine Züge mehr. Sonst läuft der Wecker für den Gegner
+            if (getWinner(game.board, game.turn, game.variant)) {
+                clearTimeout(game.clockTimer);
+                game.turn = null;
+            } else {
+                startClock(game);
+            }
         }
 
         // Cheating-Schutz [4]: Nur die vier geprüften Werte weiterleiten, nie die Originalnachricht
         socket.to(socket.oppId).emit('receiveMove', { fromR, fromC, toR, toC });
+
+        // Beiden den Stand der Uhren schicken, damit ihre Anzeige zur Uhr des Servers passt
+        if (!result.mustContinue) {
+            game.players.forEach((player) => player.emit('clockSync', { ...game.clock }));
+        }
     });
 
     // Cheating-Schutz [5]: Chat-Nachrichten nur als Text, gekürzt und nur an den eigenen Gegner
