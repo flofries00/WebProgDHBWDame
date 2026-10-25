@@ -3,14 +3,14 @@ import { socket } from './socket.js';
 import { startGame, endGame, stopGame } from './game.js';
 import { playSound } from './sound.js';
 import { t, setText } from './i18n.js';
-import { VARIANTS } from './rules.js';
+import { VARIANTS, introSeconds } from './rules.js';
 import { renderBoardPicture, createTimeIcon } from './pictures.js';
 
 // Globale Variablen für den Spielablauf
 
 let searchTimeout; // Timer für Gegnersuche
 let coinTossTimeout; // Timer bis zur Landung der Münze
-let countdownInterval; // Countdown bis Spielstart
+let countdownTimeout; // Nächster Schritt des Countdowns bis Spielstart
 let partyTimeout; // Nächster Schritt der Zeit-Auslosung im Partymodus
 let waitInterval; // Sekundentakt der Wartezeit-Anzeige
 let pendingRoomCode = null; // Raumcode aus einem geteilten Link (?raum=K7QXM), wird nach der Namenseingabe eingetragen
@@ -335,6 +335,8 @@ function startComputerMatch() {
  * Vor dem Spiel: im Partymodus zuerst die Auslosung der Bedenkzeit, danach immer der Münzwurf
  */
 function beginMatchIntro() {
+    // Startzeitpunkt fest vorgeben: Der Server startet die Uhr nach derselben Zeit (introSeconds in rules.js)
+    state.gameStartsAt = Date.now() + introSeconds(state.timeSetting) * 1000;
     if (state.timeSetting === 'party') {
         showPartyDraw();
     } else {
@@ -386,7 +388,7 @@ function showPartyDraw() {
 function simulateCoinToss() {
     // Evtl. noch laufende Timer einer vorherigen Auslosung stoppen
     clearTimeout(coinTossTimeout);
-    clearInterval(countdownInterval);
+    clearTimeout(countdownTimeout);
 
     // Text der letzten Runde zurücksetzen
     setText(document.getElementById('startPlayerText'), 'coin.drawing');
@@ -413,25 +415,20 @@ function simulateCoinToss() {
         // Ergebnis aus Sicht des Spielers
         setText(document.getElementById('startPlayerText'), state.playerGetsWhite ? 'coin.white' : 'coin.black');
         const countdownEl = document.getElementById('countdownText');
-        let timeLeft = 5;
 
-        // Kurze Hilfsfunktion, die den Countdown anzeigt
-        const updateText = () => {
-            setText(countdownEl, timeLeft === 1 ? 'coin.countdownOne' : 'coin.countdown', { seconds: timeLeft });
-        };
-
-        updateText(); // Startwert, direkt nach dem Münzaufprall anzeigen.
-
-        // Sekundentakt für Countdown starten
-        countdownInterval = setInterval(() => {
-            timeLeft--;
-            if (timeLeft > 0) {
-                updateText();
-            } else {
-                clearInterval(countdownInterval); // Timer stoppen
+        // Countdown bis zum festen Startzeitpunkt. Er zählt die restlichen Sekunden und nicht einfach von 5 herunter.
+        // So beginnt die Partie genau dann, wenn der Server die Uhr startet
+        const tick = () => {
+            const msLeft = state.gameStartsAt - Date.now();
+            if (msLeft <= 0) {
                 startGame(); // Ins Spiel wechseln
+                return;
             }
-        }, 1000);
+            const seconds = Math.ceil(msLeft / 1000);
+            setText(countdownEl, seconds === 1 ? 'coin.countdownOne' : 'coin.countdown', { seconds });
+            countdownTimeout = setTimeout(tick, msLeft - (seconds - 1) * 1000); // Bis zur nächsten vollen Sekunde
+        };
+        tick();
     }, 2000);
 }
 
@@ -588,7 +585,7 @@ socket.on('opponentLeft', () => {
     }
     if (document.getElementById('coinTossScreen').classList.contains('active')) {
         clearTimeout(coinTossTimeout);
-        clearInterval(countdownInterval);
+        clearTimeout(countdownTimeout);
         setText(document.getElementById('startPlayerText'), 'end.opponentLeft', { name: state.opponentName });
         setText(document.getElementById('countdownText'));
         setTimeout(leaveToLobby, 3000);
@@ -706,7 +703,7 @@ socket.on('disconnect', () => {
     stopGame();
     clearTimeout(partyTimeout);
     clearTimeout(coinTossTimeout);
-    clearInterval(countdownInterval);
+    clearTimeout(countdownTimeout);
 
     leaveToLobby();
     showConfirm(t('error.disconnectedTitle'), t('error.disconnectedText'), t('common.ok'));

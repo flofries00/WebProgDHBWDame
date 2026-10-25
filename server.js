@@ -34,6 +34,7 @@ import {
     getWinner,
     countQuietKingTurns,
     isDraw,
+    introSeconds,
 } from './public/js/rules.js';
 
 // In ES-Modulen gibt es __dirname nicht automatisch, daher aus der Adresse dieser Datei berechnen
@@ -68,7 +69,6 @@ const JOIN_WINDOW_MS = 3000; // ... in diesem Zeitraum (ms), damit niemand Codes
 // Cheating-Schutz [8]: Die Bedenkzeit zählt der Server. SECOND_MS ist die Länge einer Sekunde in Millisekunden,
 // nur die Tests verstellen sie (schnellere Uhr), sonst gilt 1000
 const SECOND_MS = Number(process.env.SECOND_MS) > 0 ? Number(process.env.SECOND_MS) : 1000;
-const INTRO_MS = 12 * SECOND_MS; // Vor dem ersten Zug laufen im Browser Münzwurf, Countdown und ggf. die Auslosung
 const GRACE_MS = 1 * SECOND_MS; // Spielraum für die Übertragung: Ein Zug, der bei 0:00 unterwegs war, zählt noch
 
 /**
@@ -196,7 +196,7 @@ function startMatch(p1, p2) {
         players: [p1, p2],
         // Cheating-Schutz [8]: Restzeit beider Spieler in Millisekunden, die Uhr von Weiß läuft erst nach dem Münzwurf
         clock: { white: timeMinutes * 60 * SECOND_MS, black: timeMinutes * 60 * SECOND_MS },
-        turnStartedAt: Date.now() + INTRO_MS,
+        turnStartedAt: Date.now() + introSeconds(p1.timeSetting) * SECOND_MS, // Erst nach Münzwurf und Countdown
         clockTimer: null,
         quietKingTurns: 0, // Für die Remis-Regel: Damenzüge ohne Schlag hintereinander
     };

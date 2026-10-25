@@ -23,6 +23,15 @@ export const VARIANTS = {
     international: { size: 10, pieceRows: 4, menCaptureBackwards: true, majorityCapture: true },
 };
 
+/**
+ * Dauer des Vorlaufs vor dem ersten Zug in Sekunden: Münzwurf und Countdown, im Partymodus
+ * zusätzlich die Auslosung der Bedenkzeit.
+ * Browser und Server nutzen denselben Wert, damit beide Uhren gleichzeitig starten
+ */
+export function introSeconds(timeSetting) {
+    return timeSetting === 'party' ? 11 : 7;
+}
+
 // Alle vier Diagonalen
 const DIRECTIONS = [
     { dr: -1, dc: -1 }, // Oben links

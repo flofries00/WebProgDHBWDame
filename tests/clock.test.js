@@ -6,11 +6,13 @@ import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
 import { fileURLToPath } from 'node:url';
 import { io } from 'socket.io-client';
+import { introSeconds } from '../public/js/rules.js';
 
 const SERVER_FILE = fileURLToPath(new URL('../server.js', import.meta.url));
 const SECOND_MS = 20;
 const MINUTE_MS = 60 * SECOND_MS; // 1200 Millisekunden
-const INTRO_MS = 12 * SECOND_MS; // Vorlauf für den Münzwurf wie im Server
+const INTRO_MS = introSeconds('1') * SECOND_MS; // Vorlauf für den Münzwurf und Countdown wie im Server
+const GRACE_MS = 1 * SECOND_MS; // Spielraum für die Übertragung wie im Server
 
 let serverProcess;
 let serverUrl;
@@ -133,6 +135,15 @@ describe('Bedenkzeit auf dem Server', () => {
         black.emit('makeMove', { fromR: 2, fromC: 1, toR: 3, toC: 2 });
         const clock = await sync;
         assert.ok(clock.black <= MINUTE_MS - 700 && clock.black > MINUTE_MS - 1000, `Schwarz: ${clock.black}`);
+    });
+
+    it('meldet das Ende genau nach Vorlauf, Bedenkzeit und Spielraum (wie die Uhr im Browser)', async () => {
+        const start = Date.now();
+        const { white } = await startGame();
+        await waitFor(white, 'timeUp');
+        const elapsed = Date.now() - start;
+        const expected = INTRO_MS + MINUTE_MS + GRACE_MS;
+        assert.ok(elapsed >= expected - 20 && elapsed < expected + 150, `Nach ${elapsed} ms statt ${expected} ms`);
     });
 
     it('zählt die Zeit vor dem Ende des Münzwurfs nicht mit', async () => {
