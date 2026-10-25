@@ -16,7 +16,8 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
   Pflichtschläge werden automatisch rot markiert und lassen sich direkt anklicken.
 - **Bedenkzeit wählbar:** 1, 3, 5 oder 10 Minuten pro Spieler oder Partymodus (für beide dieselbe Zufallszeit von 1 bis
   10 Minuten, mit eigener Auslosung). Online spielen nur Spieler mit derselben Variante und Bedenkzeit gegeneinander,
-  der Setup-Bildschirm zeigt, wo gerade jemand wartet.
+  der Setup-Bildschirm zeigt, wo gerade jemand wartet. Variante und Bedenkzeit wählt man über Karten mit Bild
+  (Brett in der Startaufstellung, Uhr bzw. Partyhut).
 - **Private Räume:** Wer mit einem bestimmten Gegner spielen will, erstellt einen Raum und schickt ihm den Code oder
   den Link. Vor dem Beitreten zeigt eine Vorschau, wessen Raum es ist, die Variante als Brett und die Bedenkzeit als Uhr.
 - **Münzwurf** um die Farbe, Countdown bis zum Start, Konfetti oder Regen am Ende, Spielverlauf und Endstand.
@@ -27,10 +28,10 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
 - Ziehen per **Klick, Drag & Drop** (Maus, Finger und Stift über Pointer Events) oder **Tastatur**.
 - **Farbauswahl:** 13 Brett- und 8 Steinvorlagen oder eigene Farben, mit Live-Vorschau und Kontrastprüfung. Die Wahl
   wird im Browser gespeichert.
-- **Dark-Mode:** folgt automatisch der Einstellung des Betriebssystems, lässt sich per Button in der Kopfzeile umschalten. Die Wahl wird im Browser gespeichert
+- **Dark-Mode:** folgt automatisch der Einstellung des Betriebssystems, lässt sich per Button in der Kopfzeile umschalten. Die Wahl wird im Browser gespeichert.
 - **Hilfe-Fenster** (?) mit Bedienung, Markierungen und Regeln.
 - **Zwei Sprachen:** Deutsch und Englisch, umschaltbar per Button in der Kopfzeile (er zeigt die Zielsprache: EN bzw. DE). Ohne eigene Wahl gilt die Sprache des Browsers, die Wahl wird im Browser gespeichert.
-- **Interaktives Tutorial** mit Übungsbrett: 6 Lektionen (Ziehen, Schlagen, Schlagzwang, Mehrfachsprung, Dame, Damenzug), danach optional 3 Lektionen für International auf 10×10 (Rückwärtsschlagen, Mehrheitsschlag, Dame erst am Zugende). Öffnet sich beim ersten Besuch, danach über die Startseite oder das Hilfe-Fenster
+- **Interaktives Tutorial** mit Übungsbrett: 6 Lektionen (Ziehen, Schlagen, Schlagzwang, Mehrfachsprung, Dame, Damenzug), danach optional 3 Lektionen für International auf 10×10 (Rückwärtsschlagen, Mehrheitsschlag, Dame erst am Zugende). Öffnet sich beim ersten Besuch, danach über die Startseite oder das Hilfe-Fenster.
 - **Responsive** von 320px (Handy) bis zum großen Monitor, das Brett passt sich der Fensterhöhe an.
 - Töne für Züge, Münzwurf und Spielende, erzeugt per Web Audio API (abschaltbar).
 
@@ -140,6 +141,7 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
 │       ├── theme.js     Farben-Fenster: Vorlagen, eigene Farben, Vorschau, Speichern im Browser
 │       ├── colorMode.js    Dark-Mode: helles oder dunkles Design der Seite umschalten und merken
 │       ├── tutorial.js  Interaktives Tutorial: Lektionen auf einem Übungsbrett
+│       ├── pictures.js  Bilder für Variante und Bedenkzeit: Brett, Uhr, Partyhut (Setup und Raum-Vorschau)
 │       ├── i18n.js      Sprache (Deutsch/Englisch) wählen und merken, Texte übersetzen: t() und setText()
 │       ├── translations.js  Alle Texte der Oberfläche auf Deutsch und Englisch
 │       └── colors.js    Farbvorlagen und Kontrastprüfung nach WCAG ohne HTML (testbar wie rules.js)
@@ -171,6 +173,8 @@ flowchart TB
         Tutorial["tutorial.js<br/>Tutorial mit Übungsbrett"]
         State["state.js<br/>gemeinsamer Zustand"]
         SocketC["socket.js<br/>Serververbindung"]
+        I18n["i18n.js + translations.js<br/>Deutsch und Englisch"]
+        Pictures["pictures.js<br/>Brett, Uhr, Partyhut"]
         HTML --> Main
         Main --> UI
         Main --> Game
@@ -188,6 +192,10 @@ flowchart TB
         Game --> State
         UI --> SocketC
         Game --> SocketC
+        Main --> I18n
+        Main --> Pictures
+        UI --> Pictures
+        Pictures --> RulesC
     end
 
     subgraph Server["Node.js-Server (server.js)"]
@@ -359,7 +367,7 @@ Die wichtigsten Befehle auf dem Server:
 
 ## Mögliche Erweiterungen
 
-- Private Räume für Partien mit Freunden
+- Zug rückgängig machen in Partien gegen den Computer
 
 ## Autor
 
