@@ -537,7 +537,7 @@ export function handleChatSubmit(event) {
 
     if (msg.length > 0) {
         // a) Nachricht lokal anzeigen
-        addChatMessage('Du', msg, true);
+        addChatMessage(t('game.chatYou'), msg, true);
 
         // b) Nachricht an Server senden
         if (state.gameMode === 'online') {
