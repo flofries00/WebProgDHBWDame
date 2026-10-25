@@ -1140,24 +1140,3 @@ function handleBoardFocus(event) {
 document.getElementById('board').addEventListener('click', handleBoardClick);
 document.getElementById('board').addEventListener('keydown', handleBoardKeydown);
 document.getElementById('board').addEventListener('focusin', handleBoardFocus);
-
-/**
- * TODOs (sortiert nach Bewertungskriterien, Abgabe 27.10. 8:00 Uhr):
- *
- * A) Pflicht-Anforderungen
- *
- * B) Werkzeuge
- *
- * C) Umbau der Struktur
- *
- * D) Robustheit & Qualität
- *
- * E) Oberfläche
- *
- * F) Abschluss
- * UI abschließend kontrollieren
- * Github-Repo aufräumen (README, Lizenz), Präsentation vorbereiten
- * Server vor der Spielzeit am 29.10. einschalten (git pull, sudo systemctl enable --now dame)
- *
- * G) Optional, nur wenn Zeit bleibt
- */
