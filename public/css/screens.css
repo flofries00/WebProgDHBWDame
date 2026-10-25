@@ -62,14 +62,14 @@
         }
     }
 
-    /* ---------- Spiel einrichten: Auswahl der Bedenkzeit ---------- */
-    .time-options {
+    /* ---------- Spiel einrichten: Variante und Bedenkzeit als Karten mit Bild ---------- */
+    .option-cards {
         display: flex;
-        flex-direction: column;
+        flex-wrap: wrap;
+        justify-content: center;
         gap: 0.625rem;
-        margin: 0 0 1.5625rem;
-        padding: 1rem 1.25rem;
-        text-align: start;
+        margin: 0 0 0.875rem;
+        padding: 0.5rem 1rem 0.75rem;
         border: 2px solid var(--color-border);
         border-radius: var(--radius-medium);
 
@@ -77,19 +77,65 @@
             padding-inline: 0.5rem;
             font-weight: bold;
         }
+    }
 
-        & label {
+    .option-card {
+        position: relative;
+        display: flex;
+        flex: 1 1 0; /* Alle Karten einer Reihe gleich breit, auf dem Handy brechen sie in mehrere Reihen um */
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        box-sizing: border-box; /* Rahmen und Innenabstand zählen zur Breite */
+        min-width: 4.75rem;
+        max-width: 11rem;
+        padding: 0.375rem 0.625rem;
+        text-align: center;
+        border: 2px solid var(--color-border);
+        border-radius: var(--radius-medium);
+        cursor: pointer;
+
+        /* Der Radiobutton liegt unsichtbar über der ganzen Karte: Klick, Tastatur und Screenreader wie bisher */
+        & input {
+            position: absolute;
+            inset: 0;
+            margin: 0;
+            opacity: 0;
             cursor: pointer;
         }
 
-        & input {
-            margin-inline-end: 0.5rem;
-            accent-color: var(--color-primary); /* Radiobuttons im DHBW-Rot */
+        &:hover {
+            background-color: var(--color-surface-alt);
         }
 
-        & .input-hint {
-            margin: 0 0 0 1.75rem; /* Bündig unter dem Text, nicht unter dem Radiobutton */
+        /* Gewählte Karte: roter Rahmen (:has prüft, ob der Radiobutton darin gewählt ist) */
+        &:has(input:checked) {
+            border-color: var(--color-primary);
+            background-color: var(--color-primary-soft);
         }
+
+        &:has(input:focus-visible) {
+            outline: 3px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+
+        & .tutorial-board {
+            width: min(6rem, 100%); /* Auf schmalen Handys so breit wie die Karte */
+            margin: 0;
+            border-width: 0.25rem;
+        }
+
+        & .time-icon {
+            width: 3rem;
+            height: 3rem;
+        }
+    }
+
+    /* Hinweis zum Partymodus unter den Karten */
+    .option-hint {
+        flex-basis: 100%;
+        margin: 0;
+        text-align: center;
     }
 
     /* ---------- Spiel einrichten: privates Spiel mit Code ---------- */
@@ -170,15 +216,13 @@
         border-width: 0.3rem;
     }
 
-    .room-preview-icon {
+    .room-preview .time-icon {
         width: 8rem;
         height: 8rem;
+    }
 
-        /* Der Browser blendet nur HTML-Elemente mit hidden aus, SVG nicht von selbst */
-        &[hidden] {
-            display: none;
-        }
-
+    /* Uhr und Partyhut (pictures.js): Farben aus den Variablen, passen so zum hellen und dunklen Design */
+    .time-icon {
         & .clock-face {
             fill: var(--color-surface-alt);
             stroke: var(--color-text);

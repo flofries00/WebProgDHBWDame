@@ -124,49 +124,66 @@
             <section id="setupScreen" class="screen">
                 <h2 data-i18n="setup.heading">Spiel einrichten</h2>
                 <form id="setupForm">
-                    <!-- Die Werte passen zu VARIANTS in rules.js, die Regeln stehen im Hilfe-Fenster -->
-                    <fieldset class="time-options">
+                    <!-- Variante und Bedenkzeit als Karten mit Bild (Brett, Uhr, Partyhut, gezeichnet von pictures.js).
+                         Die Radiobuttons bleiben für Tastatur und Screenreader, die Karte zeigt die Auswahl.
+                         Die Werte passen zu VARIANTS in rules.js, die Regeln stehen im Hilfe-Fenster -->
+                    <fieldset class="option-cards">
                         <legend data-i18n="setup.variant">Variante</legend>
-                        <label>
+                        <label class="option-card">
                             <input type="radio" name="variant" value="klassisch" checked />
+                            <span
+                                class="tutorial-board option-picture"
+                                data-board="klassisch"
+                                aria-hidden="true"
+                            ></span>
                             <span data-i18n="setup.classic">Klassisch (8×8)</span>
                         </label>
-                        <label>
+                        <label class="option-card">
                             <input type="radio" name="variant" value="international" />
+                            <span
+                                class="tutorial-board option-picture"
+                                data-board="international"
+                                aria-hidden="true"
+                            ></span>
                             <span data-i18n="setup.international">International (10×10)</span>
                         </label>
                     </fieldset>
-                    <fieldset class="time-options">
+                    <fieldset class="option-cards">
                         <legend data-i18n="setup.time">Bedenkzeit pro Spieler</legend>
                         <!-- Die leeren .queue-badge füllt ui.js im Online-Modus mit "1 wartet" -->
-                        <label>
+                        <label class="option-card">
                             <input type="radio" name="timeSetting" value="1" />
+                            <span class="option-picture" data-time="1" aria-hidden="true"></span>
                             <span data-i18n="setup.minutes1">1 Minute</span>
                             <span class="queue-badge"></span>
                         </label>
-                        <label>
+                        <label class="option-card">
                             <input type="radio" name="timeSetting" value="3" />
+                            <span class="option-picture" data-time="3" aria-hidden="true"></span>
                             <span data-i18n="setup.minutes3">3 Minuten</span>
                             <span class="queue-badge"></span>
                         </label>
-                        <label>
+                        <label class="option-card">
                             <input type="radio" name="timeSetting" value="5" checked />
+                            <span class="option-picture" data-time="5" aria-hidden="true"></span>
                             <span data-i18n="setup.minutes5">5 Minuten</span>
                             <span class="queue-badge"></span>
                         </label>
-                        <label>
+                        <label class="option-card">
                             <input type="radio" name="timeSetting" value="10" />
+                            <span class="option-picture" data-time="10" aria-hidden="true"></span>
                             <span data-i18n="setup.minutes10">10 Minuten</span>
                             <span class="queue-badge"></span>
                         </label>
-                        <label>
+                        <label class="option-card">
                             <input type="radio" name="timeSetting" value="party" aria-describedby="partyHint" />
+                            <span class="option-picture" data-time="party" aria-hidden="true"></span>
                             <span data-i18n="setup.party">Partymodus</span>
                             <span class="queue-badge"></span>
-                            <span id="partyHint" class="input-hint" data-i18n="setup.partyHint">
-                                1 bis 10 Minuten per Zufall, für beide gleich
-                            </span>
                         </label>
+                        <span id="partyHint" class="input-hint option-hint" data-i18n="setup.partyHint">
+                            Partymodus: 1 bis 10 Minuten per Zufall, für beide gleich
+                        </span>
                     </fieldset>
                     <p id="onlineCount" class="input-hint"></p>
                     <button type="button" id="setupBackBtn" class="secondary-btn" data-i18n="common.back">
@@ -460,24 +477,8 @@
                         <figcaption id="roomPreviewVariant"></figcaption>
                     </figure>
                     <figure>
-                        <!-- Uhr: Der rote Ausschnitt zeigt die Bedenkzeit, das ganze Zifferblatt sind 10 Minuten -->
-                        <svg id="roomPreviewClock" class="room-preview-icon" viewBox="0 0 64 64" aria-hidden="true">
-                            <circle cx="32" cy="32" r="28" class="clock-face" />
-                            <path id="roomPreviewSector" class="clock-sector" />
-                            <circle cx="32" cy="32" r="3" class="clock-center" />
-                        </svg>
-                        <!-- Partymodus: Partyhut statt Uhr -->
-                        <svg
-                            id="roomPreviewHat"
-                            class="room-preview-icon"
-                            viewBox="0 0 64 64"
-                            aria-hidden="true"
-                            hidden
-                        >
-                            <path d="M32 8 L52 58 H12 Z" class="hat-cone" />
-                            <path d="M24.3 28 H39.7 M18.2 44 H45.8" class="hat-stripes" />
-                            <circle cx="32" cy="8" r="5" class="hat-pompom" />
-                        </svg>
+                        <!-- Uhr bzw. Partyhut zeichnet pictures.js -->
+                        <span id="roomPreviewTimeIcon"></span>
                         <figcaption id="roomPreviewTime"></figcaption>
                     </figure>
                 </div>

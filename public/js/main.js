@@ -19,6 +19,7 @@ import { toggleSound } from './sound.js';
 import { loadTheme, openThemeDialog, handleThemeInput, handleThemeDialogClose } from './theme.js';
 import { loadColorMode, toggleColorMode } from './colorMode.js';
 import { loadLanguage, toggleLanguage } from './i18n.js';
+import { renderSetupPictures } from './pictures.js';
 import {
     openTutorial,
     openTutorialOnFirstVisit,
@@ -75,7 +76,8 @@ document.getElementById('loginForm').addEventListener('submit', (event) => {
 });
 onClick('loginBackBtn', () => showScreen('modeScreen'));
 
-// Spiel einrichten (Variante und Bedenkzeit)
+// Spiel einrichten (Variante und Bedenkzeit): Bilder in die Karten zeichnen
+renderSetupPictures();
 document.getElementById('setupForm').addEventListener('submit', (event) => {
     event.preventDefault();
     startSearch();

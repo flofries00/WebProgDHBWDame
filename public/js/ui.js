@@ -1,9 +1,10 @@
 import { state } from './state.js';
 import { socket } from './socket.js';
-import { startGame, endGame, stopGame, createPieceElement } from './game.js';
+import { startGame, endGame, stopGame } from './game.js';
 import { playSound } from './sound.js';
 import { t, setText } from './i18n.js';
-import { VARIANTS, createInitialBoard } from './rules.js';
+import { VARIANTS } from './rules.js';
+import { renderBoardPicture, createTimeIcon } from './pictures.js';
 
 // Globale Variablen für den Spielablauf
 
@@ -238,30 +239,15 @@ socket.on('roomPreview', (preview) => {
     const [before, after] = t('room.previewTitle').split('{name}');
     document.getElementById('roomPreviewTitle').replaceChildren(before, name, after);
 
-    // Variante als kleines Brett in der Startaufstellung (gleiche Felder und Steine wie im Spiel)
-    const board = createInitialBoard(preview.variant);
-    const cells = board.flatMap((row, r) =>
-        row.map((piece, c) => {
-            const cell = document.createElement('span');
-            cell.className = 'cell ' + ((r + c) % 2 !== 0 ? 'black-bg' : 'white-bg');
-            if (piece) cell.append(createPieceElement(piece));
-            return cell;
-        })
-    );
-    const boardElement = document.getElementById('roomPreviewBoard');
-    boardElement.style.setProperty('--tutorial-size', board.length);
-    boardElement.replaceChildren(...cells);
+    // Variante als kleines Brett, Bedenkzeit als Uhr bzw. Partyhut (pictures.js)
+    renderBoardPicture(document.getElementById('roomPreviewBoard'), preview.variant);
     setText(
         document.getElementById('roomPreviewVariant'),
         preview.variant === 'klassisch' ? 'setup.classic' : 'setup.international'
     );
 
-    // Bedenkzeit als Uhr (im Partymodus als Partyhut)
+    document.getElementById('roomPreviewTimeIcon').replaceChildren(createTimeIcon(preview.timeSetting));
     const party = preview.timeSetting === 'party';
-    // toggleAttribute statt .hidden: SVG-Elemente kennen die Eigenschaft hidden nicht
-    document.getElementById('roomPreviewClock').toggleAttribute('hidden', party);
-    document.getElementById('roomPreviewHat').toggleAttribute('hidden', !party);
-    if (!party) drawClockSector(Number(preview.timeSetting));
     setText(document.getElementById('roomPreviewTime'), party ? 'setup.party' : `setup.minutes${preview.timeSetting}`);
 
     // Fenster öffnen, erst bei "Raum beitreten" geht es los
@@ -278,20 +264,6 @@ socket.on('roomPreview', (preview) => {
         { once: true }
     );
 });
-
-/**
- * Zeichnet auf der Uhr der Raum-Vorschau den roten Ausschnitt: Das ganze Ziffernblatt sind 10 Minuten.
- * 5 Minuten sind also ein halber Kreis. Der Ausschnitt beginnt oben bei 12 Uhr
- */
-function drawClockSector(minutes) {
-    const angle = Math.min(minutes / 10, 0.999) * 2 * Math.PI; // Ein voller Kreis ließe sich nicht als Bogen zeichnen
-    const x = 32 + 28 * Math.sin(angle);
-    const y = 32 - 28 * Math.cos(angle);
-    const largeArc = angle > Math.PI ? 1 : 0; // Mehr als ein halber Kreis: der große Bogen
-    document
-        .getElementById('roomPreviewSector')
-        .setAttribute('d', `M32 32 L32 4 A28 28 0 ${largeArc} 1 ${x.toFixed(2)} ${y.toFixed(2)} Z`);
-}
 
 /**
  * Kopiert den Link zum eigenen Raum. Ohne Zugriff auf die Zwischenablage (z.B. ohne HTTPS) steht der Link da
