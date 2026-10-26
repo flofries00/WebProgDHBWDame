@@ -164,7 +164,8 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
     ├── https.test.js    Integrationstests für HTTPS (HTTP- und HTTPS-Spieler in einer Partie)
     ├── clock.test.js    Bedenkzeit auf dem Server mit schneller Test-Uhr (Ablauf, Zeitabzug, keine Züge danach)
     ├── rooms.test.js    Private Räume: erstellen, Vorschau, beitreten, Fehlerfälle, Raten bremsen
-    └── translations.test.js  Beide Sprachen vollständig: gleiche Schlüssel, gleiche Platzhalter, Texte für alle Vorlagen
+    ├── translations.test.js  Beide Sprachen vollständig: gleiche Schlüssel, gleiche Platzhalter, Texte für alle Vorlagen
+    └── imports.test.js  Jeder importierte Name wird von der Zieldatei auch exportiert (findet Tippfehler in Importen)
 ```
 
 ## Architektur
