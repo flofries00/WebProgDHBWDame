@@ -21,6 +21,18 @@ export function resetChat(online) {
 }
 
 /**
+ * Hinweis im Chat ohne Absender (kursiv), z.B. "Anna hat das Remis abgelehnt."
+ */
+export function addSystemMessage(key, params) {
+    const container = document.querySelector('.chat-messages');
+    const message = document.createElement('p');
+    message.className = 'sys-msg';
+    setText(message, key, params);
+    container.appendChild(message);
+    container.scrollTop = container.scrollHeight;
+}
+
+/**
  * Verarbeitet Chat-Eingaben
  */
 export function handleChatSubmit(event) {

@@ -374,6 +374,17 @@
         }
     }
 
+    /* Remis anbieten und Aufgeben nebeneinander, gleich breit (gegen den Computer nur Aufgeben) */
+    .game-buttons {
+        display: flex;
+        gap: 0.625rem;
+
+        & button {
+            flex: 1;
+            margin: 0;
+        }
+    }
+
     .sys-msg {
         margin: 0;
         font-style: italic;

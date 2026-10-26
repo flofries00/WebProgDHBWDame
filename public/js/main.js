@@ -12,6 +12,7 @@ import {
 } from './ui.js';
 import { abortGame } from './game.js';
 import { moveReview } from './review.js';
+import { offerDraw } from './draw.js';
 import { toggleSound } from './sound.js';
 import { loadTheme, openThemeDialog, handleThemeInput, handleThemeDialogClose } from './theme.js';
 import { loadColorMode, toggleColorMode } from './colorMode.js';
@@ -101,6 +102,7 @@ onClick('cancelWaitBtn', cancelWait);
 // Spielbildschirm
 document.getElementById('chatForm').addEventListener('submit', handleChatSubmit);
 onClick('abortBtn', abortGame);
+onClick('drawBtn', offerDraw);
 
 // Endbildschirm
 onClick('replayBtn', requestReplay);

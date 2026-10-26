@@ -393,7 +393,13 @@
                                 />
                             </form>
                         </div>
-                        <button id="abortBtn" class="secondary-btn" data-i18n="game.resign">Spiel aufgeben</button>
+                        <!-- Remis anbieten gibt es nur online (draw.js blendet den Button gegen den Computer aus) -->
+                        <div class="game-buttons">
+                            <button id="drawBtn" class="secondary-btn" data-i18n="game.offerDraw">
+                                ½ Remis anbieten
+                            </button>
+                            <button id="abortBtn" class="secondary-btn" data-i18n="game.resign">Spiel aufgeben</button>
+                        </div>
                     </div>
                 </div>
             </section>

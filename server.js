@@ -13,6 +13,8 @@
  * [7] Chat-Spam: Höchstens 5 Nachrichten in 3 Sekunden pro Spieler, weitere werden verworfen
  * [8] Bedenkzeit: Der Server zählt die Zeit beider Spieler, meldet das Ende (timeUp) und nimmt danach keine Züge mehr an
  * [9] Private Räume: Codes erzeugt der Server zufällig, Beitreten nur mit gültigem Code, Raten wird gebremst
+ * [10] Remis-Angebot: Annehmen kann nur der Gegner, nur bei einem offenen Angebot in einer laufenden Partie,
+ *      höchstens 3 Angebote pro Spieler und Partie
  */
 
 import express from 'express';
@@ -65,6 +67,7 @@ const ROOM_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const ROOM_CODE_LENGTH = 5;
 const JOIN_LIMIT = 5; // Cheating-Schutz [9]: höchstens so viele Beitrittsversuche...
 const JOIN_WINDOW_MS = 3000; // ... in diesem Zeitraum (ms), damit niemand Codes durchprobieren kann
+const MAX_DRAW_OFFERS = 3; // Cheating-Schutz [10]: So oft darf jeder Spieler pro Partie Remis anbieten
 
 // Cheating-Schutz [8]: Die Bedenkzeit zählt der Server. SECOND_MS ist die Länge einer Sekunde in Millisekunden,
 // nur die Tests verstellen sie (schnellere Uhr), sonst gilt 1000
@@ -199,6 +202,8 @@ function startMatch(p1, p2) {
         turnStartedAt: Date.now() + introSeconds(p1.timeSetting) * SECOND_MS, // Erst nach Münzwurf und Countdown
         clockTimer: null,
         quietKingTurns: 0, // Für die Remis-Regel: Damenzüge ohne Schlag hintereinander
+        drawOfferBy: null, // Farbe des Spielers, dessen Remis-Angebot gerade offen ist
+        drawOffers: { white: 0, black: 0 }, // Bisherige Remis-Angebote pro Farbe
     };
     startClock(game);
     p1.game = game;
@@ -443,6 +448,33 @@ io.on('connection', (socket) => {
 
         // Leitet Nachricht nur an den verknüpften Gegner weiter
         socket.to(socket.oppId).emit('chatMessage', cleanMsg);
+    });
+
+    // Cheating-Schutz [10]: Remis anbieten. Nur in einer laufenden Partie, nur ein offenes Angebot, höchstens 3 pro Spieler
+    onSafe(socket, 'offerDraw', () => {
+        const game = socket.game;
+        if (!game || !socket.oppId || game.turn === null || game.drawOfferBy) return;
+        if (game.drawOffers[socket.color] >= MAX_DRAW_OFFERS) return;
+
+        game.drawOffers[socket.color]++;
+        game.drawOfferBy = socket.color;
+        socket.to(socket.oppId).emit('drawOffered');
+    });
+
+    // Cheating-Schutz [10]: Antwort auf ein Remis-Angebot. Nur der Gegner des Anbietenden darf antworten
+    onSafe(socket, 'answerDraw', (accept) => {
+        const game = socket.game;
+        if (!game || game.turn === null || !game.drawOfferBy || game.drawOfferBy === socket.color) return;
+
+        game.drawOfferBy = null;
+        if (accept === true) {
+            // Remis: Wecker aus, keine Züge mehr, beide erfahren es
+            clearTimeout(game.clockTimer);
+            game.turn = null;
+            game.players.forEach((player) => player.emit('drawAgreed'));
+        } else {
+            socket.to(socket.oppId).emit('drawDeclined');
+        }
     });
 
     // Revanche: Startet, sobald beide Spieler sie wollen

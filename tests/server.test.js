@@ -420,6 +420,70 @@ describe('Partie verlassen', () => {
     });
 });
 
+describe('Remis-Angebot', () => {
+    it('beendet die Partie, wenn der Gegner das Angebot annimmt', async () => {
+        const { white, black } = await startGame();
+        const offered = waitFor(black, 'drawOffered');
+        white.emit('offerDraw');
+        await offered;
+
+        const agreed = Promise.all([waitFor(white, 'drawAgreed'), waitFor(black, 'drawAgreed')]);
+        black.emit('answerDraw', true);
+        await agreed;
+
+        // Danach nimmt der Server keine Züge mehr an
+        const noMove = expectNoEvent(black, 'receiveMove');
+        white.emit('makeMove', { fromR: 5, fromC: 0, toR: 4, toC: 1 });
+        await noMove;
+    });
+
+    it('lässt den Anbietenden sein eigenes Angebot nicht annehmen', async () => {
+        const { white, black } = await startGame();
+        const offered = waitFor(black, 'drawOffered');
+        white.emit('offerDraw');
+        await offered;
+        const noDraw = expectNoEvent(black, 'drawAgreed');
+        white.emit('answerDraw', true);
+        await noDraw;
+    });
+
+    it('ignoriert eine Antwort, wenn kein Angebot offen ist', async () => {
+        const { white, black } = await startGame();
+        const noDraw = expectNoEvent(white, 'drawAgreed');
+        black.emit('answerDraw', true);
+        await noDraw;
+    });
+
+    it('meldet eine Ablehnung dem Anbietenden, die Partie läuft weiter', async () => {
+        const { white, black } = await startGame();
+        const offered = waitFor(black, 'drawOffered');
+        white.emit('offerDraw');
+        await offered;
+        const declined = waitFor(white, 'drawDeclined');
+        black.emit('answerDraw', false);
+        await declined;
+
+        const received = waitFor(black, 'receiveMove');
+        white.emit('makeMove', { fromR: 5, fromC: 0, toR: 4, toC: 1 });
+        await received;
+    });
+
+    it('erlaubt jedem Spieler höchstens 3 Angebote pro Partie', async () => {
+        const { white, black } = await startGame();
+        for (let i = 0; i < 3; i++) {
+            const offered = waitFor(black, 'drawOffered');
+            white.emit('offerDraw');
+            await offered;
+            const declined = waitFor(white, 'drawDeclined');
+            black.emit('answerDraw', false);
+            await declined;
+        }
+        const noOffer = expectNoEvent(black, 'drawOffered');
+        white.emit('offerDraw');
+        await noOffer;
+    });
+});
+
 describe('Serverstart', () => {
     it('bricht bei einem ungültigen Port mit verständlicher Meldung ab', () => {
         const result = spawnSync(process.execPath, [SERVER_FILE, 'abc'], { encoding: 'utf-8' });

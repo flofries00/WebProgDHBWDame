@@ -6,6 +6,7 @@ import { resetChat } from './chat.js';
 import { startHistory, noteMove, recordTurn, markLastMove, showReview } from './review.js';
 import { startClock, switchClock, stopClock } from './clock.js';
 import { chooseComputerMove } from './ai.js';
+import { resetDrawOffer } from './draw.js';
 import { playSound } from './sound.js';
 import {
     createInitialBoard,
@@ -107,6 +108,9 @@ export function startGame() {
 
     // Chat leeren, nur im Multiplayer aktiv
     resetChat(state.gameMode === 'online');
+
+    // Remis anbieten (nur online - draw.js)
+    resetDrawOffer();
 
     // Hat der Computer Weiß, beginnt er (makeComputerMove prüft das selbst)
     if (state.gameMode === 'computer') {
@@ -561,8 +565,8 @@ function checkWinCondition() {
 }
 
 /**
- * Beendet das Spiel und zeigt den Endbildschirm. reason: '' (normales Ende), 'timeout', 'opponentLeft' oder 'draw'
- * (bei 'draw' ist winnerColor null)
+ * Beendet das Spiel und zeigt den Endbildschirm. reason: '' (normales Ende), 'timeout', 'opponentLeft', 'draw'
+ * (Remis-Regel) oder 'drawAgreed' (Remis angenommen). Bei einem Remis ist winnerColor null
  */
 export function endGame(winnerColor, reason = '') {
     // Endet das Spiel mitten in einem Zug (z.B. Zeit abgelaufen beim Mehrfachsprung), diesen Stand auch merken
@@ -583,6 +587,8 @@ export function endGame(winnerColor, reason = '') {
     const textEl = document.getElementById('winnerText');
     if (reason === 'draw') {
         setText(textEl, 'end.draw');
+    } else if (reason === 'drawAgreed') {
+        setText(textEl, 'end.drawAgreed');
     } else if (reason === 'timeout') {
         setText(textEl, 'end.timeout', { winner });
     } else if (reason === 'opponentLeft') {
@@ -627,7 +633,7 @@ export function endGame(winnerColor, reason = '') {
     updateTabTitle();
 
     // Konfetti und Fanfare zünden nur bei Gewinner, sonst Regen und Verlierermelodie (bei Remis beides nicht)
-    if (reason === 'draw') {
+    if (reason === 'draw' || reason === 'drawAgreed') {
         playSound('coinLand');
     } else if (
         (winnerColor === 'white' && state.playerGetsWhite) ||

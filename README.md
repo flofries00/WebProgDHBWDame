@@ -10,7 +10,7 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
 
 **Spielen**
 
-- **Zwei Modi:** gegen den Computer oder online gegen einen anderen Menschen, mit Chat und Revanche.
+- **Zwei Modi:** gegen den Computer oder online gegen einen anderen Menschen, mit Chat, Remis-Angebot und Revanche.
 - **Computer-Stärke wählbar:** „Leicht“ zieht zufällig, „Mittel“ bewertet jeden Zug und denkt einen Zug des Gegners
   voraus (schlägt gezielt, wird gern zur Dame, stellt keine Steine ein).
 - **Zwei Varianten mit vollständigen Spielregeln** (siehe [Spielregeln](#spielregeln)): „Klassisch“ (8×8) und
@@ -43,7 +43,7 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
 - Der Server führt für jede Partie ein eigenes Brett und **prüft jeden Zug** mit denselben Regeln wie der Browser
   (`rules.js`). Unerlaubte oder gefälschte Züge werden verworfen.
 - Namen, Bedenkzeit und Chatnachrichten werden auch serverseitig geprüft, Nachrichten werden nur als Text angezeigt.
-- Alle Maßnahmen gegen Cheating stehen als Liste [1]-[9] oben in `server.js` und sind im Code mit "Cheating-Schutz [Nr.]" markiert.
+- Alle Maßnahmen gegen Cheating stehen als Liste [1]-[10] oben in `server.js` und sind im Code mit "Cheating-Schutz [Nr.]" markiert.
 
 ## Spielregeln
 
@@ -115,7 +115,7 @@ Wie „Klassisch“, mit diesen Unterschieden (Regeln des Weltverbands FMJD):
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Responsiveness**        | Von 320px (Handy) bis zum großen Monitor, das Brett passt sich der Fensterhöhe an                                                                                                     |
 | **Internationalisierung** | Deutsch und Englisch, umschaltbar in der Kopfzeile. Alle Texte in `public/js/translations.js`, die Logik in `public/js/i18n.js`, ein Test prüft, dass beide Sprachen vollständig sind |
-| **Cheatingprävention**    | Der Server prüft jeden Zug. Übersicht [1]–[9] oben in `server.js`, im Code mit „Cheating-Schutz [Nr.]“ markiert                                                                       |
+| **Cheatingprävention**    | Der Server prüft jeden Zug. Übersicht [1]–[10] oben in `server.js`, im Code mit „Cheating-Schutz [Nr.]“ markiert                                                                      |
 
 ## Qualitätssicherung
 
@@ -151,6 +151,7 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
 │       ├── review.js    Nachspielen der Partie im Endbildschirm
 │       ├── clock.js     Bedenkzeit: Uhren beider Spieler, Abgleich mit der Uhr des Servers
 │       ├── ai.js        Computergegner ohne HTML: Leicht (zufällig) oder Mittel (bewertet die Züge)
+│       ├── draw.js      Remis anbieten und auf ein Angebot antworten (nur online)
 │       ├── i18n.js      Sprache (Deutsch/Englisch) wählen und merken, Texte übersetzen: t() und setText()
 │       ├── translations.js  Alle Texte der Oberfläche auf Deutsch und Englisch
 │       └── colors.js    Farbvorlagen und Kontrastprüfung nach WCAG ohne HTML (testbar wie rules.js)
@@ -191,6 +192,7 @@ flowchart TB
         Review["review.js<br/>Nachspielen"]
         Clock["clock.js<br/>Bedenkzeit"]
         AI["ai.js<br/>Computergegner"]
+        Draw["draw.js<br/>Remis-Angebot"]
         HTML --> Main
         Main --> UI
         Main --> Game
@@ -225,6 +227,9 @@ flowchart TB
         Clock --> SocketC
         Game --> AI
         AI --> RulesC
+        Main --> Draw
+        Game <--> Draw
+        Draw --> SocketC
     end
 
     subgraph Server["Node.js-Server (server.js)"]
@@ -243,7 +248,7 @@ flowchart TB
 
 - **Gemeinsame Spielregeln:** `rules.js` arbeitet nur mit Daten (8×8- bzw. 10×10-Array) und kennt kein HTML. Dadurch nutzen Browser und Server dieselbe Datei. Der Browser zeigt erlaubte Züge sofort an, der Server ist der Schiedsrichter und leitet nur erlaubte Züge weiter.
 - **Server führt pro Partie ein eigenes Brett** und weiß, wer am Zug ist. Ein manipulierter Browser kann weder für den Gegner ziehen noch Regeln brechen.
-- **Cheating-Schutz** ist oben in `server.js` als Liste [1]-[9] zusammengefasst und im Code an jeder Stelle mit "Cheating-Schutz [Nr.]" markiert.
+- **Cheating-Schutz** ist oben in `server.js` als Liste [1]-[10] zusammengefasst und im Code an jeder Stelle mit "Cheating-Schutz [Nr.]" markiert.
 - **Computergegner läuft komplett im Browser**, dafür ist keine Serververbindung nötig.
 - **Bedenkzeit auf dem Server:** Der Server zählt die Zeit beider Spieler selbst (Cheating-Schutz [8]). Die Uhr im Browser ist nur Anzeige und wird nach jedem Zug auf den Stand des Servers gesetzt. Bei 0:00 entscheidet der Server.
 - **Kein Build-Schritt:** ES-Module laufen direkt im Browser, CSS-Layer ersetzen `!important`.
@@ -310,6 +315,11 @@ sequenceDiagram
 | `clockSync`           | Server → Browser | Restzeit `white`, `black` in Millisekunden                    | – (nach jedem fertigen Zug an beide, die Anzeige übernimmt sie)                                                                                                           |
 | `timeUp`              | Server → Browser | `winner`                                                      | – (der Server zählt die Bedenkzeit und meldet beiden das Ende)                                                                                                            |
 | `chatMessage`         | beide Richtungen | Text                                                          | muss Text sein, wird gekürzt (max. 200 Zeichen), leere werden verworfen                                                                                                   |
+| `offerDraw`           | Browser → Server | –                                                             | Partie läuft, kein Angebot offen, höchstens 3 Angebote pro Spieler und Partie                                                                                             |
+| `drawOffered`         | Server → Browser | –                                                             | –                                                                                                                                                                         |
+| `answerDraw`          | Browser → Server | `true` (annehmen) oder `false`                                | nur der Gegner des Anbietenden, nur bei offenem Angebot in einer laufenden Partie                                                                                         |
+| `drawAgreed`          | Server → Browser | –                                                             | – (an beide, danach nimmt der Server keine Züge mehr an)                                                                                                                  |
+| `drawDeclined`        | Server → Browser | –                                                             | – (an den Anbietenden)                                                                                                                                                    |
 | `requestReplay`       | Browser → Server | –                                                             | –                                                                                                                                                                         |
 | `opponentWantsReplay` | Server → Browser | –                                                             | –                                                                                                                                                                         |
 | `leaveMatch`          | Browser → Server | –                                                             | –                                                                                                                                                                         |
