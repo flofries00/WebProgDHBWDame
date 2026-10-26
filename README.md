@@ -26,6 +26,7 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
 **Bedienung und Oberfläche**
 
 - Ziehen per **Klick, Drag & Drop** (Maus, Finger und Stift über Pointer Events) oder **Tastatur**.
+- **Letzter Zug gelb markiert** (Start- und Zielfeld): Man sieht sofort, was der Gegner gezogen hat.
 - **Farbauswahl:** 13 Brett- und 8 Steinvorlagen oder eigene Farben, mit Live-Vorschau und Kontrastprüfung. Die Wahl
   wird im Browser gespeichert.
 - **Dark-Mode:** folgt automatisch der Einstellung des Betriebssystems, lässt sich per Button in der Kopfzeile umschalten. Die Wahl wird im Browser gespeichert.

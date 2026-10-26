@@ -41,22 +41,40 @@ export function showReview(boardElement) {
 }
 
 /**
+ * Markiert Start- und Zielfeld eines Zugs gelb (from und to sind { row, col } oder null)
+ */
+function markMove(boardElement, from, to) {
+    const isAt = (square, row, col) => square?.row === row && square?.col === col;
+    boardElement.querySelectorAll('.cell').forEach((cell) => {
+        const row = Number(cell.dataset.row);
+        const col = Number(cell.dataset.col);
+        cell.classList.toggle('move-from', isAt(from, row, col));
+        cell.classList.toggle('move-to', isAt(to, row, col));
+    });
+}
+
+/**
+ * Nach jedem vollständigen Zug: Auf dem Spielbrett Start- und Zielfeld des letzten Zugs markieren
+ * (so sieht man sofort, was der Gegner gezogen hat)
+ */
+export function markLastMove() {
+    const { from, to } = turnHistory.at(-1);
+    markMove(document.getElementById('board'), from, to);
+}
+
+/**
  * Zeigt auf dem Endbrett den Stand nach Zug "index" (0 = Startaufstellung) und markiert den Zug im Spielverlauf
  */
 function showReviewStep(index) {
     reviewIndex = index;
     const { board: snapshot, from, to } = turnHistory[index];
-    const isAt = (square, row, col) => square?.row === row && square?.col === col;
 
     // Steine laut gemerktem Brett setzen, Start- und Zielfeld des Zugs markieren
     reviewBoard.querySelectorAll('.cell').forEach((cell) => {
-        const row = Number(cell.dataset.row);
-        const col = Number(cell.dataset.col);
-        const piece = snapshot[row][col];
+        const piece = snapshot[Number(cell.dataset.row)][Number(cell.dataset.col)];
         cell.replaceChildren(...(piece ? [createPieceElement(piece)] : []));
-        cell.classList.toggle('review-from', isAt(from, row, col));
-        cell.classList.toggle('review-to', isAt(to, row, col));
     });
+    markMove(reviewBoard, from, to);
 
     // Überschrift: Startaufstellung, Zwischenstand oder Endstand
     const last = turnHistory.length - 1;

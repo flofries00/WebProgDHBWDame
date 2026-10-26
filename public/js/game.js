@@ -3,7 +3,7 @@ import { socket } from './socket.js';
 import { showScreen, leaveToLobby, showConfirm } from './ui.js';
 import { fireConfetti, fireRain } from './effects.js';
 import { resetChat } from './chat.js';
-import { startHistory, noteMove, recordTurn, showReview } from './review.js';
+import { startHistory, noteMove, recordTurn, markLastMove, showReview } from './review.js';
 import { startClock, switchClock, stopClock } from './clock.js';
 import { playSound } from './sound.js';
 import {
@@ -474,8 +474,9 @@ function handleBoardClick(event) {
     moveCount++;
     quietKingTurns = countQuietKingTurns(quietKingTurns, turnByKing, turnCaptured);
 
-    // Brett nach dem vollständigen Zug für das Nachspielen merken
+    // Brett nach dem vollständigen Zug für das Nachspielen merken und auf dem Brett markieren
     recordTurn(board);
+    markLastMove();
 
     // Spieler wechseln
     currentTurn = currentTurn === 'white' ? 'black' : 'white';

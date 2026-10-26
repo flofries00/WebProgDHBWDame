@@ -144,13 +144,13 @@
             }
         }
 
-        /* Nachspielen im Endbildschirm: Start und Zeilfeld des gezeigten Zugs gelb */
-        &.review-from {
-            background-image: linear-gradient(var(--color-review-from), var(--color-review-from));
+        /* Start- und Zielfeld gelb: im Spiel der letzte Zug, im Endbildschirm der nachgespielte Zug (review.js) */
+        &.move-from {
+            background-image: linear-gradient(var(--color-move-from), var(--color-move-from));
         }
 
-        &.review-to {
-            background-image: linear-gradient(var(--color-review-to), var(--color-review-to));
+        &.move-to {
+            background-image: linear-gradient(var(--color-move-to), var(--color-move-to));
         }
     }
 
