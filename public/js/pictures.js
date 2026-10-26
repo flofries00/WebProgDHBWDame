@@ -7,6 +7,9 @@ const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
 
 /**
  * Erzeugt ein SVG-Element mit Attributen (SVG-Elemente brauchen createElementNS statt createElement)
+ * @param {string} name - z.B. 'circle'
+ * @param {Record<string, string | number>} attributes
+ * @returns {SVGElement}
  */
 function svgElement(name, attributes) {
     const element = document.createElementNS(SVG_NAMESPACE, name);
@@ -17,6 +20,8 @@ function svgElement(name, attributes) {
 /**
  * Zeichnet in den Container ein kleines Brett der Variante in der Startaufstellung (gleiche Felder und Steine wie im
  * Spiel, also auch in den gewählten Farben). Der Container hat die Klasse "tutorial-board"
+ * @param {HTMLElement} container
+ * @param {'klassisch' | 'international'} variant
  */
 export function renderBoardPicture(container, variant) {
     const board = createInitialBoard(variant);
@@ -35,6 +40,8 @@ export function renderBoardPicture(container, variant) {
 /**
  * Bild zur Bedenkzeit: eine Uhr, deren roter Ausschnitt die Minuten zeigt (das ganze Ziffernblatt sind 10 Minuten)
  * Liefert ein SVG-Element (nur Deko, aria-hidden)
+ * @param {string} timeSetting - '1', '3', '5', '10' oder 'party'
+ * @returns {SVGSVGElement}
  */
 export function createTimeIcon(timeSetting) {
     const icon = svgElement('svg', { viewBox: '0 0 64 64', class: 'time-icon', 'aria-hidden': 'true' });

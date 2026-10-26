@@ -14,6 +14,9 @@ const listeners = []; // Funktionen der anderen Module, die beim Sprachwechsel i
  * Text zum Schlüssel in der aktuellen Sprache. Platzhalter wie {name} werden durch params.name ersetzt.
  * Ein Platzhalter kann selbst übersetzt werden: { variant: { key: 'variant.klassisch' } }.
  * Fehlt ein Text, steht der Schlüssel selbst da (so fällt eine fehlende Übersetzung sofort auf)
+ * @param {string} key - Schlüssel aus translations.js
+ * @param {object} [params] - Platzhalter
+ * @returns {string}
  */
 export function t(key, params = {}) {
     const text = TRANSLATIONS[language][key] ?? key;
@@ -28,6 +31,9 @@ export function t(key, params = {}) {
  * Setzt einen Text, den JavaScript während des Spiels ändert (z.B. "Max möchte noch eine Runde spielen!").
  * Schlüssel und Platzhalter werden am Element gemerkt, so wird der Text beim Sprachwechsel mit übersetzt.
  * Ohne Schlüssel wird das Element geleert
+ * @param {HTMLElement} element
+ * @param {string | null} [key] - Schlüssel aus translations.js
+ * @param {object} [params] - Platzhalter
  */
 export function setText(element, key = null, params = {}) {
     if (!key) {
@@ -43,6 +49,7 @@ export function setText(element, key = null, params = {}) {
 
 /**
  * Aktuelle Sprache: 'de' oder 'en'
+ * @returns {'de' | 'en'}
  */
 export function getLanguage() {
     return language;
@@ -50,6 +57,7 @@ export function getLanguage() {
 
 /**
  * Meldet eine Funktion an, die bei jedem Sprachwechsel aufgerufen wird (z.B. um eine Anzeige neu zu beschriften)
+ * @param {() => void} listener
  */
 export function onLanguageChange(listener) {
     listeners.push(listener);

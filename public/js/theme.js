@@ -21,6 +21,8 @@ const BOARD_COLOR_KEYS = ['light', 'dark', 'frame'];
 /**
  * Schreibt die Farben als CSS-Variablen auf ein Element.
  * Auf <html> gelten sie für die ganze Seite, auf einem anderen Element nur darin (z.B. für eine Vorschau).
+ * @param {HTMLElement} element
+ * @param {Record<string, string>} colors - Die fünf Farben
  */
 function applyColors(element, colors) {
     const { darkPieceOutline, crownOnLight, crownOnDark } = deriveColors(colors);
@@ -41,6 +43,7 @@ function applyColors(element, colors) {
 
 /**
  * Macht ein Farbschema zum aktuellen und merkt es sich im Browser
+ * @param {{ board: string, pieces: string, colors: Record<string, string> }} theme
  */
 function setTheme(theme) {
     currentTheme = theme;
@@ -70,6 +73,11 @@ export function loadTheme() {
  * Baut die Radiobuttons für eine Gruppe von Vorlagen, jeweils mit kleinen Farbfeldern davor.
  * Der Name steht in translations.js, z.B. presetBoard.holz (Bretter und Steine haben eigene Schlüssel,
  * weil es "gruen" bei beiden gibt)
+ * @param {string} listId - ID der Liste im Fenster
+ * @param {string} groupName - name der Radiobuttons
+ * @param {Record<string, Record<string, string>>} presets - Vorlagen aus colors.js
+ * @param {string[]} swatchKeys - Farben, die als Felder davor stehen
+ * @param {string} keyPrefix - 'presetBoard' oder 'presetPieces'
  */
 function renderPresetList(listId, groupName, presets, swatchKeys, keyPrefix) {
     const options = Object.entries(presets).map(([id, preset]) => {
@@ -216,6 +224,7 @@ export function openThemeDialog() {
 
 /**
  * Änderung im Fenster: Vorlage gewählt (deren Farben übernehmen) oder eigene Farbe eingestellt
+ * @param {Event} event
  */
 export function handleThemeInput(event) {
     const { name, value } = event.target;
@@ -240,6 +249,7 @@ export function handleThemeInput(event) {
 
 /**
  * Fenster geschlossen: Nur bei "Übernehmen" wird der Entwurf zum neuen Farbschema (Escape oder "Abbrechen" verwerfen ihn)
+ * @param {Event} event
  */
 export function handleThemeDialogClose(event) {
     if (event.target.returnValue === 'apply' && draft) setTheme(draft);

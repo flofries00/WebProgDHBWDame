@@ -24,6 +24,12 @@ document.addEventListener('keydown', getAudioContext, { once: true });
  * Spielt einen kurzen Ton
  * Tonhöhe gleitet von freqStart zu freqEnd, Lautstärke klingt in 'duration' Sekunden aus
  * delay = Verzögerung in Sekunden (für mehrere Töne hintereinander)
+ * @param {number} freqStart - Anfangsfrequenz in Hertz
+ * @param {number} freqEnd - Endfrequenz in Hertz
+ * @param {number} duration - Dauer in Sekunden
+ * @param {OscillatorType} [type] - Klangform
+ * @param {number} [volume] - 0 bis 1
+ * @param {number} [delay] - Sekunden
  */
 function playTone(freqStart, freqEnd, duration, type = 'sine', volume = 0.3, delay = 0) {
     const ctx = getAudioContext();
@@ -50,6 +56,11 @@ function playTone(freqStart, freqEnd, duration, type = 'sine', volume = 0.3, del
 /**
  * Spielt ein Rauschen, dessen Klangfarbe von freqStart zu freqEnd gleitet
  * Lautstärke schwillt bis zur Mitte an und klingt dann aus
+ * @param {number} freqStart - Anfangsfrequenz in Hertz
+ * @param {number} freqEnd - Endfrequenz in Hertz
+ * @param {number} duration - Dauer in Sekunden
+ * @param {number} [volume] - 0 bis 1
+ * @param {number} [delay] - Sekunden
  */
 function playNoise(freqStart, freqEnd, duration, volume = 1, delay = 0) {
     const ctx = getAudioContext();
@@ -87,6 +98,7 @@ function playNoise(freqStart, freqEnd, duration, volume = 1, delay = 0) {
 
 /**
  * Spielt den passenden Effekt: 'move', 'capture', 'promote', 'coinFlip', 'coinLand', 'win' oder 'lose'
+ * @param {'move' | 'capture' | 'promote' | 'coinFlip' | 'coinLand' | 'win' | 'lose'} name
  */
 export function playSound(name) {
     if (!soundEnabled) return;

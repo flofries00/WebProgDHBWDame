@@ -5,6 +5,7 @@ import { t, setText } from './i18n.js';
 
 /**
  * Leert den Chat zu Beginn einer Partie und sperrt ihn gegen den Computer
+ * @param {boolean} online - Online-Partie? (gegen den Computer ist der Chat gesperrt)
  */
 export function resetChat(online) {
     const chatInput = document.getElementById('chatInput');
@@ -22,6 +23,8 @@ export function resetChat(online) {
 
 /**
  * Hinweis im Chat ohne Absender (kursiv), z.B. "Anna hat das Remis abgelehnt."
+ * @param {string} key - Schlüssel aus translations.js
+ * @param {object} [params] - Platzhalter
  */
 export function addSystemMessage(key, params) {
     const container = document.querySelector('.chat-messages');
@@ -34,6 +37,7 @@ export function addSystemMessage(key, params) {
 
 /**
  * Verarbeitet Chat-Eingaben
+ * @param {SubmitEvent} event
  */
 export function handleChatSubmit(event) {
     event.preventDefault(); // Formular nicht wirklich abschicken (sonst lädt die Seite neu)
@@ -57,6 +61,9 @@ export function handleChatSubmit(event) {
 
 /**
  * Fügt eine Nachricht zur Chatbox hinzu
+ * @param {string} sender - Name, der vor der Nachricht steht
+ * @param {string} msg - Nachricht (wird nur als Text eingefügt)
+ * @param {boolean} isSelf - Eigene Nachricht?
  */
 function addChatMessage(sender, msg, isSelf) {
     const container = document.querySelector('.chat-messages');

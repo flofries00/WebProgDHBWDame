@@ -76,6 +76,9 @@ const GRACE_MS = 1 * SECOND_MS; // Spielraum für die Übertragung: Ein Zug, der
 
 /**
  * Prüft, ob ein Wert eine gültige Brettkoordinate auf einem Brett dieser Größe ist
+ * @param {unknown} value - Zeile oder Spalte aus der Nachricht des Browsers
+ * @param {number} size - Felder pro Seite (8 oder 10)
+ * @returns {boolean}
  */
 function isValidCoord(value, size) {
     return Number.isInteger(value) && value >= 0 && value < size;
@@ -83,6 +86,8 @@ function isValidCoord(value, size) {
 
 /**
  * Cheating-Schutz [1]: Ist der Spielername erlaubt? (2 bis 16 Buchstaben oder Ziffern, wie im Browser)
+ * @param {unknown} name - Name aus der Nachricht des Browsers
+ * @returns {boolean}
  */
 function isValidName(name) {
     return typeof name === 'string' && /^[a-zA-Z0-9äöüÄÖÜß]{2,16}$/.test(name);
@@ -90,6 +95,10 @@ function isValidName(name) {
 
 /**
  * Cheating-Schutz [1]: Sind Name, Bedenkzeit und Variante erlaubt? (für die Suche und für private Räume)
+ * @param {unknown} name - Spielername
+ * @param {unknown} timeSetting - Bedenkzeit: '1', '3', '5', '10' oder 'party'
+ * @param {unknown} variant - 'klassisch' oder 'international'
+ * @returns {boolean}
  */
 function isValidSetup(name, timeSetting, variant) {
     return (
@@ -103,6 +112,11 @@ function isValidSetup(name, timeSetting, variant) {
 /**
  * Merkt sich die Zeitpunkte der letzten Anfragen eines Spielers (z.B. Chat-Nachrichten) und meldet true, wenn es
  * im Zeitraum schon zu viele waren. Die Anfrage zählt dann nicht mit
+ * @param {import('socket.io').Socket} socket - Verbindung des Spielers (die Zeitpunkte werden an ihr gespeichert)
+ * @param {string} name - Name der Liste, z.B. 'chatTimes' oder 'joinTimes'
+ * @param {number} limit - Höchstens so viele Anfragen ...
+ * @param {number} windowMs - ... in diesem Zeitraum (Millisekunden)
+ * @returns {boolean} true = zu viele, die Anfrage wird verworfen
  */
 function isTooFrequent(socket, name, limit, windowMs) {
     const now = Date.now();
@@ -114,6 +128,7 @@ function isTooFrequent(socket, name, limit, windowMs) {
 
 /**
  * Erzeugt einen neuen, noch freien Raumcode wie "K7QXM" (randomInt ist ein sicherer, nicht erratbarer Zufall)
+ * @returns {string} Code aus 5 Zeichen
  */
 function createRoomCode() {
     let code;
@@ -126,6 +141,9 @@ function createRoomCode() {
 /**
  * Registriert einen Socket-Handler mit try/catch: Ein Fehler bei einem einzelnen Ereignis
  * wird protokolliert, bringt aber nicht den ganzen Server zum Absturz (Cheating-Schutz [6])
+ * @param {import('socket.io').Socket} socket - Verbindung des Spielers
+ * @param {string} eventName - Name des Ereignisses, z.B. 'makeMove'
+ * @param {(...args: any[]) => void} handler - Wird mit den Daten der Nachricht aufgerufen
  */
 function onSafe(socket, eventName, handler) {
     socket.on(eventName, (...args) => {
@@ -139,6 +157,7 @@ function onSafe(socket, eventName, handler) {
 
 /**
  * Nimmt einen Spieler aus seiner Warteschlange (falls er dort wartet)
+ * @param {import('socket.io').Socket} socket - Verbindung des Spielers
  */
 function leaveQueue(socket) {
     if (waiting.get(socket.queueKey) === socket) waiting.delete(socket.queueKey);
@@ -147,6 +166,9 @@ function leaveQueue(socket) {
 /**
  * Sucht den Raum zu einem Code (für die Vorschau und das Beitreten). Gibt den wartenden Ersteller zurück
  * sonst null und meldet dem Spieler den Grund (roomError)
+ * @param {import('socket.io').Socket} socket - Verbindung des Spielers, der nachsieht oder beitreten will
+ * @param {unknown} code - Eingegebener Raumcode
+ * @returns {import('socket.io').Socket | null} Der wartende Ersteller oder null
  */
 function findRoom(socket, code) {
     // Cheating-Schutz [9]: Code prüfen, das Durchprobieren von Codes bremsen
@@ -170,6 +192,7 @@ function findRoom(socket, code) {
 
 /**
  * Löscht den privaten Raum eines Spielers (falls er einen erstellt hat und noch wartet)
+ * @param {import('socket.io').Socket} socket - Verbindung des Spielers
  */
 function leaveRoom(socket) {
     if (rooms.get(socket.roomCode) === socket) rooms.delete(socket.roomCode);
@@ -179,6 +202,8 @@ function leaveRoom(socket) {
 /**
  * Startet eine neue Partie zwischen zwei Spielern: Der Server lost die Farben aus,
  * führt ein eigenes Brett und informiert beide Spieler.
+ * @param {import('socket.io').Socket} p1 - Erster Spieler (im privaten Raum der Ersteller, dessen Einstellungen gelten)
+ * @param {import('socket.io').Socket} p2 - Zweiter Spieler
  */
 function startMatch(p1, p2) {
     // Bei einer Revanche den Wecker der alten Partie abstellen
@@ -223,6 +248,8 @@ function startMatch(p1, p2) {
 
 /**
  * Ab wann ist die Zeit des Spielers am Zug abgelaufen? (Zeitpunkt in Millisekunden, mit Spielraum)
+ * @param {object} game - Spielstand der Partie (siehe startMatch)
+ * @returns {number} Zeitpunkt wie Date.now()
  */
 function timeUpAt(game) {
     return game.turnStartedAt + game.clock[game.turn] + GRACE_MS;
@@ -230,6 +257,7 @@ function timeUpAt(game) {
 
 /**
  * Stellt den Wecker für den Spieler am Zug: Klingelt er, ist dessen Zeit abgelaufen
+ * @param {object} game - Spielstand der Partie (siehe startMatch)
  */
 function startClock(game) {
     clearTimeout(game.clockTimer);
@@ -246,6 +274,7 @@ function startClock(game) {
 
 /**
  * Trennt einen Spieler von seinem Gegner (beim Verlassen oder Verbindungsabbruch)
+ * @param {import('socket.io').Socket} socket - Verbindung des Spielers, der geht
  */
 function endMatch(socket) {
     clearTimeout(socket.game?.clockTimer); // Die Partie ist vorbei, der Wecker wird nicht mehr gebraucht
@@ -517,6 +546,8 @@ if (fs.existsSync(envFile) && typeof process.loadEnvFile === 'function') {
 
 /**
  * Prüft eine Portangabe und beendet den Server mit verständlicher Meldung, wenn sie ungültig ist
+ * @param {string} input - Port aus Kommandozeile oder Umgebungsvariable
+ * @returns {number}
  */
 function parsePort(input) {
     const port = Number(input);
@@ -529,6 +560,9 @@ function parsePort(input) {
 
 /**
  * Startet einen Server (HTTP oder HTTPS) mit verständlicher Meldung, falls der Port schon belegt ist
+ * @param {import('node:http').Server | import('node:https').Server} server - HTTP- oder HTTPS-Server
+ * @param {number} port
+ * @param {'http' | 'https'} protocol - Für die Meldungen
  */
 function listen(server, port, protocol) {
     server.on('error', (err) => {

@@ -10,6 +10,7 @@ let reviewBoard = null; // Brett im Endbildschirm, auf dem nachgespielt wird
 
 /**
  * Neue Partie: Das Nachspielen beginnt mit der Startaufstellung
+ * @param {import('./rules.js').Board} board - Startaufstellung
  */
 export function startHistory(board) {
     turnHistory = [{ board, from: null, to: null, logCount: 0, quietKingTurns: 0 }];
@@ -17,6 +18,8 @@ export function startHistory(board) {
 
 /**
  * Merkt sich Start- und Zielfeld eines Zugs. Bei einem Mehrfachsprung bleibt das Startfeld des ersten Sprungs
+ * @param {import('./rules.js').Move} move
+ * @param {boolean} isMultiJumping - Läuft schon ein Mehrfachsprung?
  */
 export function noteMove(move, isMultiJumping) {
     if (!isMultiJumping) turnStart = { row: move.fromRow, col: move.fromCol };
@@ -26,6 +29,8 @@ export function noteMove(move, isMultiJumping) {
 /**
  * Merkt sich das Brett nach einem Zug für das Nachspielen und für "Zug zurück" (nur, wenn sich seit dem letzten
  * Eintrag etwas geändert hat). quietKingTurns ist der Zähler der Remis-Regel nach diesem Zug
+ * @param {import('./rules.js').Board} board - Brett nach dem Zug
+ * @param {number} quietKingTurns
  */
 export function recordTurn(board, quietKingTurns) {
     if (turnHistory.at(-1).board === board) return;
@@ -35,6 +40,8 @@ export function recordTurn(board, quietKingTurns) {
 
 /**
  * Gibt es so viele Züge, die man zurücknehmen kann? (Die Startaufstellung bleibt immer)
+ * @param {number} turns
+ * @returns {boolean}
  */
 export function canTakeBack(turns) {
     return turnHistory.length > turns;
@@ -42,6 +49,8 @@ export function canTakeBack(turns) {
 
 /**
  * Nimmt die letzten Züge zurück und liefert den Eintrag, zu dem es zurückgeht
+ * @param {number} turns
+ * @returns {{ board: import('./rules.js').Board, logCount: number, quietKingTurns: number }} Eintrag aus turnHistory
  */
 export function takeBackTurns(turns) {
     turnHistory.splice(-turns, turns);
@@ -50,6 +59,7 @@ export function takeBackTurns(turns) {
 
 /**
  * Am Spielende: Auf diesem Brett (Kopie im Endbildschirm) wird nachgespielt, los geht es beim Endstand
+ * @param {HTMLElement} boardElement - Brett in der Kopie im Endbildschirm
  */
 export function showReview(boardElement) {
     reviewBoard = boardElement;
@@ -58,6 +68,9 @@ export function showReview(boardElement) {
 
 /**
  * Markiert Start- und Zielfeld eines Zugs gelb (from und to sind { row, col } oder null)
+ * @param {HTMLElement} boardElement
+ * @param {import('./rules.js').Square | null} from
+ * @param {import('./rules.js').Square | null} to
  */
 function markMove(boardElement, from, to) {
     const isAt = (square, row, col) => square?.row === row && square?.col === col;
@@ -80,6 +93,7 @@ export function markLastMove() {
 
 /**
  * Zeigt auf dem Endbrett den Stand nach Zug "index" (0 = Startaufstellung) und markiert den Zug im Spielverlauf
+ * @param {number} index
  */
 function showReviewStep(index) {
     reviewIndex = index;
@@ -117,6 +131,7 @@ function showReviewStep(index) {
 
 /**
  * Buttons unter dem Endbrett: 'start', 'prev', 'next' oder 'end'
+ * @param {'start' | 'prev' | 'next' | 'end'} step
  */
 export function moveReview(step) {
     const last = turnHistory.length - 1;

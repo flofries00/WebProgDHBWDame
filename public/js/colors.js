@@ -52,6 +52,9 @@ const MIN_FIELD_CONTRAST = 1.5;
 const COLOR_KEYS = ['light', 'dark', 'frame', 'pieceLight', 'pieceDark'];
 /**
  * Setzt die fünf Farben aus einer Brett- und einer Steinvorlage zusammen
+ * @param {string} boardId - Schlüssel aus BOARD_PRESETS
+ * @param {string} piecesId - Schlüssel aus PIECE_PRESETS
+ * @returns {{ light: string, dark: string, frame: string, pieceLight: string, pieceDark: string }}
  */
 export function makeColors(boardId, piecesId) {
     const { light, dark, frame } = BOARD_PRESETS[boardId];
@@ -61,6 +64,8 @@ export function makeColors(boardId, piecesId) {
 
 /**
  * Ist der Wert eine Farbe im Format "#rrggbb" (so liefert sie auch <input type="color">)?
+ * @param {unknown} value
+ * @returns {boolean}
  */
 export function isHexColor(value) {
     return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value);
@@ -68,6 +73,8 @@ export function isHexColor(value) {
 
 /**
  * Relative Helligkeit einer Farbe nach WCAG (0 = schwarz, 1 = weiß)
+ * @param {string} hex - Farbe als "#rrggbb"
+ * @returns {number}
  */
 function relativeLuminance(hex) {
     const [r, g, b] = [1, 3, 5].map((start) => {
@@ -80,6 +87,9 @@ function relativeLuminance(hex) {
 
 /**
  * Kontrastverhältnis zweier Farben nach WCAG: 1 (gleich) bis 21 (schwarz auf weiß)
+ * @param {string} colorA - "#rrggbb"
+ * @param {string} colorB - "#rrggbb"
+ * @returns {number}
  */
 export function contrastRatio(colorA, colorB) {
     const [lighter, darker] = [relativeLuminance(colorA), relativeLuminance(colorB)].sort((a, b) => b - a);
@@ -88,6 +98,9 @@ export function contrastRatio(colorA, colorB) {
 
 /**
  * Wählt aus den Kandidaten die Farbe mit dem höchsten Kontrast zum Hintergrund
+ * @param {string} background - "#rrggbb"
+ * @param {string[]} candidates - Farben zur Auswahl
+ * @returns {string}
  */
 export function bestContrast(background, candidates) {
     return candidates.reduce((best, color) =>
@@ -97,6 +110,8 @@ export function bestContrast(background, candidates) {
 
 /**
  * Hilfsfarben, die sich automatisch aus den gewählten Farben ergeben
+ * @param {Record<string, string>} colors - Die fünf gewählten Farben
+ * @returns {{ darkPieceOutline: string, crownOnLight: string, crownOnDark: string }}
  */
 export function deriveColors(colors) {
     return {
@@ -110,6 +125,9 @@ export function deriveColors(colors) {
 
 /**
  * Formatiert ein Kontrastverhältnis für die Anzeige, z.B. 2.456 -> "2,5" (Deutsch) bzw. "2.5" (Englisch)
+ * @param {number} ratio
+ * @param {'de' | 'en'} [language]
+ * @returns {string}
  */
 export function formatRatio(ratio, language = 'de') {
     const text = ratio.toFixed(1);
@@ -134,6 +152,8 @@ export const WARNING_KEYS = CONTRAST_RULES.map((rule) => rule[3]);
 /**
  * Prüft eine Farbkombination (leere Liste = alles in Ordnung). Jede Warnung ist ein Objekt
  * { key, ratio, minimum }, den Text dazu baut theme.js in der gewählten Sprache
+ * @param {Record<string, string>} colors - Die fünf gewählten Farben
+ * @returns {{ key: string, ratio: number, minimum: number }[]}
  */
 export function checkColors(colors) {
     const allColors = { ...colors, ...deriveColors(colors) };
@@ -148,6 +168,8 @@ export function checkColors(colors) {
  * Liest ein gespeichertes Farbschema (Text aus dem localStorage) und prüft es
  * Liefert null, wenn nichts Brauchbares gespeichert ist (der Speicher lässt sich im Browser beliebig ändern)
  * Ältere Versionen haben nur den Namen der Brettvorlage gespeichert
+ * @param {unknown} text - Gespeicherter Text
+ * @returns {{ board: string, pieces: string, colors: Record<string, string> } | null}
  */
 export function parseStoredTheme(text) {
     if (typeof text !== 'string') return null;

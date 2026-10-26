@@ -32,6 +32,8 @@ import {
 
 /**
  * Kurzform: Klick-Handler für das Element mit der angegebenen ID registieren
+ * @param {string} id
+ * @param {(event: MouseEvent) => void} handler
  */
 function onClick(id, handler) {
     document.getElementById(id).addEventListener('click', handler);

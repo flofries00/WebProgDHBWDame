@@ -24,6 +24,7 @@ export function startClock() {
 
 /**
  * Spielerwechsel: Ab jetzt läuft die Uhr dieser Farbe, sie wird hervorgehoben
+ * @param {'white' | 'black'} color - Farbe am Zug
  */
 export function switchClock(color) {
     activeColor = color;
@@ -67,6 +68,7 @@ function startTurnTimer() {
 /**
  * Die Anzeige steht bei 0:00. Gegen den Computer ist das Spiel damit vorbei.
  * Online entscheidet der Server (Cheating-Schutz [8]): Die Anzeige wartet bei 0:00 auf seine Meldung "timeUp"
+ * @param {'white' | 'black'} winner - Gewinner, falls das Spiel hier endet
  */
 function timeExpired(winner) {
     updateTimerDisplays();

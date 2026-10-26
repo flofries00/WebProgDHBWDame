@@ -11,6 +11,15 @@
  */
 
 /**
+ * @typedef {{ color: 'white' | 'black', king: boolean, taken?: boolean }} Piece Ein Stein (taken: beim Mehrheitsschlag
+ * schon geschlagen, liegt aber bis zum Ende des Zugs noch auf dem Brett)
+ * @typedef {(Piece | null)[][]} Board Brett: board[zeile][spalte], null = leeres Feld
+ * @typedef {{ row: number, col: number }} Square Ein Feld
+ * @typedef {{ fromRow: number, fromCol: number, toRow: number, toCol: number, captured: Square | null }} Move
+ * Ein Zug (bei einem Schlag steht in captured das Feld des geschlagenen Steins)
+ */
+
+/**
  * Die Varianten und worin sie sich unterscheiden:
  * - size: Felder pro Seite, pieceRows: Reihen mit Steinen pro Farbe zu Beginn
  * - menCaptureBackwards: Normale Steine dürfen auch rückwärts schlagen
@@ -27,6 +36,8 @@ export const VARIANTS = {
  * Dauer des Vorlaufs vor dem ersten Zug in Sekunden: Münzwurf und Countdown, im Partymodus
  * zusätzlich die Auslosung der Bedenkzeit.
  * Browser und Server nutzen denselben Wert, damit beide Uhren gleichzeitig starten
+ * @param {string} timeSetting - '1', '3', '5', '10' oder 'party'
+ * @returns {number} Sekunden
  */
 export function introSeconds(timeSetting) {
     return timeSetting === 'party' ? 11 : 7;
@@ -42,6 +53,8 @@ const DIRECTIONS = [
 
 /**
  * Erstellt das Brett in der Startaufstellung (Steine auf den dunklen Feldern der ersten Reihen jeder Seite)
+ * @param {'klassisch' | 'international'} [variant]
+ * @returns {Board}
  */
 export function createInitialBoard(variant = 'klassisch') {
     const { size, pieceRows } = VARIANTS[variant];
@@ -64,6 +77,10 @@ export function createInitialBoard(variant = 'klassisch') {
 
 /**
  * Prüft, ob Koordinaten auf dem Brett liegen
+ * @param {Board} board
+ * @param {number} row
+ * @param {number} col
+ * @returns {boolean}
  */
 function isOnBoard(board, row, col) {
     return row >= 0 && row < board.length && col >= 0 && col < board.length;
@@ -71,6 +88,8 @@ function isOnBoard(board, row, col) {
 
 /**
  * Liefert die Farbe des Gegners
+ * @param {'white' | 'black'} color
+ * @returns {'white' | 'black'}
  */
 export function opponentOf(color) {
     return color === 'white' ? 'black' : 'white';
@@ -81,6 +100,11 @@ export function opponentOf(color) {
  * Rückgabe: Array aus { fromRow, fromCol, toRow, toCol, captured }, captured ist { row, col } oder null
  * Bereits geschlagene Steine (taken, nur beim Mehrheitsschlag) versperren den Weg und dürfen nicht nochmal
  * übersprungen werden
+ * @param {Board} board
+ * @param {number} row - Zeile des Steins
+ * @param {number} col - Spalte des Steins
+ * @param {'klassisch' | 'international'} [variant]
+ * @returns {Move[]}
  */
 export function getPieceMoves(board, row, col, variant = 'klassisch') {
     const piece = board[row][col];
@@ -141,6 +165,9 @@ export function getPieceMoves(board, row, col, variant = 'klassisch') {
 /**
  * Führt einen einzelnen Sprung aus, ohne den Zug abzuschließen: Der geschlagene Stein bleibt als "taken" liegen.
  * Wird für die Suche nach dem längsten Schlag gebraucht
+ * @param {Board} board
+ * @param {Move} move - Ein Schlag
+ * @returns {Board} Neues Brett
  */
 function jump(board, move) {
     const next = board.map((row) => [...row]);
@@ -153,6 +180,11 @@ function jump(board, move) {
 /**
  * Wie viele Steine kann der Stein auf (row, col) von hier aus noch schlagen? (0 = keinen)
  * Probiert alle Schlagfolgen durch und liefert die längste
+ * @param {Board} board
+ * @param {number} row
+ * @param {number} col
+ * @param {'klassisch' | 'international'} variant
+ * @returns {number} Anzahl geschlagener Steine
  */
 function longestCapture(board, row, col, variant) {
     let longest = 0;
@@ -167,6 +199,11 @@ function longestCapture(board, row, col, variant) {
  * Liefert alle erlaubten Züge einer Farbe unter Berücksichtigung des Schlagzwangs.
  * onlyFrom: Während eines Mehrfachsprungs darf nur dieser Stein ({ row, col }) weiterschlagen.
  * Beim Mehrheitsschlag bleiben nur die Schläge übrig, mit denen man insgesamt die meisten Steine schlägt
+ * @param {Board} board
+ * @param {'white' | 'black'} color - Farbe am Zug
+ * @param {Square | null} [onlyFrom] - Springender Stein während eines Mehrfachsprungs
+ * @param {'klassisch' | 'international'} [variant]
+ * @returns {Move[]}
  */
 export function getLegalMoves(board, color, onlyFrom = null, variant = 'klassisch') {
     const moves = [];
@@ -192,6 +229,12 @@ export function getLegalMoves(board, color, onlyFrom = null, variant = 'klassisc
 /**
  * Sucht in einer Liste von Zügen den Zug von (fromRow, fromCol) nach (toRow, toCol).
  * Gibt null zurück, wenn es diesen Zug nicht gibt.
+ * @param {Move[]} moves - Erlaubte Züge
+ * @param {number} fromRow
+ * @param {number} fromCol
+ * @param {number} toRow
+ * @param {number} toCol
+ * @returns {Move | null}
  */
 export function findMove(moves, fromRow, fromCol, toRow, toCol) {
     return (
@@ -207,6 +250,10 @@ export function findMove(moves, fromRow, fromCol, toRow, toCol) {
  * Rückgabe: { board, promoted, mustContinue }
  * - promoted: Der Stein wurde zur Dame befördert
  * - mustContinue: Derselbe Stein muss weiterschlagen (Mehrfachsprung)
+ * @param {Board} board
+ * @param {Move} move - Ein erlaubter Zug
+ * @param {'klassisch' | 'international'} [variant]
+ * @returns {{ board: Board, promoted: boolean, mustContinue: boolean }}
  */
 export function applyMove(board, move, variant = 'klassisch') {
     const { majorityCapture } = VARIANTS[variant];
@@ -248,6 +295,10 @@ export const DRAW_AFTER_TURNS = 50;
 /**
  * Zählt die Züge für die Remis-Regel weiter. turnByKing: Der Zug begann mit einer Dame,
  * turnCaptured: Im Zug wurde geschlagen. Ein Damenzug ohne Schlag erhöht den Zähler, sonst beginnt er bei 0
+ * @param {number} count - Bisheriger Zähler
+ * @param {boolean} turnByKing
+ * @param {boolean} turnCaptured
+ * @returns {number} Neuer Zähler
  */
 export function countQuietKingTurns(count, turnByKing, turnCaptured) {
     return turnByKing && !turnCaptured ? count + 1 : 0;
@@ -255,6 +306,8 @@ export function countQuietKingTurns(count, turnByKing, turnCaptured) {
 
 /**
  * Ist die Partie nach der Remis-Regel unentschieden?
+ * @param {number} quietKingTurns - Damenzüge ohne Schlag hintereinander (beide Seiten)
+ * @returns {boolean}
  */
 export function isDraw(quietKingTurns) {
     return quietKingTurns >= DRAW_AFTER_TURNS;
@@ -263,6 +316,10 @@ export function isDraw(quietKingTurns) {
 /**
  * Prüft, ob das Spiel entschieden ist: Hat die Farbe am Zug keinen erlaubten Zug mehr
  * (auch wenn sie keine Steine mehr hat), gewinnt der Gegner. Sonst null.
+ * @param {Board} board
+ * @param {'white' | 'black'} colorToMove - Farbe am Zug
+ * @param {'klassisch' | 'international'} [variant]
+ * @returns {'white' | 'black' | null} Gewinnerfarbe oder null
  */
 export function getWinner(board, colorToMove, variant = 'klassisch') {
     return getLegalMoves(board, colorToMove, null, variant).length === 0 ? opponentOf(colorToMove) : null;

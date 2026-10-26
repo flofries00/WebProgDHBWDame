@@ -17,6 +17,7 @@ let queueStatus = null; // Letzter Stand der Warteschlangen vom Server: { waitin
 
 /**
  * Speichert den gewählten Spielmodus und wechselt zur Anmeldung.
+ * @param {'computer' | 'online'} mode
  */
 export function selectMode(mode) {
     state.gameMode = mode;
@@ -134,6 +135,7 @@ socket.on('queueStatus', (status) => {
 /**
  * Wird aufgerufen, wenn man auf "Gegner suchen" bzw. "Spiel starten" klickt.
  * Wechselt in den Wartebildschirm. Mit mode 'room' wird statt der Suche ein privater Raum erstellt
+ * @param {'search' | 'room'} [mode]
  */
 export function startSearch(mode = 'search') {
     // Schutz vor Doppelauslösung: nur suchen, wenn der Setup-Bildschirm wirklich angezeigt wird
@@ -449,6 +451,11 @@ socket.on('opponentLeft', () => {
 /**
  * Zeigt eine Bestätigungs-Box im Spielfenster (statt des Browser-Popups confirm())
  * Liefert ein Promise: true = bestätigt, false = abgelehnt
+ * @param {string} title
+ * @param {string} text
+ * @param {string} confirmLabel - Text des Bestätigen-Buttons
+ * @param {string} [cancelLabel] - Ohne: nur ein Button
+ * @returns {Promise<boolean>}
  */
 export function showConfirm(title, text, confirmLabel, cancelLabel) {
     const dialog = document.getElementById('confirmDialog');

@@ -36,6 +36,9 @@ let titleBlink = null; // Lässt den Punkt im Tab-Titel blinken, solange man im 
 
 /**
  * Liefert ein Feld des ECHTEN Spielbretts (nicht der Kopie im Endbildschirm)
+ * @param {number} r - Zeile
+ * @param {number} c - Spalte
+ * @returns {HTMLElement | null}
  */
 function getCell(r, c) {
     return document.getElementById('board').querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
@@ -43,6 +46,8 @@ function getCell(r, c) {
 
 /**
  * Liefert Zeile und Spalte des Feldes, in dem ein Element (Stein oder Feld) liegt
+ * @param {Element} element
+ * @returns {import('./rules.js').Square}
  */
 function getPosition(element) {
     const cell = element.closest('.cell');
@@ -51,6 +56,7 @@ function getPosition(element) {
 
 /**
  * Ist der lokale Spieler gerade am Zug
+ * @returns {boolean}
  */
 function isMyTurn() {
     return (currentTurn === 'white') === state.playerGetsWhite;
@@ -59,6 +65,7 @@ function isMyTurn() {
 /**
  * Erlaubte Züge des Spielers am Zug (Schlagzwang berücksichtigt).
  * Während eines Mehrfachsprungs nur die Schläge des springenden Steins.
+ * @returns {import('./rules.js').Move[]}
  */
 function getCurrentLegalMoves() {
     const onlyFrom = isMultiJumping ? getPosition(selectedPiece) : null;
@@ -180,6 +187,8 @@ function generateBoard() {
 
 /**
  * Schreibt die Beschriftung in den Rahmen: Buchstaben oben und unten, Zahlen links und rechts (von oben nach unten)
+ * @param {HTMLElement} wrapper - Rahmen um das Brett
+ * @param {number} size - Felder pro Seite
  */
 function renderCoordinates(wrapper, size) {
     const makeLabels = (texts) =>
@@ -197,6 +206,8 @@ function renderCoordinates(wrapper, size) {
 
 /**
  * Erstellt das HTML-Element für einen Stein aus den Brett-Daten ({ color, king, taken })
+ * @param {import('./rules.js').Piece} piece
+ * @returns {HTMLDivElement}
  */
 export function createPieceElement(piece) {
     const element = document.createElement('span');
@@ -207,6 +218,8 @@ export function createPieceElement(piece) {
 /**
  * Wählt einen Stein aus (per Klick, Tastatur oder beim Start von Drag & Drop)
  * isTrusted: true bei echten Eingaben des Spielers, false bei simulierten Klicks
+ * @param {HTMLElement} pieceElement
+ * @param {boolean} isTrusted
  */
 function selectPiece(pieceElement, isTrusted) {
     // Während eines Mehrfachsprungs ist nur der springende Stein anklickbar
@@ -258,6 +271,7 @@ function clearSelection() {
 
 /**
  * Markiert die Zielfelder der übergebenen Züge (grün mit Punkt = ziehen, rot mit Ring = schlagen)
+ * @param {import('./rules.js').Move[]} moves
  */
 function showValidMoves(moves) {
     moves.forEach((move) => {
@@ -269,6 +283,10 @@ function showValidMoves(moves) {
 
 /**
  * Wandelt Zeile und Spalte in die Brettschreibweise um (z.B. 7, 0 -> "A1")
+ * @param {number} row
+ * @param {number} col
+ * @param {number} size - Felder pro Seite
+ * @returns {string}
  */
 export function toSquareName(row, col, size) {
     return COLUMN_LETTERS[col] + (size - row);
@@ -311,6 +329,7 @@ function updateCellLabels() {
 /**
  * Verarbeitet Klicks auf dem Spielbrett und führt Zug aus, wenn ein
  * gültiges Feld angeklickt wurde
+ * @param {MouseEvent} event
  */
 function handleBoardClick(event) {
     // Klick auf ein Feld mit Stein: Stein auswählen
@@ -527,6 +546,7 @@ function autoHighlightCaptures() {
 
 /**
  * Hebt Auswahl auf, wenn Spieler irgendwo anders auf die Seite klickt.
+ * @param {MouseEvent} event
  */
 function handleGlobalClick(event) {
     // Klicks des Spielers, der nicht dran ist, dürfen keine fremde Auswahl aufheben
@@ -553,6 +573,7 @@ function handleGlobalClick(event) {
 
 /**
  * Prüft nach einem Zug, ob der Spieler am Zug noch ziehen kann. Wenn nicht, endet das Spiel.
+ * @returns {boolean} true, wenn das Spiel vorbei ist
  */
 function checkWinCondition() {
     // Keine Steine oder kein erlaubter Zug mehr: Der Gegner gewinnt
@@ -573,6 +594,8 @@ function checkWinCondition() {
 /**
  * Beendet das Spiel und zeigt den Endbildschirm. reason: '' (normales Ende), 'timeout', 'opponentLeft', 'draw'
  * (Remis-Regel) oder 'drawAgreed' (Remis angenommen). Bei einem Remis ist winnerColor null
+ * @param {'white' | 'black' | null} winnerColor
+ * @param {'' | 'timeout' | 'opponentLeft' | 'draw' | 'drawAgreed'} [reason]
  */
 export function endGame(winnerColor, reason = '') {
     // Endet das Spiel mitten in einem Zug (z.B. Zeit abgelaufen beim Mehrfachsprung), diesen Stand auch merken
@@ -708,6 +731,7 @@ socket.on('receiveMove', (m) => {
 /**
  * Drag & Drop mit Pointer Events (funktioniert gleich für Maus, Finger und Stift):
  * Stein drücken, ziehen und auf einem Zielfeld loslassen
+ * @param {PointerEvent} event
  */
 function handlePointerDown(event) {
     if (event.button !== 0) return; // Nur linke Maustaste bzw. Finger
@@ -733,6 +757,7 @@ function handlePointerDown(event) {
 
 /**
  * Lässt den Stein dem Mauszeiger bzw. Finger folgen
+ * @param {PointerEvent} event
  */
 function handlePointerMove(event) {
     if (!drag || event.pointerId !== drag.pointerId) return;
@@ -761,6 +786,7 @@ function handlePointerMove(event) {
 
 /**
  * Loslassen: Liegt darunter ein Zielfeld, wird gezogen, sonst springt der Stein zurück
+ * @param {PointerEvent} event
  */
 function handlePointerUp(event) {
     if (!drag || event.pointerId !== drag.pointerId) return;
@@ -822,6 +848,12 @@ onLanguageChange(updateTabTitle);
 
 /**
  * Schreibt einen Zug in den Spielverlauf und scrollt mit
+ * @param {number} sRow - Startzeile
+ * @param {number} sCol - Startspalte
+ * @param {number} eRow - Zielzeile
+ * @param {number} eCol - Zielspalte
+ * @param {boolean} isCapture
+ * @param {boolean} [getsPromoted] - Der Stein wurde zur Dame
  */
 function addToLog(sRow, sCol, eRow, eCol, isCapture, getsPromoted = false) {
     // Zeile und Spalte in die Brettschreibweise umwandeln (z.B. A1)
@@ -857,6 +889,7 @@ function addToLog(sRow, sCol, eRow, eCol, isCapture, getsPromoted = false) {
 /**
  * Darf man gerade einen Zug zurücknehmen? Nur gegen den Computer, nur wenn man selbst am Zug ist (nicht mitten im
  * Mehrfachsprung) und schon ein eigener Zug samt Antwort des Computers gespielt wurde
+ * @returns {boolean}
  */
 function canUndo() {
     return state.gameMode === 'computer' && isMyTurn() && !isMultiJumping && canTakeBack(2);
@@ -979,6 +1012,7 @@ function updatePieceCursors() {
 /**
  * Tastatursteuerung des Bretts: Pfeiltasten bewegen den Fokus, Escape hebt die Auswahl auf
  * (Enter und Leertaste lösen bei Buttons automatisch einen Klick aus)
+ * @param {KeyboardEvent} event
  */
 function handleBoardKeydown(event) {
     const cell = event.target.closest('.cell');
@@ -1006,6 +1040,7 @@ function handleBoardKeydown(event) {
 
 /**
  * Merkt sich das zuletzt fokussierte Feld: Nur dieses ist per Tab erreichbar (Roving Tabindex)
+ * @param {FocusEvent} event
  */
 function handleBoardFocus(event) {
     const cell = event.target.closest('.cell');

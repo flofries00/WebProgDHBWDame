@@ -11,6 +11,11 @@ import { applyMove, getLegalMoves, opponentOf } from './rules.js';
 
 /**
  * Punkte für einen Zug aus Sicht des ziehenden Spielers (höher = besser)
+ * @param {import('./rules.js').Board} board - Brett vor dem Zug
+ * @param {import('./rules.js').Move} move - Ein erlaubter Zug
+ * @param {'white' | 'black'} color - Farbe des Computers
+ * @param {'klassisch' | 'international'} [variant]
+ * @returns {number}
  */
 function scoreMove(board, move, color, variant = 'klassisch') {
     const { board: next, promoted, mustContinue } = applyMove(board, move, variant);
@@ -39,6 +44,13 @@ function scoreMove(board, move, color, variant = 'klassisch') {
 /**
  * Wählt den Zug des Computers aus den erlaubten Zügen. Bei gleich guten Zügen entscheidet der Zufall,
  * damit sich keine Partie wiederholt. random ist austauschbar, damit die Tests feste Ergebnisse bekommen
+ * @param {import('./rules.js').Board} board
+ * @param {'white' | 'black'} color - Farbe des Computers
+ * @param {import('./rules.js').Move[]} legalMoves - Erlaubte Züge (aus rules.js)
+ * @param {'klassisch' | 'international'} [variant]
+ * @param {'easy' | 'medium'} [difficulty]
+ * @param {() => number} [random] - Zufallszahl von 0 bis unter 1
+ * @returns {import('./rules.js').Move | null} null, wenn es keinen erlaubten Zug gibt
  */
 export function chooseComputerMove(
     board,

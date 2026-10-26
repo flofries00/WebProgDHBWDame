@@ -105,6 +105,8 @@ let solved = false; // Lektion geschafft, das Brett ist gesperrt
 
 /**
  * Wandelt die Text-Aufstellung einer Lektion in ein Brett für rules.js um
+ * @param {string[]} layout - Eine Zeile pro Brettreihe: '.' leer, 'w'/'b' Stein, 'W'/'B' Dame
+ * @returns {import('./rules.js').Board}
  */
 function parseLayout(layout) {
     return layout.map((rowText) =>
@@ -176,6 +178,8 @@ function renderBoard() {
 
 /**
  * Zeigt den Hinweis unter dem Brett (wird vorgelesen). Ohne Schlüssel wird er geleert
+ * @param {string | null} [key] - Schlüssel aus translations.js
+ * @param {boolean} [isSuccess]
  */
 function setFeedback(key = null, isSuccess = false) {
     const feedback = document.getElementById('tutorialFeedback');
@@ -185,6 +189,7 @@ function setFeedback(key = null, isSuccess = false) {
 
 /**
  * Startet eine Lektion (auch für "Nochmal")
+ * @param {number} index - Nummer der Lektion
  */
 function startLesson(index) {
     lessonIndex = index;
@@ -215,6 +220,7 @@ function startLesson(index) {
 
 /**
  * Führt einen Zug auf dem Übungsbrett aus
+ * @param {import('./rules.js').Move} move
  */
 function makeMove(move) {
     const result = applyMove(board, move, variantOf(LESSONS[lessonIndex]));
@@ -249,6 +255,7 @@ function makeMove(move) {
 
 /**
  * Klick auf das Übungsbrett: Zielfeld anklicken führt den Zug aus, eigenen Stein anklicken wählt ihn aus
+ * @param {MouseEvent} event
  */
 export function handleTutorialClick(event) {
     const cell = event.target.closest('.cell');
