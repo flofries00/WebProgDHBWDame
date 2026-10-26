@@ -133,7 +133,7 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
 │   └── js/
 │       ├── main.js      Einstiegspunkt: verbindet Buttons und Formulare mit den Funktionen
 │       ├── ui.js        Bildschirmwechsel, Suche, Münzwurf, Dialoge
-│       ├── game.js      Brett anzeigen, Züge ausführen, Uhr, Computergegner
+│       ├── game.js      Brett anzeigen, Züge ausführen, Computergegner
 │       ├── rules.js     Spielregeln ohne HTML (wird auch vom Server genutzt)
 │       ├── state.js     Gemeinsamer Zustand (Spielmodus, Namen, Farbe, Bedenkzeit)
 │       ├── socket.js    Gemeinsame Verbindung zum Server
@@ -146,6 +146,7 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
 │       ├── chat.js      Chat der Online-Partie: senden, empfangen, anzeigen
 │       ├── rooms.js     Private Räume: Code und Link teilen, Vorschau vor dem Beitreten
 │       ├── review.js    Nachspielen der Partie im Endbildschirm
+│       ├── clock.js     Bedenkzeit: Uhren beider Spieler, Abgleich mit der Uhr des Servers
 │       ├── i18n.js      Sprache (Deutsch/Englisch) wählen und merken, Texte übersetzen: t() und setText()
 │       ├── translations.js  Alle Texte der Oberfläche auf Deutsch und Englisch
 │       └── colors.js    Farbvorlagen und Kontrastprüfung nach WCAG ohne HTML (testbar wie rules.js)
@@ -168,7 +169,7 @@ flowchart TB
         HTML["index.html + css/"]
         Main["main.js<br/>verbindet Buttons mit Funktionen"]
         UI["ui.js<br/>Bildschirme, Suche, Münzwurf"]
-        Game["game.js<br/>Brett, Uhr, Computergegner"]
+        Game["game.js<br/>Brett, Züge, Computergegner"]
         RulesC["rules.js<br/>Spielregeln"]
         Sound["sound.js<br/>Töne"]
         Theme["theme.js<br/>Farben-Fenster"]
@@ -183,6 +184,7 @@ flowchart TB
         Chat["chat.js<br/>Chat der Online-Partie"]
         Rooms["rooms.js<br/>Private Räume"]
         Review["review.js<br/>Nachspielen"]
+        Clock["clock.js<br/>Bedenkzeit"]
         HTML --> Main
         Main --> UI
         Main --> Game
@@ -213,6 +215,8 @@ flowchart TB
         Rooms --> SocketC
         Main --> Review
         Game <--> Review
+        Game <--> Clock
+        Clock --> SocketC
     end
 
     subgraph Server["Node.js-Server (server.js)"]

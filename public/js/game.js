@@ -4,6 +4,7 @@ import { showScreen, leaveToLobby, showConfirm } from './ui.js';
 import { fireConfetti, fireRain } from './effects.js';
 import { resetChat } from './chat.js';
 import { startHistory, noteMove, recordTurn, showReview } from './review.js';
+import { startClock, switchClock, stopClock } from './clock.js';
 import { playSound } from './sound.js';
 import {
     createInitialBoard,
@@ -26,10 +27,6 @@ let moveCount = 0; // Anzahl der abgeschlossenen Züge (für den Endbildschirm)
 let quietKingTurns = 0; // Remis-Regel: Damenzüge ohne Schlag hintereinander
 let turnByKing = false; // Remis-Regel: Begann der laufende Zug mit einer Dame?
 let turnCaptured = false; // Remis-Regel: Wurde im laufenden Zug (auch im Mehrfachsprung) geschlagen?
-let startTime = 300; // Bedenkzeit pro Spieler in Sekunden (wird bei Spielstart aus der Einstellung gesetzt)
-let whiteTime = startTime; // Restzeit Weiß in Sekunden
-let blackTime = startTime; // Restzeit Schwarz in Sekunden
-let timerInterval = null;
 let isMultiJumping = false; // Läuft ein Mehrfachsprung? Dann darf nur der springende Stein weiterziehen
 let computerMoveTimeout = null; // Ausstehender Computerzug (damit er abgebrochen werden kann)
 let drag = null; // Laufendes Ziehen eines Steins: { piece, pointerId, startX, startY, bounds, moved }
@@ -81,12 +78,8 @@ export function startGame() {
     document.getElementById('p1Captured').innerHTML = '';
     document.getElementById('compCaptured').innerHTML = '';
 
-    // Startzeiten zurücksetzen und Anzeige aktualisieren
-    startTime = state.timeMinutes * 60;
-    whiteTime = startTime;
-    blackTime = startTime;
-    updateTimerDisplays();
-    startTurnTimer();
+    // Uhren auf die Bedenkzeit stellen, die Uhr von Weiß läuft (clock.js)
+    startClock();
 
     // Farben der Spieler in der Kopfzeile (beim Münzwurf ausgelost)
     setText(document.getElementById('p1Color'), state.playerGetsWhite ? 'game.white' : 'game.black');
@@ -496,8 +489,8 @@ function handleBoardClick(event) {
     // Nach dem Spielerwechsel prüfen, ob der neue Spieler im Schlagzwang ist
     autoHighlightCaptures();
 
-    // Optischen Fokus der Uhr auf den neuen Spieler wechseln
-    updateActiveTimerStyle();
+    // Uhr des neuen Spielers laufen lassen und hervorheben
+    switchClock(currentTurn);
 
     // Mauszeiger für neuen Spieler aktualisieren
     updatePieceCursors();
@@ -574,7 +567,7 @@ export function endGame(winnerColor, reason = '') {
     recordTurn(board);
 
     // Uhr anhalten
-    clearInterval(timerInterval);
+    stopClock();
 
     // Ausstehenden Computerzug abbrechen
     clearTimeout(computerMoveTimeout);
@@ -674,137 +667,12 @@ export async function abortGame() {
  * Wird beim Aufgeben und bei Verbindungsabbruch benutzt
  */
 export function stopGame() {
-    clearInterval(timerInterval);
+    stopClock();
     clearTimeout(computerMoveTimeout);
     document.removeEventListener('click', handleGlobalClick);
     clearSelection();
     isMultiJumping = false;
 }
-
-/**
- * Startet das Sekundenticken der Uhr
- */
-function startTurnTimer() {
-    clearInterval(timerInterval);
-    updateActiveTimerStyle();
-
-    timerInterval = setInterval(() => {
-        if (currentTurn === 'white') {
-            whiteTime--;
-            if (whiteTime <= 0) {
-                whiteTime = 0;
-                timeExpired('black');
-                return;
-            }
-        } else {
-            blackTime--;
-            if (blackTime <= 0) {
-                blackTime = 0;
-                timeExpired('white');
-                return;
-            }
-        }
-        updateTimerDisplays();
-    }, 1000);
-}
-
-/**
- * Die Anzeige steht bei 0:00. Gegen den Computer ist das Spiel damit vorbei.
- * Online entscheidet der Server (Cheating-Schutz [8]): Die Anzeige wartet bei 0:00 auf seine Meldung "timeUp"
- */
-function timeExpired(winner) {
-    updateTimerDisplays();
-    if (state.gameMode === 'online') {
-        clearInterval(timerInterval);
-        return;
-    }
-    endGame(winner, 'timeout');
-}
-
-/**
- * Zeigt die Restzeiten an: Digitaluhr (MM:SS), Zeitbalken und Warnung ab 30 Sekunden
- */
-function updateTimerDisplays() {
-    const format = (sec) => {
-        const m = Math.floor(sec / 60)
-            .toString()
-            .padStart(2, '0');
-        const s = (sec % 60).toString().padStart(2, '0');
-        return `${m}:${s}`;
-    };
-
-    const p1El = document.getElementById('p1Timer');
-    const compEl = document.getElementById('compTimer');
-    const p1Bar = document.getElementById('p1TimerBar');
-    const compBar = document.getElementById('compTimerBar');
-
-    const p1Time = state.playerGetsWhite ? whiteTime : blackTime;
-    const compTime = state.playerGetsWhite ? blackTime : whiteTime;
-
-    // a) Digitaluhren aktualisieren
-    p1El.textContent = format(p1Time);
-    compEl.textContent = format(compTime);
-
-    // b) Füllstand der Zeitbalken als Anteil von 0 bis 1 (Basis: Startzeit), die Richtung regelt das CSS
-    p1Bar.style.setProperty('--time-left', p1Time / startTime);
-    compBar.style.setProperty('--time-left', compTime / startTime);
-
-    // Warn-Blinken ab 30s aktivieren und für neues Spiel wieder entfernen
-    if (p1Time <= 30) {
-        p1El.classList.add('low-time');
-        p1Bar.classList.add('low-time');
-    } else {
-        p1El.classList.remove('low-time');
-        p1Bar.classList.remove('low-time');
-    }
-    if (compTime <= 30) {
-        compEl.classList.add('low-time');
-        compBar.classList.add('low-time');
-    } else {
-        compEl.classList.remove('low-time');
-        compBar.classList.remove('low-time');
-    }
-}
-
-/**
- * Hebt die Uhr des Spielers hervor, der am Zug ist
- */
-
-function updateActiveTimerStyle() {
-    const p1El = document.getElementById('p1Timer');
-    const compEl = document.getElementById('compTimer');
-
-    const isP1Turn = isMyTurn();
-
-    if (isP1Turn) {
-        p1El.classList.add('active-timer');
-        compEl.classList.remove('active-timer');
-    } else {
-        compEl.classList.add('active-timer');
-        p1El.classList.remove('active-timer');
-    }
-}
-
-/**
- * Läuft gerade eine Partie? (Nachrichten des Servers zur Uhr können auch nach dem Spielende noch ankommen)
- */
-const isPlaying = () => document.getElementById('gameScreen').classList.contains('active');
-
-// Cheating-Schutz [8]: Nach jedem Zug schickt der Server den Stand seiner Uhr (in ms), die Anzeige
-// übernimmt ihn. Die Uhr läuft danach weiter, auch wenn sie vorher bei 0:00 gewartet hat
-socket.on('clockSync', (clock) => {
-    if (!isPlaying() || !Number.isFinite(clock?.white) || !Number.isFinite(clock?.black)) return;
-    whiteTime = Math.max(Math.ceil(clock.white / 1000), 0);
-    blackTime = Math.max(Math.ceil(clock.black / 1000), 0);
-    updateTimerDisplays();
-    startTurnTimer();
-});
-
-// Cheating-Schutz [8]: Der Server meldet, dass die Zeit abgelaufen ist, und wer gewonnen hat
-socket.on('timeUp', ({ winner }) => {
-    if (!isPlaying()) return;
-    endGame(winner === 'white' ? 'white' : 'black', 'timeout');
-});
 
 /**
  * Zug des Online-Gegners (vom Server geprüft) mit simulierten Klicks auf dem Brett nachspielen
