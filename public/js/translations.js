@@ -45,6 +45,11 @@ export const TRANSLATIONS = {
         'setup.minutes10': '10 Minuten',
         'setup.party': 'Partymodus',
         'setup.partyHint': 'Partymodus: 1 bis 10 Minuten per Zufall, für beide gleich',
+        'setup.difficulty': 'Computer-Stärke',
+        'setup.easy': 'Leicht',
+        'setup.easyHint': 'zieht zufällig',
+        'setup.medium': 'Mittel',
+        'setup.mediumHint': 'denkt voraus',
 
         // Private Räume
         'room.heading': 'Mit Freunden spielen',
@@ -310,6 +315,11 @@ export const TRANSLATIONS = {
         'setup.minutes10': '10 minutes',
         'setup.party': 'Party mode',
         'setup.partyHint': 'Party mode: 1 to 10 minutes at random, the same for both',
+        'setup.difficulty': 'Computer strength',
+        'setup.easy': 'Easy',
+        'setup.easyHint': 'moves at random',
+        'setup.medium': 'Medium',
+        'setup.mediumHint': 'thinks ahead',
 
         'room.heading': 'Play with friends',
         'room.create': 'Create private room',

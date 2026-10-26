@@ -100,6 +100,7 @@ export function showSetup() {
     renderQueueStatus();
 
     prepareRoomSection(); // Bereich für private Räume (rooms.js)
+    document.getElementById('difficultyOptions').hidden = state.gameMode !== 'computer';
     showScreen('setupScreen');
 }
 
@@ -147,6 +148,7 @@ export function startSearch(mode = 'search') {
     // Gewählte Variante und Bedenkzeit merken und im Wartebildschirm anzeigen
     state.variant = document.querySelector('input[name="variant"]:checked').value;
     state.timeSetting = document.querySelector('input[name="timeSetting"]:checked').value;
+    state.difficulty = document.querySelector('input[name="difficulty"]:checked').value;
     const variant = { key: `variant.${state.variant}` }; // Name der Variante wird mit übersetzt
     const waitTimeText = document.getElementById('waitTimeText');
     if (state.timeSetting === 'party') setText(waitTimeText, 'wait.settingsParty', { variant });

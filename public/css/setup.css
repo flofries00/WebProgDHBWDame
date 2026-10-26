@@ -1,6 +1,21 @@
 /* Bildschirm "Spiel einrichten": Variante und Bedenkzeit als Karten, private Räume mit Vorschau und Raumcode */
 @layer screens {
     /* ---------- Spiel einrichten: Variante und Bedenkzeit als Karten mit Bild ---------- */
+    /* Variante und Computer-Stärke in einer Reihe: Reicht der Platz nicht (Handy), rutscht die Stärke darunter */
+    .setup-row {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: 0.875rem;
+    }
+
+    .setup-variant {
+        flex: 3 1 15rem;
+    }
+
+    .setup-difficulty {
+        flex: 2 1 10rem;
+    }
+
     .option-cards {
         display: flex;
         flex-wrap: wrap;
@@ -14,6 +29,11 @@
         & legend {
             padding-inline: 0.5rem;
             font-weight: bold;
+        }
+
+        /* display: flex würde das hidden-Attribut überstimmen (Computer-Stärke ist online ausgeblendet) */
+        &[hidden] {
+            display: none;
         }
     }
 
@@ -67,6 +87,15 @@
             width: 3rem;
             height: 3rem;
         }
+    }
+
+    /* Computer-Stärke: Symbol statt Bild, darunter Name und kurze Beschreibung */
+    .option-emoji {
+        font-size: 1.75rem;
+    }
+
+    .option-subtext {
+        margin: 0;
     }
 
     /* Hinweis zum Partymodus unter den Karten */

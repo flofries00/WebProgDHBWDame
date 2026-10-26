@@ -5,6 +5,7 @@ import { fireConfetti, fireRain } from './effects.js';
 import { resetChat } from './chat.js';
 import { startHistory, noteMove, recordTurn, markLastMove, showReview } from './review.js';
 import { startClock, switchClock, stopClock } from './clock.js';
+import { chooseComputerMove } from './ai.js';
 import { playSound } from './sound.js';
 import {
     createInitialBoard,
@@ -842,7 +843,7 @@ function addToLog(sRow, sCol, eRow, eCol, isCapture, getsPromoted = false) {
 }
 
 /**
- * Führt einen zufälligen, gültigen Zug für den Computer aus.
+ * Führt den Zug des Computers aus. Welchen Zug er wählt, entscheidet ai.js je nach Stärke
  */
 function makeComputerMove() {
     // Nur agieren, wenn der Computer (der Gegner) dran ist
@@ -852,10 +853,11 @@ function makeComputerMove() {
     const moves = getCurrentLegalMoves();
     if (moves.length === 0) return;
 
-    // 2. Zufälligen Zug auswählen
-    const randomMove = moves[Math.floor(Math.random() * moves.length)];
-    const pieceElement = getCell(randomMove.fromRow, randomMove.fromCol).children[0];
-    const targetCell = getCell(randomMove.toRow, randomMove.toCol);
+    // 2. Zug auswählen: Leicht zufällig, Mittel nach Bewertung
+    const color = state.playerGetsWhite ? 'black' : 'white';
+    const move = chooseComputerMove(board, color, moves, state.variant, state.difficulty);
+    const pieceElement = getCell(move.fromRow, move.fromCol).children[0];
+    const targetCell = getCell(move.toRow, move.toCol);
 
     // 3. Zug mit leichter Verzögerung ausführen, Timeout merken, damit er unterbrochen werden kann
     computerMoveTimeout = setTimeout(() => {

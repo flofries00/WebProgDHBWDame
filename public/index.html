@@ -127,27 +127,46 @@
                     <!-- Variante und Bedenkzeit als Karten mit Bild (Brett, Uhr, Partyhut, gezeichnet von pictures.js).
                          Die Radiobuttons bleiben für Tastatur und Screenreader, die Karte zeigt die Auswahl.
                          Die Werte passen zu VARIANTS in rules.js, die Regeln stehen im Hilfe-Fenster -->
-                    <fieldset class="option-cards">
-                        <legend data-i18n="setup.variant">Variante</legend>
-                        <label class="option-card">
-                            <input type="radio" name="variant" value="klassisch" checked />
-                            <span
-                                class="tutorial-board option-picture"
-                                data-board="klassisch"
-                                aria-hidden="true"
-                            ></span>
-                            <span data-i18n="setup.classic">Klassisch (8×8)</span>
-                        </label>
-                        <label class="option-card">
-                            <input type="radio" name="variant" value="international" />
-                            <span
-                                class="tutorial-board option-picture"
-                                data-board="international"
-                                aria-hidden="true"
-                            ></span>
-                            <span data-i18n="setup.international">International (10×10)</span>
-                        </label>
-                    </fieldset>
+                    <!-- Variante und (nur gegen den Computer) Computer-Stärke nebeneinander, auf dem Handy untereinander -->
+                    <div class="setup-row">
+                        <fieldset class="option-cards setup-variant">
+                            <legend data-i18n="setup.variant">Variante</legend>
+                            <label class="option-card">
+                                <input type="radio" name="variant" value="klassisch" checked />
+                                <span
+                                    class="tutorial-board option-picture"
+                                    data-board="klassisch"
+                                    aria-hidden="true"
+                                ></span>
+                                <span data-i18n="setup.classic">Klassisch (8×8)</span>
+                            </label>
+                            <label class="option-card">
+                                <input type="radio" name="variant" value="international" />
+                                <span
+                                    class="tutorial-board option-picture"
+                                    data-board="international"
+                                    aria-hidden="true"
+                                ></span>
+                                <span data-i18n="setup.international">International (10×10)</span>
+                            </label>
+                        </fieldset>
+                        <!-- Online blendet ui.js diesen Bereich aus, die Logik des Computers steht in ai.js -->
+                        <fieldset id="difficultyOptions" class="option-cards setup-difficulty">
+                            <legend data-i18n="setup.difficulty">Computer-Stärke</legend>
+                            <label class="option-card">
+                                <input type="radio" name="difficulty" value="easy" />
+                                <span class="option-emoji" aria-hidden="true">🎲</span>
+                                <span data-i18n="setup.easy">Leicht</span>
+                                <span class="input-hint option-subtext" data-i18n="setup.easyHint">zieht zufällig</span>
+                            </label>
+                            <label class="option-card">
+                                <input type="radio" name="difficulty" value="medium" checked />
+                                <span class="option-emoji" aria-hidden="true">🧠</span>
+                                <span data-i18n="setup.medium">Mittel</span>
+                                <span class="input-hint option-subtext" data-i18n="setup.mediumHint">denkt voraus</span>
+                            </label>
+                        </fieldset>
+                    </div>
                     <fieldset class="option-cards">
                         <legend data-i18n="setup.time">Bedenkzeit pro Spieler</legend>
                         <!-- Die leeren .queue-badge füllt ui.js im Online-Modus mit "1 wartet" -->

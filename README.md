@@ -11,6 +11,8 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
 **Spielen**
 
 - **Zwei Modi:** gegen den Computer oder online gegen einen anderen Menschen, mit Chat und Revanche.
+- **Computer-Stärke wählbar:** „Leicht“ zieht zufällig, „Mittel“ bewertet jeden Zug und denkt einen Zug des Gegners
+  voraus (schlägt gezielt, wird gern zur Dame, stellt keine Steine ein).
 - **Zwei Varianten mit vollständigen Spielregeln** (siehe [Spielregeln](#spielregeln)): „Klassisch“ (8×8) und
   „International“ (10×10, Rückwärtsschlagen und Mehrheitsschlag). Schlagzwang, Mehrfachsprung, fliegende Dame, Remis-Regel.
   Pflichtschläge werden automatisch rot markiert und lassen sich direkt anklicken.
@@ -134,7 +136,7 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
 │   └── js/
 │       ├── main.js      Einstiegspunkt: verbindet Buttons und Formulare mit den Funktionen
 │       ├── ui.js        Bildschirmwechsel, Suche, Münzwurf, Dialoge
-│       ├── game.js      Brett anzeigen, Züge ausführen, Computergegner
+│       ├── game.js      Brett anzeigen, Züge ausführen, Computerzug auslösen
 │       ├── rules.js     Spielregeln ohne HTML (wird auch vom Server genutzt)
 │       ├── state.js     Gemeinsamer Zustand (Spielmodus, Namen, Farbe, Bedenkzeit)
 │       ├── socket.js    Gemeinsame Verbindung zum Server
@@ -148,11 +150,13 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
 │       ├── rooms.js     Private Räume: Code und Link teilen, Vorschau vor dem Beitreten
 │       ├── review.js    Nachspielen der Partie im Endbildschirm
 │       ├── clock.js     Bedenkzeit: Uhren beider Spieler, Abgleich mit der Uhr des Servers
+│       ├── ai.js        Computergegner ohne HTML: Leicht (zufällig) oder Mittel (bewertet die Züge)
 │       ├── i18n.js      Sprache (Deutsch/Englisch) wählen und merken, Texte übersetzen: t() und setText()
 │       ├── translations.js  Alle Texte der Oberfläche auf Deutsch und Englisch
 │       └── colors.js    Farbvorlagen und Kontrastprüfung nach WCAG ohne HTML (testbar wie rules.js)
 └── tests/
     ├── rules.test.js    Unit-Tests der Spielregeln
+    ├── ai.test.js       Unit-Tests des Computergegners (Dame werden, nichts einstellen, Dame schlagen)
     ├── colors.test.js   Unit-Tests der Farblogik (Kontrast, Warnungen, Speicherstand)
     ├── server.test.js   Integrationstests gegen den echten Server
     ├── https.test.js    Integrationstests für HTTPS (HTTP- und HTTPS-Spieler in einer Partie)
@@ -170,7 +174,7 @@ flowchart TB
         HTML["index.html + css/"]
         Main["main.js<br/>verbindet Buttons mit Funktionen"]
         UI["ui.js<br/>Bildschirme, Suche, Münzwurf"]
-        Game["game.js<br/>Brett, Züge, Computergegner"]
+        Game["game.js<br/>Brett, Züge"]
         RulesC["rules.js<br/>Spielregeln"]
         Sound["sound.js<br/>Töne"]
         Theme["theme.js<br/>Farben-Fenster"]
@@ -186,6 +190,7 @@ flowchart TB
         Rooms["rooms.js<br/>Private Räume"]
         Review["review.js<br/>Nachspielen"]
         Clock["clock.js<br/>Bedenkzeit"]
+        AI["ai.js<br/>Computergegner"]
         HTML --> Main
         Main --> UI
         Main --> Game
@@ -218,6 +223,8 @@ flowchart TB
         Game <--> Review
         Game <--> Clock
         Clock --> SocketC
+        Game --> AI
+        AI --> RulesC
     end
 
     subgraph Server["Node.js-Server (server.js)"]
