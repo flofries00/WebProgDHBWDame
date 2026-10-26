@@ -9,12 +9,10 @@
  */
 import { applyMove, getLegalMoves, opponentOf } from './rules.js';
 
-export const DIFFICULTIES = ['easy', 'medium'];
-
 /**
  * Punkte für einen Zug aus Sicht des ziehenden Spielers (höher = besser)
  */
-export function scoreMove(board, move, color, variant = 'klassisch') {
+function scoreMove(board, move, color, variant = 'klassisch') {
     const { board: next, promoted, mustContinue } = applyMove(board, move, variant);
     let score = 0;
 

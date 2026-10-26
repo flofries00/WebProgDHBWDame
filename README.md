@@ -120,8 +120,8 @@ Wie „Klassisch“, mit diesen Unterschieden (Regeln des Weltverbands FMJD):
 
 ## Qualitätssicherung
 
-- **Automatische Tests** mit `node:test` (`npm test`): Spielregeln, Farblogik und Kontrast, Übersetzungen sowie Integrationstests gegen
-  den echten Server (Matchmaking, Zugprüfung, Chat, Nachrichten über 10kB, Schutz gegen Chat-Spam, Revanche, private Räume, Warteschlangen, Bedenkzeit, HTTPS, Serverstart).
+- **Automatische Tests** mit `node:test` (`npm test`): Spielregeln, Computergegner, Farblogik und Kontrast, Übersetzungen, Importe zwischen den Dateien sowie
+  Integrationstests gegen den echten Server (Matchmaking, Zugprüfung, Chat, Nachrichten über 10kB, Schutz gegen Chat-Spam, Remis-Angebot, Revanche, private Räume, Warteschlangen, Bedenkzeit, HTTPS, Serverstart).
 - **ESLint** (`npm run lint`) und **Prettier** (`npm run format:check`) für einheitlichen, fehlerarmen Code.
 
 ## Dateistruktur
