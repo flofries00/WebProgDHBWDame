@@ -2,7 +2,7 @@
 import { setText } from './i18n.js';
 import { createPieceElement } from './game.js';
 
-let turnHistory = []; // Brett nach jedem vollständigen Zug: { board, from, to, logCount }
+let turnHistory = []; // Brett nach jedem vollständigen Zug: { board, from, to, logCount, quietKingTurns }
 let turnStart = null; // Startfeld des laufenden Zugs
 let turnEnd = null; // Zielfeld des letzten Sprungs im laufenden Zug
 let reviewIndex = 0; // Welcher Eintrag aus turnHistory gerade auf dem Endbrett zu sehen ist
@@ -12,7 +12,7 @@ let reviewBoard = null; // Brett im Endbildschirm, auf dem nachgespielt wird
  * Neue Partie: Das Nachspielen beginnt mit der Startaufstellung
  */
 export function startHistory(board) {
-    turnHistory = [{ board, from: null, to: null, logCount: 0 }];
+    turnHistory = [{ board, from: null, to: null, logCount: 0, quietKingTurns: 0 }];
 }
 
 /**
@@ -24,12 +24,28 @@ export function noteMove(move, isMultiJumping) {
 }
 
 /**
- * Merkt sich das Brett nach einem Zug für das Nachspielen (nur, wenn sich seit dem letzten Eintrag etwas geändert hat)
+ * Merkt sich das Brett nach einem Zug für das Nachspielen und für "Zug zurück" (nur, wenn sich seit dem letzten
+ * Eintrag etwas geändert hat). quietKingTurns ist der Zähler der Remis-Regel nach diesem Zug
  */
-export function recordTurn(board) {
+export function recordTurn(board, quietKingTurns) {
     if (turnHistory.at(-1).board === board) return;
     const logCount = document.getElementById('logList').children.length;
-    turnHistory.push({ board, from: turnStart, to: turnEnd, logCount });
+    turnHistory.push({ board, from: turnStart, to: turnEnd, logCount, quietKingTurns });
+}
+
+/**
+ * Gibt es so viele Züge, die man zurücknehmen kann? (Die Startaufstellung bleibt immer)
+ */
+export function canTakeBack(turns) {
+    return turnHistory.length > turns;
+}
+
+/**
+ * Nimmt die letzten Züge zurück und liefert den Eintrag, zu dem es zurückgeht
+ */
+export function takeBackTurns(turns) {
+    turnHistory.splice(-turns, turns);
+    return turnHistory.at(-1);
 }
 
 /**

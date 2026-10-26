@@ -87,6 +87,7 @@ export const TRANSLATIONS = {
         'game.log': 'Spielverlauf',
         'game.chatLabel': 'Chat-Nachricht',
         'game.resign': 'Spiel aufgeben',
+        'game.undo': '↶ Zug zurück',
 
         // Spielende und Nachspielen
         'end.toStart': 'Zum Anfang',
@@ -363,6 +364,7 @@ export const TRANSLATIONS = {
         'game.log': 'Move history',
         'game.chatLabel': 'Chat message',
         'game.resign': 'Resign',
+        'game.undo': '↶ Undo move',
 
         'end.toStart': 'To the start',
         'end.previous': 'Previous move',

@@ -3,7 +3,7 @@ import { socket } from './socket.js';
 import { showScreen, leaveToLobby, showConfirm } from './ui.js';
 import { fireConfetti, fireRain } from './effects.js';
 import { resetChat } from './chat.js';
-import { startHistory, noteMove, recordTurn, markLastMove, showReview } from './review.js';
+import { startHistory, noteMove, recordTurn, markLastMove, showReview, canTakeBack, takeBackTurns } from './review.js';
 import { startClock, switchClock, stopClock } from './clock.js';
 import { chooseComputerMove } from './ai.js';
 import { resetDrawOffer } from './draw.js';
@@ -111,6 +111,9 @@ export function startGame() {
 
     // Remis anbieten (nur online - draw.js)
     resetDrawOffer();
+
+    // Zug zurück (nur gegen den Computer)
+    updateUndoButton();
 
     // Hat der Computer Weiß, beginnt er (makeComputerMove prüft das selbst)
     if (state.gameMode === 'computer') {
@@ -480,7 +483,7 @@ function handleBoardClick(event) {
     quietKingTurns = countQuietKingTurns(quietKingTurns, turnByKing, turnCaptured);
 
     // Brett nach dem vollständigen Zug für das Nachspielen merken und auf dem Brett markieren
-    recordTurn(board);
+    recordTurn(board, quietKingTurns);
     markLastMove();
 
     // Spieler wechseln
@@ -500,6 +503,9 @@ function handleBoardClick(event) {
 
     // Mauszeiger für neuen Spieler aktualisieren
     updatePieceCursors();
+
+    // Zug zurück geht nur, wenn man selbst am Zug ist
+    updateUndoButton();
 
     // Falls Computer dran ist, nächsten regulären Zug auslösen
     if (state.gameMode === 'computer' && !isMyTurn()) makeComputerMove();
@@ -570,7 +576,7 @@ function checkWinCondition() {
  */
 export function endGame(winnerColor, reason = '') {
     // Endet das Spiel mitten in einem Zug (z.B. Zeit abgelaufen beim Mehrfachsprung), diesen Stand auch merken
-    recordTurn(board);
+    recordTurn(board, quietKingTurns);
 
     // Uhr anhalten
     stopClock();
@@ -846,6 +852,78 @@ function addToLog(sRow, sCol, eRow, eCol, isCapture, getsPromoted = false) {
         // Zum neuesten Zug scrollen
         list.scrollTop = list.scrollHeight;
     }
+}
+
+/**
+ * Darf man gerade einen Zug zurücknehmen? Nur gegen den Computer, nur wenn man selbst am Zug ist (nicht mitten im
+ * Mehrfachsprung) und schon ein eigener Zug samt Antwort des Computers gespielt wurde
+ */
+function canUndo() {
+    return state.gameMode === 'computer' && isMyTurn() && !isMultiJumping && canTakeBack(2);
+}
+
+/**
+ * Button "Zug zurück": nur gegen den Computer sichtbar, nur freigegeben, wenn es gerade geht
+ */
+function updateUndoButton() {
+    const btn = document.getElementById('undoBtn');
+    btn.hidden = state.gameMode !== 'computer';
+    btn.disabled = !canUndo();
+}
+
+/**
+ * Setzt die Steine laut Brett-Daten in die vorhandenen Felder (nach "Zug zurück")
+ */
+function renderPieces() {
+    document.querySelectorAll('#board .cell').forEach((cell) => {
+        const piece = board[Number(cell.dataset.row)][Number(cell.dataset.col)];
+        cell.replaceChildren();
+        if (!piece) return;
+        const pieceElement = createPieceElement(piece);
+        pieceElement.addEventListener('pointerdown', handlePointerDown);
+        cell.append(pieceElement);
+    });
+}
+
+/**
+ * Zeigt die geschlagenen Steine (Trophäen) passend zum Brett: Was in der Startaufstellung mehr war, wurde geschlagen
+ */
+function renderTrophies() {
+    const start = createInitialBoard(state.variant);
+    const count = (someBoard, color) => someBoard.flat().filter((piece) => piece?.color === color).length;
+    const trophies = (color) =>
+        Array.from({ length: count(start, color) - count(board, color) }, () => {
+            const trophy = document.createElement('div');
+            trophy.className = `captured-piece ${color}-piece`;
+            return trophy;
+        });
+    const myColor = state.playerGetsWhite ? 'white' : 'black';
+    const computerColor = state.playerGetsWhite ? 'black' : 'white';
+    document.getElementById('p1Captured').replaceChildren(...trophies(computerColor)); // Vom Spieler geschlagen
+    document.getElementById('compCaptured').replaceChildren(...trophies(myColor)); // Vom Computer geschlagen
+}
+
+/**
+ * Button "Zug zurück" (nur gegen den Computer): nimmt den eigenen letzten Zug und die Antwort des Computers zurück.
+ * Brett, Spielverlauf, Trophäen und Remis-Zähler gehen auf den Stand davor, die Uhr läuft einfach weiter
+ */
+export function undoMove() {
+    if (!canUndo()) return;
+    const entry = takeBackTurns(2);
+    board = entry.board;
+    moveCount -= 2;
+    quietKingTurns = entry.quietKingTurns;
+
+    clearSelection();
+    renderPieces();
+    const logList = document.getElementById('logList');
+    while (logList.children.length > entry.logCount) logList.lastElementChild.remove();
+    renderTrophies();
+
+    markLastMove();
+    autoHighlightCaptures();
+    updatePieceCursors();
+    updateUndoButton();
 }
 
 /**

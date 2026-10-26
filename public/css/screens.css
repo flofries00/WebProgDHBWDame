@@ -374,7 +374,7 @@
         }
     }
 
-    /* Remis anbieten und Aufgeben nebeneinander, gleich breit (gegen den Computer nur Aufgeben) */
+    /* Remis anbieten (online) bzw. Zug zurück (gegen den Computer) und Aufgeben nebeneinander, gleich breit */
     .game-buttons {
         display: flex;
         gap: 0.625rem;

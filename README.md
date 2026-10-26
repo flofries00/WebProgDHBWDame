@@ -11,6 +11,7 @@ ES-Module), der Server läuft mit Node.js, Express und Socket.io und prüft jede
 **Spielen**
 
 - **Zwei Modi:** gegen den Computer oder online gegen einen anderen Menschen, mit Chat, Remis-Angebot und Revanche.
+- **Zug zurück gegen den Computer:** nimmt den eigenen letzten Zug und die Antwort des Computers zurück.
 - **Computer-Stärke wählbar:** „Leicht“ zieht zufällig, „Mittel“ bewertet jeden Zug und denkt einen Zug des Gegners
   voraus (schlägt gezielt, wird gern zur Dame, stellt keine Steine ein).
 - **Zwei Varianten mit vollständigen Spielregeln** (siehe [Spielregeln](#spielregeln)): „Klassisch“ (8×8) und
@@ -148,7 +149,7 @@ Frontend ohne Frameworks (HTML, CSS und JavaScript als ES-Module), Server mit No
 │       ├── effects.js   Konfetti und Regen am Spielende
 │       ├── chat.js      Chat der Online-Partie: senden, empfangen, anzeigen
 │       ├── rooms.js     Private Räume: Code und Link teilen, Vorschau vor dem Beitreten
-│       ├── review.js    Nachspielen der Partie im Endbildschirm
+│       ├── review.js    Nachspielen der Partie im Endbildschirm, Grundlage für "Zug zurück"
 │       ├── clock.js     Bedenkzeit: Uhren beider Spieler, Abgleich mit der Uhr des Servers
 │       ├── ai.js        Computergegner ohne HTML: Leicht (zufällig) oder Mittel (bewertet die Züge)
 │       ├── draw.js      Remis anbieten und auf ein Angebot antworten (nur online)
@@ -406,7 +407,8 @@ Die wichtigsten Befehle auf dem Server:
 
 ## Mögliche Erweiterungen
 
-- Zug rückgängig machen in Partien gegen den Computer
+- Zuschauen bei laufenden Online-Partien
+- Stufe „Schwer“ für den Computer, der mehrere Züge vorausdenkt
 
 ## Autor
 

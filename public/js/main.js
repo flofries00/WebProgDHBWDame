@@ -10,7 +10,7 @@ import {
     leaveToLobby,
     renderQueueStatus,
 } from './ui.js';
-import { abortGame } from './game.js';
+import { abortGame, undoMove } from './game.js';
 import { moveReview } from './review.js';
 import { offerDraw } from './draw.js';
 import { toggleSound } from './sound.js';
@@ -103,6 +103,7 @@ onClick('cancelWaitBtn', cancelWait);
 document.getElementById('chatForm').addEventListener('submit', handleChatSubmit);
 onClick('abortBtn', abortGame);
 onClick('drawBtn', offerDraw);
+onClick('undoBtn', undoMove);
 
 // Endbildschirm
 onClick('replayBtn', requestReplay);
